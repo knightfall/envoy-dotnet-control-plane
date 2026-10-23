@@ -16,8 +16,8 @@ Reviewed 24 October 2026. Source paths below are relative to go-control-plane/.
 - Evaluate Buf SDKs or existing C# bindings before owning generation; exact schema/restore compatibility is [TODO].
 - Include unary/HTTP adapters and the SotW ADS client helper in 1.0.
 - Choose released Envoy image digests for interop independently of the latest schema pin.
-- Keep standalone matcher, full legacy/contrib catalogs, and validator API parity separately scoped.
-- Prefer the optional [Protovalidate adapter design](../architecture/VALIDATION.md), with a mandatory early provider/metadata assessment and a separate conformance gate before claiming Envoy validation.
+- Keep standalone matcher and full legacy/contrib catalogs deferred. Optional semantic validation is active scope; exact Go validator method shape/error wording remains outside the default claim.
+- Use the [optional validation plan](../architecture/VALIDATION.md): original options are preserved, T03 feasibility gates binding freeze, and T26/GV gates validator publication and claims. Protovalidate is a candidate; Core has no evaluator dependency.
 
 ## Evidence
 

@@ -1,93 +1,91 @@
-# Protovalidate integration design
+# Optional schema validation
 
-Reviewed **24 October 2026**, following the user's identification of Protovalidate as PGV's successor. Status: architecture and proof plan. No candidate runtime has been restored, executed, or selected in this workspace.
+Reviewed **24 October 2026**. Status: approved project scope; implementation and runtime selection remain planned. T03 establishes feasibility before the bindings freeze. T26 implements the optional validator and must pass GV before package publication or validation-parity claims. No validation runtime has been restored, executed, or selected in this workspace.
 
-## 1. What changes in the proposal
+## 1. Compatibility boundary
 
-Use **Protovalidate as the preferred optional validation direction**. Remove the implication that the absence of a C# PGV generator means no practical .NET validation path exists. Keep the distinction between generating protobuf classes, validating configuration before publication, and receiving an Envoy xDS ACK/NACK.
+Keep three commitments separate:
 
-Protovalidate evaluates standard constraints and CEL rules at runtime. Its upstream lists Go, Java, Python, C++, and JS/TS implementations; C# is not listed as a first-party runtime in the reviewed overview. [Protovalidate](https://github.com/bufbuild/protovalidate)
+| Commitment | Required evidence |
+|---|---|
+| Schema fidelity from the first binding release | Original upstream validation options and annotation descriptors remain available, with one owner and pinned provenance |
+| Optional explicit validation | Proven acceptance/rejection semantics for the selected catalog, structured field/rule diagnostics, and visible unsupported rules |
+| Cache and discovery behavior | SetSnapshot and other publication APIs preserve Go behavior without automatically validating resources |
 
-Community candidates exist:
+The target is the pinned upstream Go PGV validation semantics. Protovalidate is a possible implementation, not the compatibility contract. Exact Go Validate/ValidateAll signatures, error text, and violation ordering are not promised. A full semantic-parity claim requires all applicable rules in its declared catalog to pass GV. A package with approved exclusions must describe limited coverage rather than claim full parity.
 
-| Candidate | Documented package / capability | Required investigation |
+Schema validation does not establish Snapshot.Consistent reference-set correctness or acceptance by a released Envoy proxy. Those remain independent checks.
+
+## 2. Early binding and metadata proof — T03 / G1
+
+T02 proposes a binding provider and catalog. Before G1 freezes that choice, T03 must:
+
+1. Inventory every validation annotation used by the selected schemas, including nested/imported messages and payload types carried in Any. Record absent validation rules as such; do not invent new rules.
+2. Verify that original options and their definitions remain accessible in the generated descriptors, without duplicate CLR types or protobuf full names.
+3. Pin viable .NET runtimes and a migration tool if needed. Evaluate valid, invalid, and boundary messages for representative presence/required, oneof, nested-message, repeated/map, numeric, and string constraints actually present upstream.
+4. Compare results with the pinned Go PGV implementation. Record unsupported rules, evaluator failures, and semantic differences; a runtime's own conformance results do not establish Envoy PGV equivalence.
+5. Select a feasible metadata/provider approach and document the remaining full-corpus work for T26. If none is feasible, report a G1 blocker and the concrete scope/provider alternatives.
+
+This is a bounded feasibility proof. G1 does not require the complete validation corpus or finished package. T04 and the streaming slice can proceed after the binding decision, while full conformance continues separately.
+
+## 3. Candidate implementations and derived metadata
+
+Candidate assessment includes pinned package/runtime versions, dependency ownership, relevant rule/CEL coverage, concurrency, failure behavior, license, and maintenance evidence.
+
+| Candidate | Package assessed by T03 | Selection status |
 |---|---|---|
-| [telus-labs/protovalidate-net](https://github.com/telus-labs/protovalidate-net) | `ProtoValidate`; .NET validation using descriptors and CEL | Exact release, schema-option ownership, supported constraints/CEL, failure behavior, licensing, support activity |
-| [bsidio/celly](https://github.com/bsidio/celly) | `Celly.Protovalidate`; native C# CEL and Protovalidate support | Same checks, plus independently reproduce relevant conformance claims |
+| [telus-labs/protovalidate-net](https://github.com/telus-labs/protovalidate-net) | ProtoValidate | Not selected or executed |
+| [bsidio/celly](https://github.com/bsidio/celly) | Celly.Protovalidate | Not selected or executed |
 
-Repository documentation establishes availability; it does not establish suitability for this Envoy catalog. Do not select a provider by a README's conformance count alone. Compare pinned versions in T03, and install exactly one provider in T26 after evidence supports it.
+Existing Envoy PGV annotations do not become executable by adding a Protovalidate runtime. The [official migration guide](https://protovalidate.com/migration-guides/migrate-from-protoc-gen-validate/) describes new annotations and constraint changes. Any migration must be tested against the original Go outcomes.
 
-## 2. Existing PGV metadata is the integration problem
+A controlled overlay may add derived Protovalidate options alongside original PGV options if the proof supports it. Record the input revision, tool version, every changed option, unsupported migration, and descriptor fingerprints. Preserve message/field/service identity and binary behavior. Treat added options as derived metadata, not an unchanged upstream descriptor. Keep one authoritative Envoy type assembly; do not distribute original and migrated copies of the same messages.
 
-Envoy bindings at the reviewed pin contain PGV rules. A Protovalidate runtime alone does not make those rules executable. The migration guide describes adding `buf.validate` annotations alongside PGV before removing legacy annotations; it also identifies changed constraint semantics and unsupported rules. Validation uses reflection rather than a validation protoc plugin. [Official migration guide](https://protovalidate.com/migration-guides/migrate-from-protoc-gen-validate/)
+Reject a provider arrangement that prevents required metadata access or introduces overlapping definitions. Owning pinned generation remains an alternative if an existing SDK cannot satisfy the proof. The actual evaluator and package name are selected only after this assessment.
 
-Proposed proof pipeline:
+## 4. Optional package and explicit invocation — T26
 
-```mermaid
-flowchart LR
-    A[Pinned Envoy and imported schemas] --> B[Controlled annotation overlay]
-    B --> C[Single generated Protocol assembly]
-    C --> D[Descriptor and wire compatibility checks]
-    C --> E[Selected optional .NET validator]
-    E --> F[Conformance and migrated Envoy corpus]
-```
+The proposed Envoy.ControlPlane.Validation package references Protocol and owns evaluator integration. A provider-specific name may follow T03. Core and ASP.NET Core do not reference the validator or its CEL/runtime dependencies.
 
-The overlay is repository-owned build input derived from pinned upstream sources, not an edit to the separate Go reference checkout. Pin the migration tool revision and its annotation dependencies. Keep PGV metadata during initial evaluation. Preserve protobuf full names, field numbers/types, oneofs, defaults, packing, JSON names, services, and custom options other than declared annotation additions. Compare normalized descriptors before/after, and binary round trips using Go and C# fixtures. Descriptor bytes are expected to differ where options are added; do not assert byte-identical descriptors.
+Callers explicitly invoke validation before deciding whether to publish configuration. Return distinguishable outcomes:
 
-Build a rule inventory over the selected catalog. Explicitly review presence/required semantics, ignore-empty/skip behavior, oneofs, nested messages, map constraints including sparse-map differences, numeric edge cases, regex/Unicode, timestamps/durations, enums, and `Any`. Record unsupported transformations with schema/field/rule locations. No unknown rule may be silently marked supported.
+- All applicable constraints passed for the declared coverage.
+- Constraint violations, with structured field paths and rule identifiers where supported.
+- Unsupported or unresolved rules, metadata, or Any types.
+- Evaluator/descriptor faults.
 
-An annotation assembly may already be distributed by a runtime. T03 must prove extension-option registration and CLR type ownership with the chosen binding provider. Prefer shared annotation definitions owned once, with the evaluator only in the optional adapter. If that cannot be made compatible, evaluate an external descriptor/rule overlay only through a concrete proof; do not assume the runtime accepts it.
+Unsupported constraints and evaluator faults must never be reported as successful validation. Any traversal is limited to what the selected upstream validators and registered descriptors support; do not infer universal unpacking of embedded messages. T03/T26 document that behavior.
 
-## 3. Provider-neutral boundary
+Keep cache publication, reference consistency, and validation separate. No Core validator interface, publication decorator, generic policy pipeline, or transactional batch-publication layer is introduced.
 
-Proposed Core contract, to be frozen after G1:
+## 5. Conformance and release gate — GV
 
-```csharp
-public interface IResourceValidator
-{
-    ValueTask<ResourceValidationResult> ValidateAsync(
-        IMessage resource, CancellationToken cancellationToken);
-}
-```
+T26/GV requires:
 
-Result carries validity and structured violations: resource type/name, field path, stable rule identifier when available, and diagnostic message. Descriptor/CEL compilation failures, unsupported rules, cancellation, and unexpected evaluator faults are failures distinct from a valid result with violations. Avoid promising identical violation ordering or text across providers; define deterministic adapter ordering if consumers need it. Cap collected violations and document truncation explicitly.
+1. Pinned schema, Go PGV, evaluator, migration, and corpus inputs.
+2. Descriptor comparisons that preserve wire/message/service identity and report intentional option changes.
+3. Positive, negative, and boundary comparison cases for every applicable rule class in the claimed catalog, with unsupported combinations and skips visible.
+4. Applicable official evaluator conformance plus the separate Envoy/Go PGV comparison corpus; neither substitutes for the other.
+5. Clean optional-package consumption, structured violation/fault outcomes, relevant concurrency cases, and proof that root-only consumers have no evaluator dependency.
+6. A coverage report linking messages/fields/rules to outcomes, exclusions, and exact pins.
 
-`ValidatedSnapshotPublisher` is a separate opt-in decorator around publication:
+The streaming preview and root-runtime release do not depend on complete GV results. Original metadata preservation and T03 feasibility do gate binding freeze. The optional validation package and every validation-parity claim require GV; incomplete validation cannot be advertised as complete schema parity.
 
-1. Build the candidate using the same ownership/copy rules as snapshots.
-2. Validate every candidate resource outside cache locks. Enforce explicit metadata coverage for enabled Envoy validation; an unannotated descriptor must not appear to have proved Envoy rule equivalence.
-3. On any violation or validator failure, return diagnostics and retain the previous snapshot. Do not partially publish a resource collection.
-4. Optionally run the separate source-matching consistency check if the application selected it.
-5. Publish the validated immutable candidate once. Publication success still does not imply Envoy acceptance.
+## 6. Every schema update
 
-Raw `SetSnapshot` remains available and does not validate by default. Per-resource LinearCache validation uses an analogous decorator, with a batch validated before installing it; it cannot validate arbitrary global references without an application policy. Custom caches can call the validator explicitly.
+T24 update tooling and T26 validation evidence must report:
 
-## 4. Runtime lifecycle and operational behavior
+- Added, changed, and removed original validation rules.
+- Changes in derived options, migration warnings, and unsupported constraints.
+- Current coverage for the selected catalog and required Go/.NET comparison cases.
+- Evaluator/tool version changes and affected conformance results.
 
-Preload/compile selected descriptors at startup where the candidate supports it. A rule-compilation failure should fail explicit validator initialization rather than first appear during a cache lock or a proxy response. Cache compiled programs with documented bounds. Establish whether one validator is safe for concurrent use or needs bounded instances; do not infer thread safety solely from a provider claim.
+Unknown, unsupported, or changed unevaluated rules block validation-package acceptance and affected claims for that candidate. Preserve and report those rules in a root-only update without implying validation support. Do not carry forward an old validation result under a new schema pin without evidence.
 
-Cancellation must be honored before and between resource validations. If a provider cannot interrupt a synchronous CEL evaluation, document that limit and establish supported expression/input bounds before enabling untrusted custom rules. Do not claim hard execution deadlines from a cancellation token alone. NativeAOT/trimming are separate compatibility experiments, not implied support from ordinary .NET execution.
+## 7. Task sequencing
 
-No resource or Secret payload is written to normal diagnostics. Field/rule paths are sufficient for default logs. Preserve full internal exceptions for application-controlled diagnostics without forcing them into HTTP/gRPC error text.
+T03 is active foundation work and a G1 prerequisite. T26 is active optional-package work with its own GV gate; optional means consumers can omit it, not that the task is deferred. Matcher and broader catalogs remain T27/T28 deferred scope.
 
-## 5. Proof and release criteria
+No implementation, package restore/build, conformance, or Envoy interoperability result is established by this document.
 
-T03 is mandatory early design work; T26 is the optional implementation work. Required evidence for **GV**, the validation release gate:
-
-- Pinned provider/package, migration tool, annotation inputs, and conformance corpus revision, with reproducible restore/build.
-- A clean consumer using Protocol, Core, and the adapter with no duplicate message or annotation definitions.
-- Normalized descriptor and binary-compatibility checks for migrated inputs.
-- Official conformance corpus execution where supported, with exact pass/fail/skip details and explained exclusions.
-- An Envoy-specific corpus comparing original Go PGV outcomes and migrated .NET outcomes for supported rules. Differences are classified; a Protovalidate conformance pass alone does not prove PGV equivalence.
-- Nested/repeated/map/oneof/Any/presence cases; malformed or unsupported CEL; cache/thread reuse; cancellation; diagnostic limits; publication atomicity; disabled-validation behavior.
-- Dependency inspection showing the CEL evaluator is absent from a Core-only consumer's runtime graph.
-
-If metadata migration or the runtime fails this gate, retain the Core release scope and report the adapter as experimental or unavailable for Envoy validation. Custom messages already using supported `buf.validate` rules may have a narrower separately evidenced claim. Do not describe missing validation as successful validation.
-
-## 6. Effort and decision consequences
-
-The root-library estimate includes a bounded T03 provider/metadata assessment inside the initial proof checkpoint. Full corpus migration, provider remediation, and the T26 adapter are **additional optional work** and are not included in the 6–10 engineer-week root estimate. Estimate that work only after the rule inventory and candidate proof; unsupported CEL or schema metadata can materially change it.
-
-PGV `Validate`/`ValidateAll` method-shaped API parity would require a further explicit commitment. The useful proposed feature is opt-in semantic validation with documented coverage. The selected adapter should expose that contract without claiming affiliation with Buf or Envoy.
-
-Related: [ADR10](DECISIONS.md), [architecture](ARCHITECTURE.md), [tasks T03/T26](../plan/IMPLEMENTATION-PLAN.md), [requirements R23/R24 and cases V34–V36](../plan/TRACEABILITY.md).
+Related: [ADR10/ADR13](DECISIONS.md), [implementation tasks](../plan/IMPLEMENTATION-PLAN.md), [requirements and gates](../plan/TRACEABILITY.md).

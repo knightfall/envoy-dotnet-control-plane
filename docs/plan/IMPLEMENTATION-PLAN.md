@@ -1,10 +1,12 @@
 # Implementation plan: tasks and subtasks
 
-Reviewed **24 October 2026**. All tasks are **planned**; none is an implementation result. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md). Requirement, verification, and gate definitions are in [traceability](TRACEABILITY.md).
+Reviewed **24 October 2026**. All active tasks are **planned**. T03 is required before G1 binding freeze; T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. None is an implementation result. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
 
 ## Execution rules
 
 Each task below identifies dependencies, proposed outputs, numbered subtasks, and acceptance criteria. Output paths are future artifacts inside this .NET repository unless explicitly described as reference evidence. Do not edit the sibling Go checkout to make a differential case pass. Preserve source/spec divergences in a decision record tied to the baseline.
+
+**Feature ceiling:** implement the selected Go root-library surface, its approved optional schema-validation constraints, and necessary .NET adaptations. Start with the direct Go loop/watch/cache structure. A task does not authorize extra options, frameworks, stronger ownership guarantees, or performance APIs. T03/T26 are active scope; T27/T28 remain deferred. Automatic validation-on-publication is excluded.
 
 Task completion requires its acceptance criteria, relevant verification artifacts, and documentation updates. A test name alone does not count as a passing result. Record exact commands, tool versions, fixture versions, and outcome at implementation time. Select the .NET test framework/runner in T04 before writing command recipes.
 
@@ -13,11 +15,12 @@ Task completion requires its acceptance criteria, relevant verification artifact
 | Milestone | Required tasks | Gate / deliverable |
 |---|---|---|
 | M0 — establish provenance | T01 | G0; complete source/import inventory |
-| M1 — close generation and validation design | T02, T03 | G1; selected binding owner, usable package proof, validation decision |
+| M1 — close generation design | T02, T03 | G1; usable binding provider, preserved annotations, and bounded validation feasibility proof |
 | M2 — useful preview | T04–T12, preview portions of T20–T24 | G2; SnapshotCache + SotW/ADS + real Envoy example |
 | M3 — root-library scope | T13–T20 | G3; full service/cache/helper feature matrix |
 | M4 — release evidence | T21–T25 | G4 then G5; differential, lifecycle, Envoy, package proof |
-| M5 — optional additions | T26, T27, T28 as selected | GV or extension-specific acceptance; no implicit expansion of 1.0 |
+| Optional validation track | T26 after T03/T04 | GV before validation-package publication or validation-parity claims; full conformance does not block M2–M4 |
+| Deferred scope; not a milestone | T27, T28 | Explicit scope decision before execution; extension gate |
 
 T21's harness starts as soon as T02/T04 allow; T12 uses its SotW subset. T22–T24 similarly build incrementally, rather than waiting until feature completion to introduce evidence. Final task dependencies below describe completion prerequisites, not a prohibition on early harness/setup work.
 
@@ -25,8 +28,12 @@ T21's harness starts as soon as T02/T04 allow; T12 uses its SotW subset. T22–T
 flowchart TD
     T01 --> T02
     T02 --> T03
-    T03 --> G1[Bindings and metadata decision]
+    T02 --> G1[Binding decision]
+    T03 --> G1
     G1 --> T04
+    T04 --> T26
+    T03 --> T26
+    T26 --> GV[Validation gate]
     T04 --> T05
     T05 --> T06
     T06 --> T07
@@ -54,9 +61,6 @@ flowchart TD
     T22 --> T23
     T23 --> T24
     T24 --> T25
-    T03 --> T26
-    T05 --> T27
-    T02 --> T28
 ```
 
 The table and task dependency fields are authoritative; the diagram summarizes the main flow. Preview gate is required before a preview is published, but 1.0 engineering can continue before publication. Independent helper/Linear/client work can overlap after shared contracts stabilize; coordination must avoid competing edits to contract files.
@@ -76,44 +80,44 @@ Subtasks:
 
 **Acceptance:** V01 passes; every generation input has an immutable origin or a documented blocker. No floating source remains in the proposed release catalog. G0 blocks generation acceptance if ratelimit provenance is unresolved.
 
-### T02 — Prove and select the binding provider
+### T02 — Prove a candidate binding provider
 
-**Scope:** foundation / R02, R04. **Depends on:** T01. **Outputs:** provider decision, pinned toolchain/package lock, generation/restore script, descriptor inventory, temporary clean-consumer evidence.
+**Scope:** foundation / R02, R04. **Depends on:** T01. **Outputs:** candidate provider decision, pinned toolchain/package lock, generation/restore script, original annotation/descriptor inventory, clean-consumer evidence. G1 freezes the choice after T03.
 
 Subtasks:
 
 - T02.1 Evaluate exact-commit existing/Buf SDK coverage, server/client contracts, restore constraints, and dependency identity; do not accept a package by name/version alone.
 - T02.2 If that proof fails, generate the selected catalog with pinned protoc/C# gRPC tools and external imports; record compiler limitations/exclusions.
 - T02.3 Compile, pack, and consume Protocol from a clean project. Build a listener/HCM/router/TLS resource graph, discovery services, and ratelimit configuration.
-- T02.4 Round-trip binary/Any/JSON fixtures, inspect duplicate full names/CLR definitions, and compare normalized descriptors to pinned sources.
-- T02.5 Select one provider and document public namespace/package implications; rerun the proof after T03's metadata decision before G1 closes.
+- T02.4 Round-trip binary/Any/JSON fixtures, inspect duplicate full names/CLR definitions, and compare normalized descriptors including original validation options to pinned sources. Prove option values and definitions remain accessible from the first binding release.
+- T02.5 Propose one provider and document namespace/package implications and annotation ownership. Feed the candidate to T03; freeze it at G1 only after bounded validation feasibility passes. Full T26 conformance is not required at G1.
 
 **Acceptance:** V02–V04 and the binding portion of V37/V38 pass with exact versions. No overlapping Envoy message definitions are loaded. A usable common extension catalog and required service bases exist. Failed providers have recorded reasons; a new provider is not silently substituted later.
 
-### T03 — Decide Protovalidate metadata and provider direction
+### T03 — Prove validation feasibility before binding freeze
 
-**Scope:** mandatory design proof / R23. **Depends on:** T02. **Outputs:** `schemas/validation-assessment.json`, annotated descriptor sample, candidate comparison, ADR10 update.
+**Scope:** foundation / R23. **Depends on:** T02. **Outputs:** rule inventory, candidate/metadata assessment, bounded Go/.NET comparison results, provider decision, and ADR10 update. This task gates G1; full GV conformance does not.
 
 Subtasks:
 
-- T03.1 Pin and assess `ProtoValidate` and `Celly.Protovalidate` candidates: dependency graph, annotation ownership, rule/CEL coverage, thread/cancellation model, license and maintenance evidence.
-- T03.2 Inventory PGV rules in the selected Envoy catalog; run a bounded pinned migration-tool proof on representative required/oneof/map/Any/TTL-related resource schemas.
-- T03.3 Prove single-owner descriptor/annotation registration and binary compatibility. Test a representative conforming and violating message with each viable candidate.
-- T03.4 Decide the metadata strategy before public binding freeze: dual annotations, a proven external rule overlay, or deferred Envoy validation with an explicit limitation. Record unsupported migrations.
-- T03.5 Estimate the remaining T26 work from the inventory, and recommend a provider or document why no provider is yet suitable.
+- T03.1 Pin and assess viable ProtoValidate and Celly.Protovalidate candidates: dependency graph, option ownership, relevant rule/CEL coverage, concurrency/failure behavior, license, and maintenance.
+- T03.2 Inventory PGV rules in the selected catalog, including nested/imported schemas and Any payload types. Run a pinned migration-tool proof only where needed; retain original options and record derived metadata.
+- T03.3 Prove metadata access, one message/annotation owner, and binary/message/service identity. Compare valid, invalid, and boundary cases for representative presence/required, oneof, nested, collection, numeric, and string constraints actually used upstream against Go PGV.
+- T03.4 Select a feasible provider/metadata arrangement and record unsupported rules and semantic differences. Resolve binding blockers before G1; do not introduce duplicate Envoy assemblies. Propose concrete provider/scope alternatives if no candidate is viable.
+- T03.5 Define the selected semantic-validation contract and full-corpus work for T26. Keep exact Go method shape/error text separate; no generic validation/publication framework is authorized.
 
-**Acceptance:** V34/V35 have a recorded assessment and bounded proof results; the full GV corpus is not required here. G1 requires a concrete ownership/migration decision, not a promise that adding a runtime validates PGV. If no provider is suitable, Core may proceed with validation explicitly unclaimed.
+**Acceptance:** Bounded V34/V35 and relevant V04/V37 results show a feasible validation path for the selected bindings, preserved original options, single descriptor ownership, representative rule equivalence, and explicit remaining gaps. A runtime alone does not execute PGV. G1 requires this decision, not completion of the full GV corpus.
 
 ## Epic B — foundational .NET contracts
 
 ### T04 — Establish repository and build structure
 
-**Scope:** preview / R25. **Depends on:** T02, T03. **Outputs:** solution, three runtime/package projects, `global.json`, shared build/package settings, test project layout, scripts, initial CI.
+**Scope:** preview / R25. **Depends on:** T02, T03. **Outputs:** solution, root Protocol/Core/ASP.NET projects, optional validation-project layout, pinned SDK/build settings, test layout, scripts, and initial CI.
 
 Subtasks:
 
 - T04.1 Pin SDK and package versions; select a .NET test framework/runner and document invocation modes.
-- T04.2 Create Protocol/Core/ASP.NET references and public namespaces; optional validator dependencies stay outside Core.
+- T04.2 Create Protocol/Core/ASP.NET references and the separate validation-project layout selected by T03. Keep evaluator references in that optional project; root projects must not depend on it.
 - T04.3 Add formatting/analyzers, nullable policy, deterministic builds, package metadata/license notices, and a clean build/pack script.
 - T04.4 Establish fixture and evidence directories plus Linux/macOS/Windows build jobs; keep substantial workflow logic in scripts.
 
@@ -121,16 +125,16 @@ Subtasks:
 
 ### T05 — Implement resource entries, snapshots, and descriptor helpers
 
-**Scope:** preview, Delta primitives for 1.0 / R03, R04. **Depends on:** T04. **Outputs:** Core `Resources/`, snapshot model, registry and version-strategy contracts.
+**Scope:** preview, Delta primitives for 1.0 / R03, R04. **Depends on:** T04. **Outputs:** Core `Resources/`, snapshot model, descriptor handling, upstream-equivalent version behavior.
 
 Subtasks:
 
 - T05.1 Implement names/type URLs/resource-family mapping and custom resource naming, TTL entry model, partial per-type snapshots, and custom snapshot interface.
-- T05.2 Enforce private stable message ownership; implement safe reads, lazy serialization, and cached resource-version computation.
+- T05.2 Document Go-equivalent stable message lifetimes and replacement-on-update; implement the source's lazy materialization/version computation without mandatory cloning or ownership-transfer APIs.
 - T05.3 Implement opt-in source-matching EDS/RDS consistency and reference extraction, including HCM Any handling.
-- T05.4 Add scoped descriptor registration and collision checks; define version equality/change semantics and injectable version strategy.
+- T05.4 Support custom descriptors through the protobuf runtime's registration facilities; define version equality/change semantics and upstream version options without a new pluggable version-strategy API.
 
-**Acceptance:** V03–V07 pass. Mutating input or returned messages cannot alter built-in published snapshots. Partial snapshots and custom descriptors work; absent resources and unknown default snapshot types have explicit outcomes. No automatic validator/consistency invocation is introduced.
+**Acceptance:** V03–V07 pass under the documented stable-resource lifetime contract. Explicit replacement messages/versions produce the expected updates; mutation isolation is not promised. Partial snapshots and custom descriptors work; absent resources and unknown default snapshot types have explicit outcomes. No automatic validator/consistency invocation is introduced.
 
 ### T06 — Implement one-shot watches and cancellation
 
@@ -138,9 +142,9 @@ Subtasks:
 
 Subtasks:
 
-- T06.1 Implement immediate/pending/error watch completion, originating-request/context metadata, lazy and pass-through responses, and read-only subscription views.
-- T06.2 Make cancel/dispose idempotent and race-safe; remove registered watches exactly once and run continuations outside cache locks.
-- T06.3 Add stream watch-generation identifiers and a bounded-input/per-watch-result delivery design without network writes inside cache calls.
+- T06.1 Implement immediate/pending/error watch completion and the request/context/subscription metadata required by the Go cache contract, using one small task or channel representation.
+- T06.2 Make cancel/dispose idempotent and race-safe; remove registered watches exactly once and keep stream/network code outside cache synchronization.
+- T06.3 Preserve Go-equivalent watch delivery and backpressure; add an internal identity check only if a queued-completion race demonstrates the need. No mandatory mailbox framework or configurable limits.
 - T06.4 Exercise publication-versus-register, response-versus-cancel, custom-watcher faults, and blocked consumer schedules.
 
 **Acceptance:** V08/V29/V30 pass for primitives. No lost wakeup, double completion, global lock stall, or retained registration after cancellation. A completed watch can be installed safely by the stream before its result is processed.
@@ -153,7 +157,7 @@ Subtasks:
 
 - T07.1 Implement per-node snapshot storage with default ID hash and custom hasher support.
 - T07.2 Implement version/selection/readiness eligibility, immediate and deferred watches, and atomic publication versus watch registration.
-- T07.3 Implement copied status, watch counts/timestamps, missing snapshot behavior, and source-equivalent clear semantics.
+- T07.3 Implement source-equivalent synchronized status, watch counts/timestamps, missing snapshot behavior, and clear semantics.
 - T07.4 Capture special ADS missing-name/no-registration behavior and custom snapshot cases in fixtures.
 
 **Acceptance:** V07–V10/V14 pass for SotW. SetSnapshot neither auto-validates nor awaits proxy ACK. Clear behavior and the unusual ADS case match source evidence or have an explicitly accepted divergence record.
@@ -168,7 +172,7 @@ Subtasks:
 
 - T08.1 Implement legacy empty-as-wildcard initialization, explicit `*`, named and prefix sets, and returned-resource cleanup.
 - T08.2 Implement global/per-type legacy-wildcard deactivation with source defaults.
-- T08.3 Preserve unsubscribe/re-subscribe behavior without a version change and invalidate stale generation/subscription responses.
+- T08.3 Preserve unsubscribe/re-subscribe behavior without a version change and source-equivalent suppression of obsolete subscription responses.
 
 **Acceptance:** V10/V11 pass as transition tables. Explicit subscriptions prevent later empty SotW requests from reactivating legacy wildcard. Prefix and exact names are not conflated.
 
@@ -178,9 +182,9 @@ Subtasks:
 
 Subtasks:
 
-- T09.1 Implement reader/event-loop/writer lifecycle, node carry-forward, implied type URL, and ADS required-type rejection.
+- T09.1 Port one processing loop with one receive operation and per-type watch records; preserve node carry-forward, implied type URL, and ADS required-type rejection. Sends run serially in the loop without a separate writer framework or explicit state enum.
 - T09.2 Implement source callback ordering, stale-nonce request handling, watch replacement, response filtering, nonce assignment, and send metadata updates.
-- T09.3 Implement request/open rejection and response/close fault policy; preserve close notification on rejected open and dispose all paths.
+- T09.3 Implement request/open rejection and one .NET exception/cleanup mapping; preserve close notification on rejected open. Add no configurable hook policies or callback middleware.
 - T09.4 Add per-stream tests for version changes, NACK/no rollback, later node replacement, immediate cache response, and blocked writer behavior.
 
 **Acceptance:** V10–V12/V15/V28/V29 pass. Exactly one writer acts on each stream. Request callbacks still see stale requests at the source-equivalent point. No new automatic NACK rollback or retry policy appears.
@@ -204,8 +208,8 @@ Subtasks:
 Subtasks:
 
 - T11.1 Map preview SotW service methods and ADS to engines with generated contracts, caller-owned cache, and explicit option lifetimes.
-- T11.2 Wire call/host cancellation, scoped callback factory, option validation, and owned-resource disposal.
-- T11.3 Expose documented authentication/authorization and host limit hooks; provide an example configuration update source and safe default logs.
+- T11.2 Wire call/host cancellation, ordinary ASP.NET Core dependency injection lifetimes, upstream-equivalent options, and owned-resource disposal.
+- T11.3 Show application authentication/authorization through standard host facilities and existing callbacks; provide an example update source and ILogger mapping without library-specific quotas or policy hooks.
 - T11.4 Prove actual HTTP/2 gRPC loopback rather than only direct method calls.
 
 **Acceptance:** V15/V28/V29 pass for preview methods. Endpoint inventory matches advertised preview scope. Application-owned channels/caches are not unexpectedly disposed; host shutdown leaves no watches/tasks.
@@ -346,7 +350,7 @@ Subtasks:
 
 - T22.1 Force register/publish/cancel/send/unsubscribe races, immediate responses, multiple nodes/types, and custom watcher misbehavior using barriers.
 - T22.2 Block a writer and callback, reenter publication from a callback, trigger all rejection/failure paths, and stop the host mid-operation.
-- T22.3 Assert no leaked watches/tasks/timers, correct status counts and close-once behavior, and unrelated-stream progress; document bounded-limit outcomes.
+- T22.3 Assert no leaked watches/tasks/timers, correct status counts and close-once behavior, and source-equivalent progress under blocked writers; add no quota/fairness feature or throughput SLA.
 - T22.4 Run repeated transport stress with recorded seed, counts, duration and memory/watch trends; classify timeouts as failures.
 
 **Acceptance:** V14/V15/V28–V30 pass with explicit leak/progress assertions. Repetition supplements deterministic cases and does not establish an unmeasured throughput SLA.
@@ -371,11 +375,11 @@ Subtasks:
 Subtasks:
 
 - T24.1 Build/pack/restore packages in a clean environment, verify XML docs/symbols/license notices and transitive targets, and inspect dependency ownership.
-- T24.2 Gate regeneration/catalog/descriptor drift and pin toolchains/actions; verify selected platforms, generated source policy, and reproducible inputs.
-- T24.3 Implement upstream old/new behavior/schema diff reporting and required scenario selection without rewriting past evidence.
+- T24.2 Gate regeneration/catalog/descriptor drift, including original validation options, and pin toolchains/actions; verify selected platforms, generated source policy, and reproducible inputs.
+- T24.3 Report upstream old/new behavior/schema pins plus added/changed/removed validation rules, overlay/tool changes, coverage, and unsupported constraints. Select affected Go/.NET cases without rewriting past evidence. Unevaluated changes block acceptance of the affected validation package/claim, while root-only reports preserve metadata and expose the gap.
 - T24.4 Publish CI evidence artifacts and document local reproduction; configure secrets/permissions only when publication needs them.
 
-**Acceptance:** V01–V04/V37/V38 pass with the full package graph. Core-only consumers lack ASP.NET hosting and CEL runtime dependencies. A deliberate changed schema/input lock is detected by the drift job.
+**Acceptance:** V01–V04/V37/V38 pass for the root package graph, including original validation metadata and rule-diff reporting. Core-only consumers lack ASP.NET hosting and evaluator/CEL dependencies. Validation-package CI consumption and claims additionally require GV; incomplete GV cannot pass by omitting unknown constraints.
 
 ### T25 — Review scope and prepare the 1.0 release
 
@@ -383,32 +387,35 @@ Subtasks:
 
 Subtasks:
 
-- T25.1 Reconcile all parity rows and public extension points with tasks/evidence; record intentional .NET departures, unsupported operations, and optional scope.
+- T25.1 Reconcile features, options, and public extension points with the matrix, including the approved optional validation track. Preserve limitations and necessary platform adaptations. State root and validation coverage separately; require GV before releasing the optional validator or making its compatibility claim.
 - T25.2 Review public API/versioning, cancellation/ownership/error contracts, package names and supported targets before publishing.
 - T25.3 Close release-blocking defects and rerun affected gates; obtain review of the concrete candidate and its evidence.
 - T25.4 Prepare release notes and publish only through an explicitly authorized repository/package workflow; repository branding/remote visibility are resolved before that step.
 
 **Acceptance:** G3/G4/G5 pass; no planned or failed case is represented as verified. Docs give exact supported behavior/schema/proxy axes and operational examples. Preparing the candidate does not itself authorize package publication.
 
-## Epic F — separately scoped extensions
+## Epic F — optional schema validation
 
-### T26 — Implement the optional Protovalidate adapter
+### T26 — Implement explicit schema validation and conformance
 
-**Scope:** optional addon / R24. **Depends on:** T03, T07, T15, T24. **Outputs:** optional adapter package, validated-publication decorators, migration/rule inventory, conformance report.
+**Scope:** optional package / R24. **Depends on:** T03, T04. **Outputs:** isolated validation package, rule-coverage manifest, comparison corpus, and equivalence report. This work can proceed alongside the root runtime; its GV gate is separate.
 
 Subtasks:
 
-- T26.1 Integrate the selected pinned runtime behind IResourceValidator and prove single annotation/message ownership with clean package consumers.
-- T26.2 Expand the controlled metadata migration over the selected catalog; compare normalized descriptors and original Go PGV versus migrated .NET outcomes.
-- T26.3 Implement structured violations, unsupported-rule/runtime fault separation, limits, initialization, concurrency reuse and cancellation behavior.
-- T26.4 Implement all-or-nothing snapshot/batch publication outside locks and explicit disabled/default behavior.
-- T26.5 Run official conformance plus the Envoy rule corpus; document exact exclusions and residual semantic differences before enabling an Envoy-validation claim.
+- T26.1 Integrate the T03-selected pinned evaluator with the authoritative Protocol types. Prove single message/annotation ownership without adding a Core validator contract or evaluator dependency.
+- T26.2 Expand any controlled metadata overlay across the selected catalog. Retain original options, record every derived change, and compare descriptor identity, binary compatibility, and Go PGV/.NET outcomes.
+- T26.3 Expose explicit success/violation results with field/rule diagnostics where supported; distinguish unsupported metadata/rules/Any types from evaluator faults. Do not imply universal Any traversal or exact Go error text/order.
+- T26.4 Keep invocation separate from cache publication. Verify root-only and validator consumers independently; add no publication decorators, batch transactions, or general policy pipeline.
+- T26.5 Run applicable evaluator conformance and the separate Go PGV/Envoy corpus for the complete claimed rule set. Document exclusions and semantic differences; full parity cannot be claimed for a partial corpus.
+- T26.6 Maintain added/changed/removed rule and coverage reports on every schema update. Unknown or unevaluated changes block affected validation-package acceptance and claims; unsupported rules never pass silently.
 
-**Acceptance:** GV/V34–V36/V37 pass. No CEL runtime enters Core-only consumers. Missing annotations and unsupported rules never masquerade as validation success. Estimate separately after T03; root 1.0 is not blocked if this addon remains explicitly unclaimed.
+**Acceptance:** GV/V34–V38 pass for the declared catalog/rule set before optional-package publication or validation claims. Core-only consumers have no evaluator/CEL dependency. T03 feasibility is required at G1; full T26 conformance does not block the streaming preview or root-runtime release. No runtime provider is selected by this plan alone.
+
+## Epic G — deferred upstream scope; explicit request required
 
 ### T27 — Port the standalone xDS matcher if selected
 
-**Scope:** optional / R26. **Depends on:** T05, T20, T24. **Outputs:** separate matcher package and registry/legacy conversion fixtures.
+**Scope:** deferred; explicit matcher scope decision required / R26. **Depends on:** T05, T20, T24. **Outputs:** separate matcher package and registry/legacy conversion fixtures.
 
 Subtasks:
 
@@ -420,7 +427,7 @@ Subtasks:
 
 ### T28 — Expand contrib or legacy generated catalogs if selected
 
-**Scope:** optional / R26. **Depends on:** T02, T24. **Outputs:** expanded schema manifest and packages with nonoverlapping message ownership.
+**Scope:** deferred; explicit catalog scope decision required / R26. **Depends on:** T02, T24. **Outputs:** expanded schema manifest and packages with nonoverlapping message ownership.
 
 Subtasks:
 
@@ -430,10 +437,6 @@ Subtasks:
 
 **Acceptance:** V40/V37/V38 pass. No v2 server behavior is claimed from generating v2 classes. Required extension payloads load with the existing registry and provider.
 
-## Estimates and checkpoint decisions
+## Checkpoint decisions
 
-The earlier proposal's **21–35 engineer-days before contingency**, **2–3 engineer-weeks for preview**, and **6–10 engineer-weeks for root 1.0 including contingency** remain provisional judgments. Tasks above decompose those work packages; they are not additional estimates to sum on top. Differential/CI/interop work is developed incrementally and was already included.
-
-The bounded T03 assessment shares the initial 2–4 day proof checkpoint; if schema retrieval or validation metadata makes that infeasible, stop using that checkpoint estimate and revise it with evidence. T26–T28 implementation and any runtime remediation are excluded from the root estimate. Do not assign precise dates before T02/T03 demonstrate catalog and metadata feasibility.
-
-Re-estimate at G1 from actual generation/restore/consumer results, after G2 from measured preview throughput and remaining cases, and before G5 from unresolved defects and supported proxy matrix. Scope/target/provider changes produce an updated decision record and estimate; they are not hidden contingency consumption.
+At G1, record the binding/provider decision and T03 validation feasibility results. At G2, review the working preview and remaining parity cases. Before G5, resolve release-blocking defects and confirm the supported proxy matrix. Full GV remains independent of root-runtime completion; T27/T28 remain deferred. Record scope, target, or provider changes explicitly.

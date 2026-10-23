@@ -11,7 +11,7 @@ Reviewed 24 October 2026. Source paths below are relative to go-control-plane/.
 ## Proposed .NET conventions
 
 - Use .NET 10, nullable reference types, CancellationToken, Task/ValueTask and ILogger.
-- Keep three package responsibilities: generated Protocol, runtime ControlPlane, and AspNetCore integration.
+- Keep Protocol, runtime ControlPlane, and AspNetCore responsibilities separate. The optional validation package references Protocol and owns evaluator dependencies; root packages do not reference it.
 - Preserve behavior/defaults while recording .NET API departures; avoid copying Go channels, functional options, or logger APIs mechanically.
 - Pin schema inputs and generator versions; keep reusable generation/compatibility tooling in scripts/.
 - [TODO] Choose package IDs and freeze public API baselines after the binding proof.

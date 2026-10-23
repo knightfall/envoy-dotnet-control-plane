@@ -69,14 +69,12 @@ Keep the cache and protocol behavior reusable from an application; isolate ASP.N
 
 ## Implementation sequence
 
-1. **Close scope and prove code generation (1–2 weeks).** Inventory exported v3 methods/types, decide legacy and auxiliary coverage, check for existing C# Envoy bindings, and generate a small end-to-end proto/gRPC slice from the pinned source commit. Record the dependency closure and namespace strategy.
-2. **Protocol package and repository baseline (2–4 weeks).** Set up reproducible code generation, version pinning, package metadata, CI, and cross-language wire-format fixtures for the selected protocol surface.
-3. **Snapshot cache (2–4 weeks).** Port snapshot/resource abstractions, node-keyed versions, consistency checks, subscriptions/watch lifecycle, status, ADS gating, and SOTW response construction.
-4. **SotW gRPC and ADS server (2–4 weeks).** Implement resource-specific and aggregated services, callbacks, cancellation, ACK/NACK handling, and stream lifecycle compatibility.
-5. **Delta and remaining cache behavior (3–5 weeks).** Add subscribe/unsubscribe and per-resource version behavior, removals, `LinearCache`, `MuxCache`, TTL, and heartbeats. Add concurrency and reconnect coverage.
-6. **Compatibility and release work (2–4 weeks).** Port examples, build an Envoy interop path, add the chosen REST/auxiliary work, publish packages, and document migration from Go API concepts to idiomatic C#.
-
-These are preliminary single-engineer estimates. A v3 server/cache library with generated protocol dependencies is roughly **12–23 engineer-weeks**. Broader parity including the full generated API set, REST, and the standalone matcher module is roughly **20–36 engineer-weeks**. Supporting v2 would add more API-generation and compatibility work even though the current upstream server has removed v2. Re-estimate after the code-generation spike and the exported-API inventory.
+1. **Close scope and prove code generation.** Inventory exported v3 methods/types, decide legacy and auxiliary coverage, check for existing C# Envoy bindings, and generate a small end-to-end proto/gRPC slice from the pinned source commit. Record the dependency closure and namespace strategy.
+2. **Protocol package and repository baseline.** Set up reproducible code generation, version pinning, package metadata, CI, and cross-language wire-format fixtures for the selected protocol surface.
+3. **Snapshot cache.** Port snapshot/resource abstractions, node-keyed versions, consistency checks, subscriptions/watch lifecycle, status, ADS gating, and SOTW response construction.
+4. **SotW gRPC and ADS server.** Implement resource-specific and aggregated services, callbacks, cancellation, ACK/NACK handling, and stream lifecycle compatibility.
+5. **Delta and remaining cache behavior.** Add subscribe/unsubscribe and per-resource version behavior, removals, `LinearCache`, `MuxCache`, TTL, and heartbeats. Add concurrency and reconnect coverage.
+6. **Compatibility and release work.** Port examples, build an Envoy interop path, add the chosen REST/auxiliary work, publish packages, and document migration from Go API concepts to idiomatic C#.
 
 ## Compatibility and verification strategy
 

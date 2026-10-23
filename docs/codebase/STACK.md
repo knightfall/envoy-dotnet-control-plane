@@ -13,7 +13,7 @@ Reviewed 24 October 2026 at the Go and Envoy commits in ../../upstream-baseline.
 - Recommend .NET 10 for runtime packages, Google.Protobuf messages, standard generated gRPC contracts, and an ASP.NET Core hosting package.
 - Separate protocol, runtime, and host responsibilities; use ILogger and CancellationToken.
 - Binding provider and exact compiler/runtime versions remain [TODO] until a clean generate-or-restore/pack/consume proof.
-- Prefer optional Protovalidate runtime validation; community .NET candidates exist. [Metadata migration and conformance](../architecture/VALIDATION.md) must be proven for Envoy's PGV annotations; standard message generation does not supply validator equivalence.
+- Optional schema validation is active scope. Protovalidate is a candidate pending [metadata/equivalence proof](../architecture/VALIDATION.md) before binding freeze and full conformance at GV. Preserve original PGV options; standard message generation does not supply a validator. Evaluator dependencies stay in the separate optional package.
 
 ## Evidence
 

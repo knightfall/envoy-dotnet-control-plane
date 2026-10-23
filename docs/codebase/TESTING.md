@@ -17,7 +17,7 @@ Reviewed 24 October 2026. Source paths below are relative to go-control-plane/.
 - Include client ACK/NACK state, gRPC unary Fetch and HTTP JSON/304 behavior.
 - Gate release with actual Envoy update/NACK/reconnect/TTL cases and pinned image digests.
 - [TODO] Select the .NET test framework and CI matrix during repository setup.
-- Use the [task acceptance criteria](../plan/IMPLEMENTATION-PLAN.md) and [named verification cases](../plan/TRACEABILITY.md). Optional validation needs both a pinned Protovalidate conformance corpus and migrated Envoy/Go PGV comparison cases.
+- Use the [task acceptance criteria](../plan/IMPLEMENTATION-PLAN.md) and [named verification cases](../plan/TRACEABILITY.md). T03 provides a bounded binding/metadata and Go PGV comparison proof at G1. T26/GV expands to the full claimed catalog, applicable evaluator conformance, structured failures, clean consumers, and per-update rule coverage. Unsupported constraints cannot pass silently.
 
 No runtime tests, generation or package builds were executed during this planning review.
 

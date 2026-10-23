@@ -15,9 +15,9 @@ SnapshotCache holds per-node versions, LinearCache manages a single collection, 
 
 ## Proposed .NET direction
 
-Keep protocol engines/caches independent of ASP.NET Core adapters. Preserve callback sequencing with awaited async methods; allow concurrency across separate streams. Include root-library fetch/client/helper behavior in 1.0. [TODO] Finalize signatures after binding type ownership is selected.
+Keep protocol engines/caches independent of ASP.NET Core adapters. Port Go's stream processing loop and per-type watches with source-equivalent callback sequencing. Feature availability stops at the selected root parity surface; include fetch/client/helper behavior in 1.0. Choose extra synchronization or delivery machinery only for a demonstrated porting need. [TODO] Finalize signatures after binding type ownership is selected.
 
-The [detailed proposed architecture](../architecture/ARCHITECTURE.md) expands contracts, watch lifetimes, mode-specific nonce behavior, SotW heartbeat scheduling, hosting, and optional [Protovalidate integration](../architecture/VALIDATION.md). The [implementation backlog](../plan/IMPLEMENTATION-PLAN.md) gives dependencies and acceptance criteria; all implementation work remains planned.
+The [detailed proposed architecture](../architecture/ARCHITECTURE.md) expands contracts, watch lifetimes, mode-specific nonce behavior, SotW heartbeats, and hosting. [Optional schema validation](../architecture/VALIDATION.md) is active scope: T03 checks feasibility before binding freeze and T26 has a separate package/conformance gate. The [backlog](../plan/IMPLEMENTATION-PLAN.md) defines planned work; only T27/T28 remain deferred.
 
 ## Evidence
 

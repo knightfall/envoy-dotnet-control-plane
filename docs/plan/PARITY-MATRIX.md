@@ -53,15 +53,16 @@ Evidence: pkg/cache/types/types.go; pkg/cache/v3/cache.go; simple.go; snapshot.g
 | Discovery envelope dependencies only | Insufficient by themselves for typical typed configuration | Any hides extension references from the static envelope import graph |
 | Custom resources/extensions | IMessage/Any and descriptor registration extension points | Do not require modifying the core assembly for every consumer extension |
 | ratelimit schema module | Include configuration and discovery types for root server methods | Resolve the original schema source revision during the first checkpoint |
-| contrib and legacy API catalogs | Separately scoped optional catalogs | No v2 control-plane runtime in the current root library |
-| Semantic validation | Prefer optional Protovalidate adapter after metadata/conformance proof | Community .NET runtimes exist; existing PGV options need a proven migration strategy |
-| PGV Validate/ValidateAll API shape | Separate commitment only if required | Standard C# generation or a runtime adapter does not recreate these methods |
+| contrib and legacy API catalogs | Deferred; explicit scope decision required | No v2 control-plane runtime in the current root library |
+| Schema validation metadata | Preserve original upstream options and definitions from the first binding release | T02/T03 prove accessibility and one descriptor owner before G1 |
+| Optional explicit semantic validation | Active T03 feasibility and T26 package; Protovalidate is a candidate | GV proves declared rule coverage against Go PGV; no Core evaluator dependency or publication decorator |
+| PGV Validate/ValidateAll API shape | Exact method shape/error text/order is not part of semantic parity by default | Standard C# generation does not recreate validators; claim only outcomes and diagnostics proven at GV |
 | vtprotobuf | No C# API clone | Go-specific generated performance API; compare .NET behavior/performance instead |
-| xdsmatcher | Follow-up package unless a consumer needs it for 1.0 | Match-tree evaluation, registry, legacy conversion need their own cases |
+| xdsmatcher | Deferred; explicit scope decision required | Match-tree evaluation, registry, legacy conversion need their own cases |
 
 ## Behavioral caveats
 
-The [detailed architecture](../architecture/ARCHITECTURE.md) describes state/lifetime contracts. Every surface above is covered by the [task backlog](IMPLEMENTATION-PLAN.md) and [requirements/verification map](TRACEABILITY.md). See the [Protovalidate design](../architecture/VALIDATION.md) for validation scope.
+The [detailed architecture](../architecture/ARCHITECTURE.md) describes state/lifetime contracts. Every surface maps to the [backlog](IMPLEMENTATION-PLAN.md) and [verification gates](TRACEABILITY.md). T03 feasibility gates binding freeze; T26/GV separately gates the optional validation package and its claims. Matcher and broader catalogs remain T27/T28 deferred scope. The [validation plan](../architecture/VALIDATION.md) defines original metadata preservation, rule equivalence, and per-update coverage checks.
 
 - Snapshot.Consistent is optional and checks the source's endpoint/route reference sets. SetSnapshot stores and publishes without invoking it automatically.
 - SotW does not mean every resource type always sends an entire global snapshot. Match type-specific behavior, notably cluster/listener full-state responses.
@@ -70,7 +71,7 @@ The [detailed architecture](../architecture/ARCHITECTURE.md) describes state/lif
 - Preserve mode-specific nonce/callback behavior. Delta's reviewed loop does not use SotW's stale-nonce rejection or an ACK-committed version ledger.
 - The SnapshotCache timer scans SotW watches; Delta TTL encoding does not imply an automatic Delta heartbeat scheduler.
 - Compare nonce and version relationships; different concrete opaque strings can be valid. Do not require universal byte-for-byte protobuf serialization or cross-language hash identity.
-- An unsupported Fetch in LinearCache must remain an observable limitation unless intentionally extending the API.
+- LinearCache's unsupported Fetch remains an observable limitation; extending it requires a separate scope decision.
 - Protocol schema support and released Envoy runtime compatibility need separate manifests and evidence.
 
 Evidence: pkg/cache/v3/snapshot.go:83-121; pkg/cache/v3/simple.go:264-286; pkg/cache/v3/resource.go:111-124,145-147,300-305; pkg/cache/v3/linear.go:653-655; pkg/server/config/config.go:20-38; [Envoy xDS specification](https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol.html); [Protobuf serialization](https://protobuf.dev/programming-guides/serialization-not-canonical/).
