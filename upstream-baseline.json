@@ -1,0 +1,13 @@
+{
+  "reviewedOn": "2026-10-24",
+  "goControlPlane": {
+    "repository": "https://github.com/envoyproxy/go-control-plane.git",
+    "branch": "main",
+    "commit": "67c5345367582741334e34ffc66a561b0ce32946"
+  },
+  "envoyApi": {
+    "repository": "https://github.com/envoyproxy/envoy.git",
+    "commit": "82a4424f760b6ba3ffc9f2911389d061656f35c8",
+    "source": "go-control-plane/envoy/COMMIT"
+  }
+}
