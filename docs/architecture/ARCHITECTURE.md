@@ -175,7 +175,7 @@ stateDiagram-v2
     Request --> Request: stale nonce ignored after request callback
     Request --> Watching: normalize request and replace watch
     Watching --> Send: eligible response
-    Send --> AwaitRequest: send completed; one-shot watch consumed
+    Send --> AwaitRequest: send completed and one-shot watch consumed
     AwaitRequest --> Request: next request
     Watching --> Request: next request
     Open --> Closed: rejection
