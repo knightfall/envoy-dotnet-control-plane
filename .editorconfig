@@ -1,0 +1,13 @@
+root = true
+
+[*.cs]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Promote Roslynator's enabled rules to build diagnostics.
+dotnet_analyzer_diagnostic.category-roslynator.severity = warning
+roslynator_configure_await = false

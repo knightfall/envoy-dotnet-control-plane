@@ -16,10 +16,10 @@ Reviewed 24 October 2026. Source paths below are relative to go-control-plane/.
 - Cover wildcard transitions/options, optional ordered SotW ADS, subscription supersession, Delta removals/initial versions/source nonce behavior, TTL encoding/SotW heartbeats, fetch limitations, and cancellation/cleanup.
 - Include client ACK/NACK state, gRPC unary Fetch and HTTP JSON/304 behavior.
 - Gate release with actual Envoy update/NACK/reconnect/TTL cases and pinned image digests.
-- [TODO] Select the .NET test framework and CI matrix during repository setup.
+- T01 establishes xUnit/Microsoft Testing Platform for [offline CLI verification](../../tests/README.md), with a Linux/macOS/Windows tooling CI matrix. T04 extends this setup to runtime projects.
 - Use the [task acceptance criteria](../plan/IMPLEMENTATION-PLAN.md) and [named verification cases](../plan/TRACEABILITY.md). T03 provides a bounded binding/metadata and Go PGV comparison proof at G1. T26/GV expands to the full claimed catalog, applicable evaluator conformance, structured failures, clean consumers, and per-update rule coverage. Unsupported constraints cannot pass silently.
 
-No runtime tests, generation or package builds were executed during this planning review.
+T01's 17 CLI fixture tests and full pinned-source inspection passed locally. No runtime-library tests, generated C# bindings or package builds were executed during this planning review.
 
 ## Evidence
 

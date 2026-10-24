@@ -1,6 +1,6 @@
 # Requirements, verification cases, and release gates
 
-Reviewed **24 October 2026**. All verification below is **planned**, not executed. The [implementation plan](IMPLEMENTATION-PLAN.md) owns task definitions; the [architecture](../architecture/ARCHITECTURE.md) owns proposed behavior. The [parity matrix](PARITY-MATRIX.md) bounds the compatibility claim.
+Reviewed **24 October 2026**. **V01 has passing source-audit and automated CLI evidence** in [T01 provenance](../../schemas/PROVENANCE.md) and the [test requirement mapping](../../tests/README.md); G0 source checks pass, with PR review pending. Other verification below remains **planned**. The [implementation plan](IMPLEMENTATION-PLAN.md) owns task definitions; the [architecture](../architecture/ARCHITECTURE.md) owns proposed behavior. The [parity matrix](PARITY-MATRIX.md) bounds the compatibility claim.
 
 ## Requirements
 

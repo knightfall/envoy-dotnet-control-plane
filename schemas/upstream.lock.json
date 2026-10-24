@@ -1,0 +1,932 @@
+{
+  "schemaVersion": 1,
+  "reviewedOn": "2026-10-24",
+  "selection": {
+    "id": "maintained-standard-v3-and-ratelimit",
+    "policy": "Seed from standard Go-mirrored /v3/ and /v3alpha/ schemas plus Envoy annotations and both rate-limit configuration schemas; take the complete transitive import closure. Inventory all Envoy API schemas. Defer broad legacy/contrib catalogs under T28. Version directories do not filter transitive dependencies.",
+    "scopeNote": "Schema bindings do not imply implementation of every declared service. Runtime scope remains the root-library parity matrix."
+  },
+  "sources": [
+    {
+      "id": "go-control-plane",
+      "repository": "https://github.com/envoyproxy/go-control-plane.git",
+      "commit": "67c5345367582741334e34ffc66a561b0ce32946",
+      "archive": {
+        "url": "https://codeload.github.com/envoyproxy/go-control-plane/tar.gz/67c5345367582741334e34ffc66a561b0ce32946",
+        "sha256": "782d7330dc5e88bbafaea10f340fd40f44ac2d8a505cc325431df64d0581b36d"
+      },
+      "archivePrefix": "go-control-plane-67c5345367582741334e34ffc66a561b0ce32946",
+      "protoRoots": [],
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+        }
+      ],
+      "evidencePaths": [
+        "envoy/COMMIT"
+      ],
+      "evidence": [],
+      "registryPatches": [],
+      "role": "behavior reference and mirrored-descriptor evidence"
+    },
+    {
+      "id": "envoy",
+      "repository": "https://github.com/envoyproxy/envoy.git",
+      "commit": "82a4424f760b6ba3ffc9f2911389d061656f35c8",
+      "archive": {
+        "url": "https://codeload.github.com/envoyproxy/envoy/tar.gz/82a4424f760b6ba3ffc9f2911389d061656f35c8",
+        "sha256": "fdd90955ddacdae5cf2ab493c8ce2656d18a9534d00084b9f2fd9d126d85b3f1"
+      },
+      "archivePrefix": "envoy-82a4424f760b6ba3ffc9f2911389d061656f35c8",
+      "protoRoots": [
+        "api"
+      ],
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "NOTICE",
+          "sha256": "329d90738f1ee3633da8e7439ea6f9624ec6274a9cbd72437aafa0e8df9de32e"
+        }
+      ],
+      "evidencePaths": [
+        "api/MODULE.bazel",
+        "api/buf.yaml",
+        "api/buf.lock",
+        "MODULE.bazel.lock",
+        ".bazelrc"
+      ],
+      "evidence": [],
+      "registryPatches": [],
+      "role": "original schema inputs"
+    },
+    {
+      "id": "ratelimit",
+      "repository": "https://github.com/envoyproxy/ratelimit.git",
+      "commit": "0d9cfd0b3934c6c66bd97544592f3f539e7138cc",
+      "archive": {
+        "url": "https://codeload.github.com/envoyproxy/ratelimit/tar.gz/0d9cfd0b3934c6c66bd97544592f3f539e7138cc",
+        "sha256": "893c89d2dbe8256a4c992d9731514d40496508c4183344d120bfbf118cb7d426"
+      },
+      "archivePrefix": "ratelimit-0d9cfd0b3934c6c66bd97544592f3f539e7138cc",
+      "protoRoots": [
+        "api"
+      ],
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "eeaab2b71a230ef2e9b7c0a985c095bc442295e822274c7fa039301c953ed73e"
+        }
+      ],
+      "evidencePaths": [],
+      "evidence": [],
+      "registryPatches": [],
+      "role": "original schema inputs"
+    },
+    {
+      "id": "xds",
+      "repository": "https://github.com/cncf/xds.git",
+      "commit": "ee656c7534f5d7dc23d44dd611689568f72017a6",
+      "archive": {
+        "url": "https://codeload.github.com/cncf/xds/tar.gz/ee656c7534f5d7dc23d44dd611689568f72017a6",
+        "sha256": "49535f3c3370004309da50194c09bbfc528d4702424dd46e7d56a278a3dfc15d"
+      },
+      "archivePrefix": "xds-ee656c7534f5d7dc23d44dd611689568f72017a6",
+      "protoRoots": [
+        ""
+      ],
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "evidencePaths": [],
+      "evidence": [
+        {
+          "url": "https://bcr.bazel.build/modules/xds/0.0.0-20251210-ee656c7/source.json",
+          "sha256": "69b87f3bff38ba29399c012f3e3fc0f239ac4e5c1ae66ebd9481be6d8461da55"
+        }
+      ],
+      "registryPatches": [
+        {
+          "url": "https://bcr.bazel.build/modules/xds/0.0.0-20251210-ee656c7/patches/bzlmod.patch",
+          "sha256": "da47fdd16bd0d6efe5631ac6e19c31ece3c0e92732aec16a74a11106523aca1f",
+          "paths": [
+            "MODULE.bazel"
+          ],
+          "applied": false,
+          "reason": "Build-only patch; no .proto source changes"
+        }
+      ],
+      "role": "original schema inputs"
+    },
+    {
+      "id": "protoc-gen-validate",
+      "repository": "https://github.com/bufbuild/protoc-gen-validate.git",
+      "commit": "92b9a7df69ca9f71bfc492f7a90adf4d36eab569",
+      "archive": {
+        "url": "https://codeload.github.com/bufbuild/protoc-gen-validate/tar.gz/92b9a7df69ca9f71bfc492f7a90adf4d36eab569",
+        "sha256": "b2e5e1bd5ce05e280374afeba6f7af3363cb4c3b9136740c99143d4202f94b3e"
+      },
+      "archivePrefix": "protoc-gen-validate-92b9a7df69ca9f71bfc492f7a90adf4d36eab569",
+      "protoRoots": [
+        ""
+      ],
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        }
+      ],
+      "evidencePaths": [],
+      "evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/envoyproxy/bazel-registry/748821cc28a6c105d906fe893ba05bb4b7063e91/modules/protoc-gen-validate/1.3.3.envoy/source.json",
+          "sha256": "1c2acb99b8b3e7c57b5d43d06a71e65be1ba5f62ff327e126699ebad6defc018"
+        }
+      ],
+      "registryPatches": [
+        {
+          "url": "https://raw.githubusercontent.com/envoyproxy/bazel-registry/748821cc28a6c105d906fe893ba05bb4b7063e91/modules/protoc-gen-validate/1.3.3.envoy/patches/bazel_9_fixes.patch",
+          "sha256": "75263d566dbbc83e6b62ee0d18717139ed49d698ea6bf488d47dc3ace74c9127",
+          "paths": [
+            "bazel/protobuf.bzl"
+          ],
+          "applied": false,
+          "reason": "Build-only patch; no .proto source changes"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/envoyproxy/bazel-registry/748821cc28a6c105d906fe893ba05bb4b7063e91/modules/protoc-gen-validate/1.3.3.envoy/patches/pgv.patch",
+          "sha256": "d1f81ecafcae2ef2c6e6d132d84a0e3e69c026e6a3b39c02bf34e31b14f0ea95",
+          "paths": [
+            "bazel/pgv_proto_library.bzl"
+          ],
+          "applied": false,
+          "reason": "Build-only patch; no .proto source changes"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/envoyproxy/bazel-registry/748821cc28a6c105d906fe893ba05bb4b7063e91/modules/protoc-gen-validate/1.3.3.envoy/patches/self_labels.patch",
+          "sha256": "c9811abb8844650f3585a2ffe6bcb4577df73e8cedbbbcee679ee601ac73ab10",
+          "paths": [
+            "bazel/dependency_imports.bzl",
+            "bazel/pgv_proto_library.bzl",
+            "bazel/protobuf.bzl"
+          ],
+          "applied": false,
+          "reason": "Build-only patch; no .proto source changes"
+        }
+      ],
+      "role": "original schema inputs"
+    },
+    {
+      "id": "protobuf",
+      "repository": "https://github.com/protocolbuffers/protobuf.git",
+      "commit": "35cd01f9fe9afbeea38cc7b979a3b6bfcde82c03",
+      "archive": {
+        "url": "https://codeload.github.com/protocolbuffers/protobuf/tar.gz/35cd01f9fe9afbeea38cc7b979a3b6bfcde82c03",
+        "sha256": "f8264c6e56b1fe59d06aa1b99ee81f76246ed2b46cf2c86b8a50f8482fa05665"
+      },
+      "archivePrefix": "protobuf-35cd01f9fe9afbeea38cc7b979a3b6bfcde82c03",
+      "protoRoots": [
+        "src"
+      ],
+      "license": "BSD-3-Clause",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "6e5e117324afd944dcf67f36cf329843bc1a92229a8cd9bb573d7a83130fea7d"
+        }
+      ],
+      "evidencePaths": [],
+      "evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/envoyproxy/bazel-registry/748821cc28a6c105d906fe893ba05bb4b7063e91/modules/protobuf/35.1.bcr.envoy/source.json",
+          "sha256": "1e41359b39620019d80e22316fb8762780330dfbae99ea32e0dd98f3db233e56"
+        }
+      ],
+      "registryPatches": [
+        {
+          "url": "https://raw.githubusercontent.com/envoyproxy/bazel-registry/748821cc28a6c105d906fe893ba05bb4b7063e91/modules/protobuf/35.1.bcr.envoy/patches/envoy.patch",
+          "sha256": "cd35104b06dbc5b14e4a744ba829e88f3e025a713ac2dd054e2105b4973e1169",
+          "paths": [
+            "BUILD.bazel",
+            "MODULE.bazel",
+            "bazel/private/oss/toolchains/prebuilt/tool_integrity.bzl",
+            "build_defs/cpp_opts.bzl",
+            "envoy_deps.bzl",
+            "extensions.bzl",
+            "src/google/protobuf/BUILD.bazel",
+            "src/google/protobuf/compiler/BUILD.bazel",
+            "src/google/protobuf/io/BUILD.bazel"
+          ],
+          "applied": false,
+          "reason": "Build-only patch; no .proto source changes"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/envoyproxy/bazel-registry/748821cc28a6c105d906fe893ba05bb4b7063e91/modules/protobuf/35.1.bcr.envoy/patches/warnings.patch",
+          "sha256": "83f516c389112f8179a4223ecfc667d28b6afd66ba7022de2d67b44348625c1f",
+          "paths": [
+            "src/google/protobuf/arena.cc",
+            "src/google/protobuf/descriptor.cc",
+            "src/google/protobuf/descriptor.h",
+            "src/google/protobuf/dynamic_message.cc",
+            "src/google/protobuf/map.cc",
+            "src/google/protobuf/map_field.cc",
+            "src/google/protobuf/message.cc",
+            "src/google/protobuf/message_lite.cc"
+          ],
+          "applied": false,
+          "reason": "Build-only patch; no .proto source changes"
+        }
+      ],
+      "role": "original schema inputs"
+    },
+    {
+      "id": "googleapis",
+      "repository": "https://github.com/googleapis/googleapis.git",
+      "commit": "2193a2bfcecb92b92aad7a4d81baa428cafd7dfd",
+      "archive": {
+        "url": "https://codeload.github.com/googleapis/googleapis/tar.gz/2193a2bfcecb92b92aad7a4d81baa428cafd7dfd",
+        "sha256": "3de3a199400eea7a766091aeb96c4b84c86266ad1f933f9933bbb7c359e727fe"
+      },
+      "archivePrefix": "googleapis-2193a2bfcecb92b92aad7a4d81baa428cafd7dfd",
+      "protoRoots": [
+        ""
+      ],
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "evidencePaths": [],
+      "evidence": [
+        {
+          "url": "https://bcr.bazel.build/modules/googleapis/0.0.0-20251003-2193a2bf/source.json",
+          "sha256": "21558a194c519e27262cca9cf031bb166a666a8b7fb89993b700c828f8dc0857"
+        }
+      ],
+      "registryPatches": [
+        {
+          "url": "https://bcr.bazel.build/modules/googleapis/0.0.0-20251003-2193a2bf/patches/module_dot_bazel.patch",
+          "sha256": "d2eecbb20c1a54c8ee8249c4e0e2a0346edefd29fc4bb93bb2d4d6e8f135feca",
+          "paths": [
+            "MODULE.bazel"
+          ],
+          "applied": false,
+          "reason": "Build-only patch; no .proto source changes"
+        },
+        {
+          "url": "https://bcr.bazel.build/modules/googleapis/0.0.0-20251003-2193a2bf/patches/remove_upb_c_rules.patch",
+          "sha256": "3265c1f98cd7846d398436d5830e52fd565182ee1bdaa8d097438754412d3fb6",
+          "paths": [
+            "google/api/expr/v1alpha1/BUILD.bazel",
+            "google/rpc/BUILD.bazel",
+            "repository_rules.bzl"
+          ],
+          "applied": false,
+          "reason": "Build-only patch; no .proto source changes"
+        }
+      ],
+      "role": "original schema inputs"
+    },
+    {
+      "id": "opentelemetry-proto",
+      "repository": "https://github.com/open-telemetry/opentelemetry-proto.git",
+      "commit": "c0a98a1847d3124ac5f9ecd02d0e2d2732bbb590",
+      "archive": {
+        "url": "https://codeload.github.com/open-telemetry/opentelemetry-proto/tar.gz/c0a98a1847d3124ac5f9ecd02d0e2d2732bbb590",
+        "sha256": "6b5428b2fd9a0138f53b8f91023c91d920ab81ed058ade67e16f6b8bd0abd003"
+      },
+      "archivePrefix": "opentelemetry-proto-c0a98a1847d3124ac5f9ecd02d0e2d2732bbb590",
+      "protoRoots": [
+        ""
+      ],
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "evidencePaths": [],
+      "evidence": [
+        {
+          "url": "https://bcr.bazel.build/modules/opentelemetry-proto/1.8.0/source.json",
+          "sha256": "407cd35e6a9ec89e542a575f4107bd637813170e68129c8f7471b341824b23e7"
+        }
+      ],
+      "registryPatches": [],
+      "role": "original schema inputs"
+    },
+    {
+      "id": "prometheus-metrics-model",
+      "repository": "https://github.com/prometheus/client_model.git",
+      "commit": "eb136e513d419e0c31ad750922f0a6f7675c2dee",
+      "archive": {
+        "url": "https://codeload.github.com/prometheus/client_model/tar.gz/eb136e513d419e0c31ad750922f0a6f7675c2dee",
+        "sha256": "5376a9a30417dad74cee9ee1e56ac4dbc62296ed3f65ba7d560a0d05d69d711d"
+      },
+      "archivePrefix": "client_model-eb136e513d419e0c31ad750922f0a6f7675c2dee",
+      "protoRoots": [
+        ""
+      ],
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        },
+        {
+          "path": "NOTICE",
+          "sha256": "6c79faa15168885fb88a316ae0df18f486deafddefdc16826cdc56dfbd421e24"
+        }
+      ],
+      "evidencePaths": [],
+      "evidence": [
+        {
+          "url": "https://raw.githubusercontent.com/envoyproxy/bazel-registry/748821cc28a6c105d906fe893ba05bb4b7063e91/modules/prometheus-metrics-model/0.6.2.envoy/source.json",
+          "sha256": "0943a090f19491879321638e307bf6bea1459659fb8de4d85ff7e1eb153f12c9"
+        }
+      ],
+      "registryPatches": [],
+      "role": "original schema inputs"
+    },
+    {
+      "id": "cel-spec",
+      "repository": "https://github.com/google/cel-spec.git",
+      "commit": "7f3c4c513b42d471d0be9439bf5bde38f45f8404",
+      "archive": {
+        "url": "https://codeload.github.com/google/cel-spec/tar.gz/7f3c4c513b42d471d0be9439bf5bde38f45f8404",
+        "sha256": "e963a95975bc13fe1fad41dec27eebeb9de9a82dac0f221615e271494f77a52e"
+      },
+      "archivePrefix": "cel-spec-7f3c4c513b42d471d0be9439bf5bde38f45f8404",
+      "protoRoots": [
+        "proto"
+      ],
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        }
+      ],
+      "evidencePaths": [],
+      "evidence": [
+        {
+          "url": "https://bcr.bazel.build/modules/cel-spec/0.25.1/source.json",
+          "sha256": "af0408f0108ba99b834e426b83205ead3eb820a55dd9ef8a78b2512d751e4072"
+        }
+      ],
+      "registryPatches": [
+        {
+          "url": "https://bcr.bazel.build/modules/cel-spec/0.25.1/patches/module_dot_bazel.patch",
+          "sha256": "ebf297eae09962e7d723f04836518ddea2adbd06e140f79db014da68e7af34ec",
+          "paths": [
+            "MODULE.bazel"
+          ],
+          "applied": false,
+          "reason": "Build-only patch; no .proto source changes"
+        }
+      ],
+      "role": "original schema inputs"
+    }
+  ],
+  "goModules": [
+    {
+      "path": "contrib/go.mod",
+      "sha256": "17ff3aa3b8dc5cf0eb92ac66f840157a2780a5fb21377b9f21556420a6d14900",
+      "module": "github.com/envoyproxy/go-control-plane/contrib",
+      "go": "1.26.0",
+      "requirements": [
+        "github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2",
+        "github.com/envoyproxy/go-control-plane/envoy v1.37.0",
+        "github.com/envoyproxy/protoc-gen-validate v1.3.3",
+        "github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10",
+        "google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc",
+        "google.golang.org/grpc v1.84.0",
+        "google.golang.org/protobuf v1.36.12",
+        "cel.dev/expr v0.25.2",
+        "golang.org/x/net v0.59.0",
+        "golang.org/x/sys v0.48.0",
+        "golang.org/x/text v0.42.0",
+        "google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc"
+      ],
+      "replacements": [
+        "github.com/envoyproxy/go-control-plane/envoy => ../envoy"
+      ],
+      "sumPath": "contrib/go.sum",
+      "sumSha256": "a2890a958a6e84c7deae95c3f7ac0ab8a2841e29c055bae7add2416b3fcc1eb0"
+    },
+    {
+      "path": "envoy/go.mod",
+      "sha256": "c0885df11a6f0fd789f653b8216ac98499ab57495dbed44258409dd664b23a99",
+      "module": "github.com/envoyproxy/go-control-plane/envoy",
+      "go": "1.26.0",
+      "requirements": [
+        "github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2",
+        "github.com/envoyproxy/go-control-plane v0.14.0",
+        "github.com/envoyproxy/protoc-gen-validate v1.3.3",
+        "github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10",
+        "github.com/prometheus/client_model v0.6.3",
+        "go.opentelemetry.io/proto/otlp v1.11.1",
+        "google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc",
+        "google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc",
+        "google.golang.org/grpc v1.84.0",
+        "google.golang.org/protobuf v1.36.12",
+        "cel.dev/expr v0.25.2",
+        "golang.org/x/net v0.59.0",
+        "golang.org/x/sys v0.48.0",
+        "golang.org/x/text v0.42.0"
+      ],
+      "replacements": [
+        "github.com/envoyproxy/go-control-plane@v0.13.4 => ../"
+      ],
+      "sumPath": "envoy/go.sum",
+      "sumSha256": "5cd399f0ee0fce4b3c2d7f773bc9bcd5d2d203d2d892630d6f65bd2b511bb09b"
+    },
+    {
+      "path": "examples/dyplomat/go.mod",
+      "sha256": "5b78e41e3cbfe1e92379f420d0831dbe321fce1442751ef4cc8080324607e59c",
+      "module": "github.com/envoyproxy/go-control-plane/examples/dyplomat",
+      "go": "1.26.0",
+      "requirements": [
+        "github.com/envoyproxy/go-control-plane v0.14.0",
+        "github.com/envoyproxy/go-control-plane/envoy v1.37.0",
+        "google.golang.org/grpc v1.84.0",
+        "gopkg.in/yaml.v2 v2.4.0",
+        "k8s.io/api v0.36.2",
+        "k8s.io/apimachinery v0.36.2",
+        "k8s.io/client-go v0.36.2",
+        "sigs.k8s.io/aws-iam-authenticator v0.7.20",
+        "cel.dev/expr v0.25.2",
+        "github.com/aws/aws-sdk-go-v2 v1.42.1",
+        "github.com/aws/aws-sdk-go-v2/config v1.32.29",
+        "github.com/aws/aws-sdk-go-v2/credentials v1.19.28",
+        "github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.30",
+        "github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.30",
+        "github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.30",
+        "github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.31",
+        "github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.13",
+        "github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.30",
+        "github.com/aws/aws-sdk-go-v2/service/signin v1.4.0",
+        "github.com/aws/aws-sdk-go-v2/service/sso v1.32.0",
+        "github.com/aws/aws-sdk-go-v2/service/ssooidc v1.37.0",
+        "github.com/aws/aws-sdk-go-v2/service/sts v1.44.0",
+        "github.com/aws/smithy-go v1.27.3",
+        "github.com/beorn7/perks v1.0.1",
+        "github.com/cespare/xxhash/v2 v2.3.0",
+        "github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2",
+        "github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc",
+        "github.com/emicklei/go-restful/v3 v3.13.0",
+        "github.com/envoyproxy/go-control-plane/ratelimit v0.1.0",
+        "github.com/envoyproxy/protoc-gen-validate v1.3.3",
+        "github.com/fxamacker/cbor/v2 v2.9.1",
+        "github.com/go-logr/logr v1.4.3",
+        "github.com/go-openapi/jsonpointer v0.22.5",
+        "github.com/go-openapi/jsonreference v0.21.5",
+        "github.com/go-openapi/swag v0.25.5",
+        "github.com/go-openapi/swag/cmdutils v0.25.5",
+        "github.com/go-openapi/swag/conv v0.25.5",
+        "github.com/go-openapi/swag/fileutils v0.25.5",
+        "github.com/go-openapi/swag/jsonname v0.25.5",
+        "github.com/go-openapi/swag/jsonutils v0.25.5",
+        "github.com/go-openapi/swag/loading v0.25.5",
+        "github.com/go-openapi/swag/mangling v0.25.5",
+        "github.com/go-openapi/swag/netutils v0.25.5",
+        "github.com/go-openapi/swag/stringutils v0.25.5",
+        "github.com/go-openapi/swag/typeutils v0.25.5",
+        "github.com/go-openapi/swag/yamlutils v0.25.5",
+        "github.com/gofrs/flock v0.13.0",
+        "github.com/google/gnostic-models v0.7.1",
+        "github.com/google/uuid v1.6.0",
+        "github.com/json-iterator/go v1.1.12",
+        "github.com/kr/text v0.2.0",
+        "github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd",
+        "github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee",
+        "github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822",
+        "github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10",
+        "github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2",
+        "github.com/prometheus/client_golang v1.23.2",
+        "github.com/prometheus/client_model v0.6.3",
+        "github.com/prometheus/common v0.67.5",
+        "github.com/prometheus/procfs v0.20.1",
+        "github.com/sirupsen/logrus v1.9.4",
+        "github.com/spf13/afero v1.15.0",
+        "github.com/x448/float16 v0.8.4",
+        "go.yaml.in/yaml/v2 v2.4.4",
+        "go.yaml.in/yaml/v3 v3.0.5",
+        "golang.org/x/net v0.59.0",
+        "golang.org/x/oauth2 v0.36.0",
+        "golang.org/x/sys v0.48.0",
+        "golang.org/x/term v0.46.0",
+        "golang.org/x/text v0.42.0",
+        "golang.org/x/time v0.15.0",
+        "google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc",
+        "google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc",
+        "google.golang.org/protobuf v1.36.12",
+        "gopkg.in/evanphx/json-patch.v4 v4.13.0",
+        "gopkg.in/inf.v0 v0.9.1",
+        "k8s.io/klog/v2 v2.140.0",
+        "k8s.io/kube-openapi v0.0.0-20260317180543-43fb72c5454a",
+        "k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2",
+        "sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730",
+        "sigs.k8s.io/randfill v1.0.0",
+        "sigs.k8s.io/structured-merge-diff/v6 v6.3.2",
+        "sigs.k8s.io/yaml v1.6.0"
+      ],
+      "replacements": [
+        "github.com/envoyproxy/go-control-plane => ../..",
+        "github.com/envoyproxy/go-control-plane/envoy => ../../envoy",
+        "github.com/envoyproxy/go-control-plane/ratelimit => ../../ratelimit"
+      ],
+      "sumPath": "examples/dyplomat/go.sum",
+      "sumSha256": "4ef1fd390cc57e61a85fbb334b5b02407cb536796e761d67d15359b829edf47e"
+    },
+    {
+      "path": "go.mod",
+      "sha256": "ec08e4b2d0a979821b7b6386260aaf93184ac3eafd261872826c03c9fdaa058d",
+      "module": "github.com/envoyproxy/go-control-plane",
+      "go": "1.26.0",
+      "requirements": [
+        "github.com/envoyproxy/go-control-plane/envoy v1.37.0",
+        "github.com/envoyproxy/go-control-plane/ratelimit v0.1.0",
+        "github.com/google/go-cmp v0.7.0",
+        "github.com/stretchr/testify v1.12.1",
+        "go.uber.org/goleak v1.3.0",
+        "google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc",
+        "google.golang.org/grpc v1.84.0",
+        "google.golang.org/protobuf v1.36.12",
+        "cel.dev/expr v0.25.2",
+        "github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2",
+        "github.com/envoyproxy/protoc-gen-validate v1.3.3",
+        "github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10",
+        "go.yaml.in/yaml/v3 v3.0.5",
+        "golang.org/x/net v0.59.0",
+        "golang.org/x/sys v0.48.0",
+        "golang.org/x/text v0.42.0",
+        "google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc"
+      ],
+      "replacements": [
+        "github.com/envoyproxy/go-control-plane/envoy => ./envoy",
+        "github.com/envoyproxy/go-control-plane/ratelimit => ./ratelimit"
+      ],
+      "sumPath": "go.sum",
+      "sumSha256": "feba40976f46b8a81d86367bbb5c524577be2e4aa04da9ba48db9dec4d9123f0"
+    },
+    {
+      "path": "internal/tools/go.mod",
+      "sha256": "748f16bcf26a22f5f747d06691107854d4b7cb2be441cbae4d2425addf7025c5",
+      "module": "github.com/envoyproxy/go-control-plane/internal/tools",
+      "go": "1.26.0",
+      "requirements": [
+        "github.com/golangci/golangci-lint/v2 v2.14.0",
+        "go.opentelemetry.io/build-tools/multimod v0.30.0",
+        "4d63.com/gocheckcompilerdirectives v1.4.0",
+        "4d63.com/gochecknoglobals v0.2.2",
+        "charm.land/lipgloss/v2 v2.0.6",
+        "codeberg.org/chavacava/garif v0.2.1",
+        "codeberg.org/polyfloyd/go-errorlint v1.9.0",
+        "dario.cat/mergo v1.0.2",
+        "dev.gaijin.team/go/exhaustruct/v4 v4.0.0",
+        "dev.gaijin.team/go/exhaustruct/v5 v5.2.0",
+        "dev.gaijin.team/go/golib v0.8.1",
+        "github.com/4meepo/tagalign v1.4.4",
+        "github.com/Abirdcfly/dupword v0.1.8",
+        "github.com/AdminBenni/iota-mixing v1.0.0",
+        "github.com/AlwxSin/noinlineerr v1.0.6",
+        "github.com/Antonboom/errname v1.1.2",
+        "github.com/Antonboom/nilnil v1.1.2",
+        "github.com/Antonboom/testifylint v1.6.4",
+        "github.com/BurntSushi/toml v1.6.0",
+        "github.com/ClickHouse/clickhouse-go-linter v1.2.1",
+        "github.com/Djarvur/go-err113 v0.1.1",
+        "github.com/Masterminds/semver/v3 v3.5.0",
+        "github.com/Microsoft/go-winio v0.6.2",
+        "github.com/MirrexOne/unqueryvet v1.5.4",
+        "github.com/OpenPeeDeeP/depguard/v2 v2.2.1",
+        "github.com/ProtonMail/go-crypto v1.4.1",
+        "github.com/alecthomas/chroma/v2 v2.27.0",
+        "github.com/alecthomas/go-check-sumtype v0.5.1-0.20260828200218-ae6904d28606",
+        "github.com/alexkohler/nakedret/v2 v2.0.6",
+        "github.com/alexkohler/prealloc v1.1.0",
+        "github.com/alfatraining/structtag v1.0.0",
+        "github.com/alingse/asasalint v0.0.11",
+        "github.com/alingse/nilnesserr v0.2.0",
+        "github.com/ashanbrown/forbidigo/v2 v2.3.1",
+        "github.com/ashanbrown/makezero/v2 v2.2.1",
+        "github.com/beorn7/perks v1.0.1",
+        "github.com/bkielbasa/cyclop v1.2.3",
+        "github.com/blizzy78/varnamelen v0.8.0",
+        "github.com/bombsimon/wsl/v4 v4.7.0",
+        "github.com/bombsimon/wsl/v5 v5.9.0",
+        "github.com/breml/bidichk v0.3.3",
+        "github.com/breml/errchkjson v0.4.1",
+        "github.com/butuzov/ireturn v0.4.1",
+        "github.com/butuzov/mirror v1.3.3",
+        "github.com/catenacyber/perfsprint v0.10.1",
+        "github.com/ccojocar/zxcvbn-go v1.0.4",
+        "github.com/cespare/xxhash/v2 v2.3.0",
+        "github.com/charithe/durationcheck v0.0.11",
+        "github.com/charmbracelet/colorprofile v0.4.3",
+        "github.com/charmbracelet/ultraviolet v0.0.0-20260811164956-006e29f97886",
+        "github.com/charmbracelet/x/ansi v0.11.8",
+        "github.com/charmbracelet/x/term v0.2.2",
+        "github.com/charmbracelet/x/termios v0.1.1",
+        "github.com/charmbracelet/x/windows v0.2.2",
+        "github.com/ckaznocha/intrange v0.3.1",
+        "github.com/clipperhouse/displaywidth v0.11.0",
+        "github.com/clipperhouse/uax29/v2 v2.7.0",
+        "github.com/cloudflare/circl v1.6.3",
+        "github.com/curioswitch/go-reassign v0.3.0",
+        "github.com/cyphar/filepath-securejoin v0.6.1",
+        "github.com/daixiang0/gci v0.13.7",
+        "github.com/dave/dst v0.27.3",
+        "github.com/denis-tingaikin/go-header v0.5.0",
+        "github.com/dlclark/regexp2/v2 v2.2.1",
+        "github.com/emirpasic/gods v1.18.1",
+        "github.com/ettle/strcase v0.2.0",
+        "github.com/fatih/color v1.19.0",
+        "github.com/fatih/structtag v1.2.0",
+        "github.com/firefart/nonamedreturns v1.0.8",
+        "github.com/fsnotify/fsnotify v1.9.0",
+        "github.com/fzipp/gocyclo v0.6.0",
+        "github.com/ghostiam/protogetter v1.0.1",
+        "github.com/go-critic/go-critic v0.15.0",
+        "github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376",
+        "github.com/go-git/go-billy/v5 v5.9.0",
+        "github.com/go-git/go-git/v5 v5.19.2",
+        "github.com/go-toolsmith/astcast v1.1.0",
+        "github.com/go-toolsmith/astcopy v1.1.0",
+        "github.com/go-toolsmith/astequal v1.2.0",
+        "github.com/go-toolsmith/astfmt v1.1.0",
+        "github.com/go-toolsmith/astp v1.1.0",
+        "github.com/go-toolsmith/strparse v1.1.0",
+        "github.com/go-toolsmith/typep v1.1.0",
+        "github.com/go-viper/mapstructure/v2 v2.5.0",
+        "github.com/go-xmlfmt/xmlfmt v1.1.3",
+        "github.com/gobwas/glob v0.2.3",
+        "github.com/godoc-lint/godoc-lint v0.11.4",
+        "github.com/gofrs/flock v0.13.1",
+        "github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8",
+        "github.com/golang/protobuf v1.5.4",
+        "github.com/golangci/asciicheck v0.5.0",
+        "github.com/golangci/canonicalheader v0.0.0-20260827115959-a25c71c521f6",
+        "github.com/golangci/dupl v0.0.0-20260401084720-c99c5cf5c202",
+        "github.com/golangci/go-printf-func-name v0.1.1",
+        "github.com/golangci/gofmt v0.0.0-20260820135601-e84e05053792",
+        "github.com/golangci/golines v0.15.0",
+        "github.com/golangci/misspell v0.8.0",
+        "github.com/golangci/plugin-module-register v0.1.2",
+        "github.com/golangci/revgrep v0.8.0",
+        "github.com/golangci/rowserrcheck v0.0.0-20260419091836-c5f79b8a11ba",
+        "github.com/golangci/swaggoswag v0.0.0-20250504205917-77f2aca3143e",
+        "github.com/golangci/unconvert v0.0.0-20250410112200-a129a6e6413e",
+        "github.com/google/go-cmp v0.7.0",
+        "github.com/gordonklaus/ineffassign v0.2.0",
+        "github.com/gostaticanalysis/analysisutil v0.7.1",
+        "github.com/gostaticanalysis/comment v1.5.0",
+        "github.com/gostaticanalysis/forcetypeassert v0.2.0",
+        "github.com/gostaticanalysis/nilerr v0.1.2",
+        "github.com/hashicorp/go-cleanhttp v0.5.2",
+        "github.com/hashicorp/go-immutable-radix/v2 v2.1.0",
+        "github.com/hashicorp/go-retryablehttp v0.7.8",
+        "github.com/hashicorp/go-version v1.9.0",
+        "github.com/hashicorp/golang-lru/v2 v2.0.7",
+        "github.com/hexops/gotextdiff v1.0.3",
+        "github.com/inconshreveable/mousetrap v1.1.0",
+        "github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99",
+        "github.com/jgautheron/goconst v1.11.0",
+        "github.com/jjti/go-spancheck v0.6.5",
+        "github.com/julz/importas v0.2.0",
+        "github.com/karamaru-alpha/copyloopvar v1.2.2",
+        "github.com/kevinburke/ssh_config v1.6.0",
+        "github.com/kisielk/errcheck v1.20.0",
+        "github.com/kkHAIKE/contextcheck v1.1.6",
+        "github.com/klauspost/cpuid/v2 v2.3.0",
+        "github.com/kulti/thelper v0.7.1",
+        "github.com/kunwardeep/paralleltest v1.0.15",
+        "github.com/ldez/exptostd v0.4.5",
+        "github.com/ldez/gomoddirectives v0.10.0",
+        "github.com/ldez/grignotin v0.10.1",
+        "github.com/ldez/structtags v0.6.1",
+        "github.com/ldez/tagliatelle v0.8.0",
+        "github.com/ldez/usetesting v0.5.0",
+        "github.com/leonklingele/grouper v1.1.2",
+        "github.com/lucasb-eyer/go-colorful v1.4.1",
+        "github.com/macabu/inamedparam v0.2.0",
+        "github.com/manuelarte/embeddedstructfieldcheck v0.4.0",
+        "github.com/manuelarte/funcorder v0.6.0",
+        "github.com/maratori/testableexamples v1.0.1",
+        "github.com/maratori/testpackage v1.1.2",
+        "github.com/matoous/godox v1.1.0",
+        "github.com/mattn/go-colorable v0.1.15",
+        "github.com/mattn/go-isatty v0.0.22",
+        "github.com/mattn/go-runewidth v0.0.24",
+        "github.com/matttproud/golang_protobuf_extensions v1.0.1",
+        "github.com/mgechev/revive v1.17.0",
+        "github.com/mitchellh/go-homedir v1.1.0",
+        "github.com/moricho/tparallel v0.3.2",
+        "github.com/muesli/cancelreader v0.2.2",
+        "github.com/nakabonne/nestif v0.3.1",
+        "github.com/nishanths/exhaustive v0.13.0",
+        "github.com/nishanths/predeclared v0.2.2",
+        "github.com/nunnatsa/ginkgolinter v0.24.0",
+        "github.com/pelletier/go-toml/v2 v2.4.3",
+        "github.com/pjbgf/sha1cd v0.6.0",
+        "github.com/prometheus/client_golang v1.12.1",
+        "github.com/prometheus/client_model v0.2.0",
+        "github.com/prometheus/common v0.32.1",
+        "github.com/prometheus/procfs v0.7.3",
+        "github.com/quasilyte/go-ruleguard v0.4.5",
+        "github.com/quasilyte/go-ruleguard/dsl v0.3.23",
+        "github.com/quasilyte/gogrep v0.5.0",
+        "github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727",
+        "github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567",
+        "github.com/raeperd/recvcheck v0.3.1",
+        "github.com/rivo/uniseg v0.4.7",
+        "github.com/rogpeppe/go-internal v1.16.0",
+        "github.com/ryancurrah/gomodguard v1.4.1",
+        "github.com/ryancurrah/gomodguard/v2 v2.1.3",
+        "github.com/ryanrolds/sqlclosecheck v0.6.0",
+        "github.com/sagikazarmark/locafero v0.12.0",
+        "github.com/sanposhiho/wastedassign/v2 v2.1.0",
+        "github.com/santhosh-tekuri/jsonschema/v6 v6.0.3",
+        "github.com/sashamelentyev/interfacebloat v1.1.0",
+        "github.com/sashamelentyev/usestdlibvars v1.29.0",
+        "github.com/securego/gosec/v2 v2.29.0",
+        "github.com/sergi/go-diff v1.4.0",
+        "github.com/sirupsen/logrus v1.10.2",
+        "github.com/sivchari/containedctx v1.0.3",
+        "github.com/skeema/knownhosts v1.3.2",
+        "github.com/sonatard/noctx v0.5.1",
+        "github.com/sourcegraph/go-diff v0.9.0",
+        "github.com/spf13/afero v1.15.0",
+        "github.com/spf13/cast v1.10.0",
+        "github.com/spf13/cobra v1.10.2",
+        "github.com/spf13/pflag v1.0.10",
+        "github.com/spf13/viper v1.21.0",
+        "github.com/ssgreg/nlreturn/v2 v2.2.1",
+        "github.com/stbenjam/no-sprintf-host-port v0.3.1",
+        "github.com/stretchr/objx v0.5.3",
+        "github.com/stretchr/testify v1.12.1",
+        "github.com/subosito/gotenv v1.6.0",
+        "github.com/tetafro/godot v1.5.6",
+        "github.com/timakin/bodyclose v0.0.0-20260723120731-857993a2939c",
+        "github.com/timonwong/loggercheck v0.12.0",
+        "github.com/tomarrell/wrapcheck/v2 v2.12.0",
+        "github.com/tommy-muehle/go-mnd/v2 v2.5.1",
+        "github.com/ultraware/funlen v0.2.0",
+        "github.com/ultraware/whitespace v0.2.0",
+        "github.com/uudashr/gocognit v1.2.1",
+        "github.com/uudashr/iface v1.5.1",
+        "github.com/xanzy/ssh-agent v0.3.3",
+        "github.com/xen0n/gosmopolitan v1.3.0",
+        "github.com/xo/terminfo v1.0.0",
+        "github.com/yagipy/maintidx v1.0.0",
+        "github.com/yeya24/promlinter v0.3.0",
+        "github.com/ykadowak/zerologlint v0.1.5",
+        "gitlab.com/bosi/decorder v0.4.2",
+        "go-simpler.org/musttag v0.14.0",
+        "go-simpler.org/sloglint v0.12.0",
+        "go.augendre.info/arangolint v0.4.0",
+        "go.augendre.info/fatcontext v0.10.1",
+        "go.opentelemetry.io/build-tools v0.30.0",
+        "go.uber.org/multierr v1.11.0",
+        "go.uber.org/zap v1.27.0",
+        "go.yaml.in/yaml/v3 v3.0.5",
+        "golang.org/x/crypto v0.57.0",
+        "golang.org/x/exp/typeparams v0.0.0-20260811152304-ee035b5b010f",
+        "golang.org/x/mod v0.41.0",
+        "golang.org/x/net v0.59.0",
+        "golang.org/x/sync v0.23.0",
+        "golang.org/x/sys v0.48.0",
+        "golang.org/x/text v0.42.0",
+        "golang.org/x/tools v0.50.0",
+        "google.golang.org/protobuf v1.36.12",
+        "gopkg.in/warnings.v0 v0.1.2",
+        "gopkg.in/yaml.v3 v3.0.1",
+        "honnef.co/go/tools v0.8.1",
+        "mvdan.cc/gofumpt v0.12.0",
+        "mvdan.cc/unparam v0.0.0-20260823230713-2fa3d841b0c8"
+      ],
+      "replacements": [],
+      "sumPath": "internal/tools/go.sum",
+      "sumSha256": "f62f9ae507dab27f7a513aef1b213df229196342af73b9d0196e215981223c3c"
+    },
+    {
+      "path": "ratelimit/go.mod",
+      "sha256": "7eb72900eb61ee7e61f83d6b6ade51a14fcf4042cd7fa22330606c1c6be92f3f",
+      "module": "github.com/envoyproxy/go-control-plane/ratelimit",
+      "go": "1.26.0",
+      "requirements": [
+        "github.com/envoyproxy/go-control-plane/envoy v1.37.0",
+        "google.golang.org/grpc v1.84.0",
+        "google.golang.org/protobuf v1.36.12",
+        "github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2",
+        "github.com/envoyproxy/protoc-gen-validate v1.3.3",
+        "github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10",
+        "golang.org/x/net v0.59.0",
+        "golang.org/x/sys v0.48.0",
+        "golang.org/x/text v0.42.0",
+        "google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc"
+      ],
+      "replacements": [
+        "github.com/envoyproxy/go-control-plane/envoy => ../envoy"
+      ],
+      "sumPath": "ratelimit/go.sum",
+      "sumSha256": "814b1f909e89474cdd5db6933241d645995acd1e039a5dbca9b8855213d948f2"
+    },
+    {
+      "path": "xdsmatcher/go.mod",
+      "sha256": "d16b00a3b4d156da4900a4fd7a47cea9e7a1e154ad41825cff08f157b8fc11bd",
+      "module": "github.com/envoyproxy/go-control-plane/xdsmatcher",
+      "go": "1.26.0",
+      "requirements": [
+        "github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2",
+        "github.com/envoyproxy/go-control-plane/envoy v1.36.0",
+        "github.com/stretchr/testify v1.12.1",
+        "google.golang.org/protobuf v1.36.12",
+        "gopkg.in/yaml.v2 v2.4.0",
+        "cel.dev/expr v0.25.2",
+        "github.com/envoyproxy/protoc-gen-validate v1.3.3",
+        "github.com/kr/pretty v0.3.1",
+        "github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10",
+        "github.com/rogpeppe/go-internal v1.12.0",
+        "go.yaml.in/yaml/v3 v3.0.5",
+        "google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc",
+        "google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc",
+        "gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c"
+      ],
+      "replacements": [
+        "github.com/envoyproxy/go-control-plane/envoy => ../envoy"
+      ],
+      "sumPath": "xdsmatcher/go.sum",
+      "sumSha256": "a194e7f223f3b4d0360abab92266f11eeece6cda521491e30d053c3e9b788167"
+    }
+  ],
+  "ratelimit": {
+    "source": "ratelimit",
+    "paths": [
+      "ratelimit/config/ratelimit/v3/rls_conf.proto",
+      "ratelimit/service/ratelimit/v3/rls_conf_ds.proto"
+    ],
+    "goDescriptorNames": {
+      "ratelimit/config/ratelimit/v3/rls_conf.proto": "api/ratelimit/config/ratelimit/v3/rls_conf.proto",
+      "ratelimit/service/ratelimit/v3/rls_conf_ds.proto": "ratelimit/service/ratelimit/v3/rls_conf_ds.proto"
+    },
+    "goDescriptorSha256": {
+      "ratelimit/config/ratelimit/v3/rls_conf.proto": "2a0c8904130c549beccc7036a241ec4922a592b22ad435379e4493fcf156f4a2",
+      "ratelimit/service/ratelimit/v3/rls_conf_ds.proto": "60845bf6e95b67ab35575c1f4c32d38bb3a6e3e58896969bac9468d665b179db"
+    },
+    "comparison": "Compare complete FileDescriptorProto definitions, clearing only the explicitly recorded config filename discrepancy. Service filename and definitions must match exactly. No option, message, enum, field or RPC differences are accepted."
+  },
+  "inspectionTools": {
+    "protoc": {
+      "version": "35.1",
+      "platform": "darwin-arm64",
+      "url": "https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protoc-35.1-osx-aarch_64.zip",
+      "sha256": "193289af0470c6a1aada357d4fba0bbf8d78bfaac8b5e42ca30af2ef75583de2"
+    },
+    "dotnet": {
+      "version": "10.0.400",
+      "sdkCommit": "14fbf8d5271c98133561eb55185fdb05b286f578",
+      "source": "global.json"
+    },
+    "googleProtobuf": {
+      "version": "3.35.1",
+      "url": "https://api.nuget.org/v3-flatcontainer/google.protobuf/3.35.1/google.protobuf.3.35.1.nupkg",
+      "sha256": "6ba51589915e3640e1ffdd384863dd0d73f0ca6a8aac591ec81c42c6a3ee55ce",
+      "sha512": "AogNfWrqhkPBdXlAGMcP2Z1zZm6TcaEg7+WFZxosVcCwLZZAWjYTVts4/vM2wTNRKMOmCUW3UsJ/3qtlbkimrg==",
+      "assemblySha256": "e0deb31c17ad585eaf844fdca5b19a774594813401cace58d30d5996ba094da2",
+      "assemblyPath": "lib/net5.0/Google.Protobuf.dll",
+      "license": "BSD-3-Clause",
+      "repository": "https://github.com/protocolbuffers/protobuf.git",
+      "commit": "35cd01f9fe9afbeea38cc7b979a3b6bfcde82c03"
+    },
+    "roslynatorAnalyzers": {
+      "version": "5.0.1",
+      "url": "https://api.nuget.org/v3-flatcontainer/roslynator.analyzers/5.0.1/roslynator.analyzers.5.0.1.nupkg",
+      "sha256": "c34f0658e9219bcf615a70215be64bb9333ecfbfb6c60dd8cc7ef7be50edf580",
+      "sha512": "0RHqc/HMgdQDpXJ7mxqJyUUiJvVk91kRJnfxgq998H7Pvw4FPEVMLomr5AE5k0Sm1TI5bB7YRJmjrkEj6NPSOg==",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/dotnet/roslynator.git",
+      "role": "Build-time code analysis only; no runtime assets or package dependencies"
+    }
+  },
+  "generationToolchain": {
+    "status": "pending-T02",
+    "note": "Inspection tools are not a .NET generator/provider decision. No C# binding generation input is floating; no compiler/plugin/runtime has been selected for release generation."
+  },
+  "catalogSha256": "6af96cd168d1808563d66bcb316fadf853a22e55647616aa37c972ff91afe713"
+}

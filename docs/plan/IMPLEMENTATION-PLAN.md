@@ -1,6 +1,6 @@
 # Implementation plan: tasks and subtasks
 
-Reviewed **24 October 2026**. All active tasks are **planned**. T03 is required before G1 binding freeze; T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. None is an implementation result. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
+Reviewed **24 October 2026**. T01 source work and V01 verification are **complete, awaiting PR review**, with [provenance evidence](../../schemas/PROVENANCE.md) and [automated CLI tests](../../tests/README.md). T01 brought the test framework/runner and tooling CI forward from T04; the remaining library work is **planned**. T03 is required before G1 binding freeze; T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. No runtime implementation result is claimed. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
 
 ## Execution rules
 
@@ -8,7 +8,7 @@ Each task below identifies dependencies, proposed outputs, numbered subtasks, an
 
 **Feature ceiling:** implement the selected Go root-library surface, its approved optional schema-validation constraints, and necessary .NET adaptations. Start with the direct Go loop/watch/cache structure. A task does not authorize extra options, frameworks, stronger ownership guarantees, or performance APIs. T03/T26 are active scope; T27/T28 remain deferred. Automatic validation-on-publication is excluded.
 
-Task completion requires its acceptance criteria, relevant verification artifacts, and documentation updates. A test name alone does not count as a passing result. Record exact commands, tool versions, fixture versions, and outcome at implementation time. Select the .NET test framework/runner in T04 before writing command recipes.
+Task completion requires its acceptance criteria, relevant verification artifacts, and documentation updates. A test name alone does not count as a passing result. Record exact commands, tool versions, fixture versions, and outcome at implementation time. T01 selected xUnit/Microsoft Testing Platform for the initial CLI test project; T04 extends that established setup to the runtime projects.
 
 ## Milestones and sequencing
 
@@ -69,6 +69,8 @@ The table and task dependency fields are authoritative; the diagram summarizes t
 
 ### T01 — Lock the complete upstream input set
 
+**Status:** Implemented and verified, awaiting PR review. Source lock/catalog, rate-limit descriptor comparison, license inventory, C# retrieval/inspection app and automated V01 acceptance/rejection tests are complete. All 17 CLI tests and the full 523-schema inspection passed locally. See [G0 evidence](../../schemas/PROVENANCE.md) and [test mapping](../../tests/README.md).
+
 **Scope:** foundation / R01. **Depends on:** none. **Outputs:** `schemas/upstream.lock.json`, `schemas/catalog.json`, provenance report, updated baseline JSON if input data is added.
 
 Subtasks:
@@ -116,9 +118,9 @@ Subtasks:
 
 Subtasks:
 
-- T04.1 Pin SDK and package versions; select a .NET test framework/runner and document invocation modes.
+- T04.1 Extend the SDK/package pins and xUnit/Microsoft Testing Platform setup established by T01 to the runtime projects; document their invocation modes.
 - T04.2 Create Protocol/Core/ASP.NET references and the separate validation-project layout selected by T03. Keep evaluator references in that optional project; root projects must not depend on it.
-- T04.3 Add formatting/analyzers, nullable policy, deterministic builds, package metadata/license notices, and a clean build/pack script.
+- T04.3 Apply the repository's Roslynator code-quality policy to all runtime projects; add formatting, nullable policy, deterministic builds, package metadata/license notices, and a clean build/pack script. T01 already uses Roslynator in the C# file-based provenance app.
 - T04.4 Establish fixture and evidence directories plus Linux/macOS/Windows build jobs; keep substantial workflow logic in scripts.
 
 **Acceptance:** A clean build and local package consumption succeed for selected targets. No implementation or test project is omitted from solution/CI discovery. Package graph matches ADR03/04; V37 has an initial smoke result.

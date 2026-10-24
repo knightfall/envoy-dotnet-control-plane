@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.2" />
+    <PackageReference Include="Roslynator.Analyzers" Version="5.0.1" PrivateAssets="all" />
+  </ItemGroup>
+  <!-- The production entry point is a file-based app, so exercise its built CLI
+       rather than linking a copy of its implementation into the test assembly. -->
+  <Target Name="BuildUpstreamCli" BeforeTargets="Build"
+          Inputs="$(MSBuildThisFileDirectory)../../scripts/Upstream.cs;$(MSBuildThisFileDirectory)../../global.json;$(MSBuildThisFileDirectory)../../.editorconfig"
+          Outputs="$(TargetDir)upstream/Upstream.dll">
+    <Exec WorkingDirectory="$(MSBuildThisFileDirectory)../.."
+          Command="dotnet build scripts/Upstream.cs --configuration $(Configuration) --output &quot;$(TargetDir)upstream&quot; --nologo" />
+  </Target>
+</Project>

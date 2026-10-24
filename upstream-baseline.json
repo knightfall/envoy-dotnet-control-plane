@@ -9,5 +9,15 @@
     "repository": "https://github.com/envoyproxy/envoy.git",
     "commit": "82a4424f760b6ba3ffc9f2911389d061656f35c8",
     "source": "go-control-plane/envoy/COMMIT"
+  },
+  "ratelimitApi": {
+    "repository": "https://github.com/envoyproxy/ratelimit.git",
+    "commit": "0d9cfd0b3934c6c66bd97544592f3f539e7138cc",
+    "source": "api/ratelimit/{config,service}/ratelimit/v3/*.proto"
+  },
+  "schemaInputs": {
+    "lock": "schemas/upstream.lock.json",
+    "catalog": "schemas/catalog.json",
+    "provenance": "schemas/PROVENANCE.md"
   }
 }
