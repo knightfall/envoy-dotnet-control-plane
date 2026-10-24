@@ -2,6 +2,8 @@
 
 Run these C# file-based entry points from the repository root. Supporting code is included explicitly with `#:include`; the pinned .NET SDK supports this without another CLI project. Dependency versions come from `Directory.Packages.props`.
 
+The root [.gitattributes](../.gitattributes) keeps tracked text files at LF on every platform, including Windows checkouts with `core.autocrlf=true`. Configuration and catalog fingerprints verify exact bytes; keep this checkout rule rather than changing the locked hashes to accommodate line-ending conversion.
+
 | Entry point | Responsibility | Supporting code |
 |---|---|---|
 | [Upstream.cs](Upstream.cs) | Parse the requested source operation and coordinate provenance verification, inspection or export | [upstream/](upstream/) |

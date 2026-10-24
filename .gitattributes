@@ -1,0 +1,3 @@
+# Fingerprinted configuration and manifests must have the same checkout bytes
+# on every platform. Auto-detection leaves binary files unchanged.
+* text=auto eol=lf
