@@ -1,3 +1,5 @@
+using System.Xml.Linq;
+using Envoy.Type.V3;
 using Google.Protobuf;
 using Xunit;
 
@@ -6,6 +8,19 @@ namespace Envoy.ControlPlane.Protocol.Tests;
 [Collection(ProtocolBindingCollection.Name)]
 public sealed class GeneratorCompatibilityTests
 {
+    [Fact]
+    public void GeneratedDocumentation_MessageAndFieldComments_PreserveUpstreamExplanations()
+    {
+        string path = Path.ChangeExtension(typeof(Percent).Assembly.Location, ".xml");
+        var members = XDocument.Load(path).Descendants("member")
+            .ToDictionary(member => member.Attribute("name")!.Value, StringComparer.Ordinal);
+
+        Assert.Contains("Identifies a percentage, in the range [0.0, 100.0].",
+            members["T:Envoy.Type.V3.Percent"].Value);
+        Assert.Contains("The unique name by which this listener is known.",
+            members["P:Envoy.Config.Listener.V3.Listener.Name"].Value);
+    }
+
     [Fact]
     public void GeneratorNameCorrections_PreserveDescriptorsAndOneofBehavior()
     {

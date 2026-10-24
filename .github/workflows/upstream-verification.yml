@@ -66,9 +66,18 @@ jobs:
           cache: true
           cache-dependency-path: |
             src/Envoy.ControlPlane.Protocol/packages.lock.json
+            src/Envoy.ControlPlane.Validation.Annotations/packages.lock.json
+            src/Envoy.ControlPlane.Validation/packages.lock.json
             tests/Envoy.ControlPlane.Protocol.Tests/packages.lock.json
+            tests/Envoy.ControlPlane.Validation.Tests/packages.lock.json
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: tests/validation/GoOracle/go.sum
       - name: Generate with Buf, pack, and verify project and clean package consumers
-        run: dotnet run --file scripts/Bindings.cs -- verify --cache ../upstream-sources
+        run: dotnet run --no-cache --file scripts/Bindings.cs -- verify --cache ../upstream-sources
+      - name: Verify source-built validator against Go PGV and fresh packages
+        run: dotnet run --no-cache --file scripts/Validation.cs -- verify
       - name: Upload binding evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -77,6 +86,8 @@ jobs:
           path: |
             src/Envoy.ControlPlane.Protocol/obj/upstream/results/
             src/Envoy.ControlPlane.Protocol/obj/upstream/consumer.packages.lock.json
+            src/Envoy.ControlPlane.Protocol/obj/upstream/validation-consumer.packages.lock.json
             src/Envoy.ControlPlane.Protocol/bin/packages/
+            src/Envoy.ControlPlane.Protocol/obj/validation/catalog.report.json
           if-no-files-found: warn
           retention-days: 14

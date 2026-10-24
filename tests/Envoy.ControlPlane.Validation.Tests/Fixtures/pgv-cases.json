@@ -1,0 +1,322 @@
+[
+  {
+    "id": "percent-below",
+    "category": "numeric",
+    "type": "envoy.type.v3.Percent",
+    "input": {
+      "value": -0.01
+    },
+    "valid": false
+  },
+  {
+    "id": "percent-lower",
+    "category": "numeric",
+    "type": "envoy.type.v3.Percent",
+    "input": {
+      "value": 0
+    },
+    "valid": true
+  },
+  {
+    "id": "percent-upper",
+    "category": "numeric",
+    "type": "envoy.type.v3.Percent",
+    "input": {
+      "value": 100
+    },
+    "valid": true
+  },
+  {
+    "id": "percent-above",
+    "category": "numeric",
+    "type": "envoy.type.v3.Percent",
+    "input": {
+      "value": 100.01
+    },
+    "valid": false
+  },
+  {
+    "id": "header-empty",
+    "category": "string",
+    "type": "envoy.config.core.v3.HeaderValue",
+    "input": {
+      "key": ""
+    },
+    "valid": false
+  },
+  {
+    "id": "header-one",
+    "category": "string",
+    "type": "envoy.config.core.v3.HeaderValue",
+    "input": {
+      "key": "x"
+    },
+    "valid": true
+  },
+  {
+    "id": "header-unicode",
+    "category": "string",
+    "type": "envoy.config.core.v3.HeaderValue",
+    "input": {
+      "key": "é"
+    },
+    "valid": true
+  },
+  {
+    "id": "nested-absent",
+    "category": "presence/nested",
+    "type": "envoy.config.core.v3.HeaderValueOption",
+    "input": {},
+    "valid": false
+  },
+  {
+    "id": "nested-empty",
+    "category": "presence/nested",
+    "type": "envoy.config.core.v3.HeaderValueOption",
+    "input": {
+      "header": {}
+    },
+    "valid": false
+  },
+  {
+    "id": "nested-valid",
+    "category": "presence/nested",
+    "type": "envoy.config.core.v3.HeaderValueOption",
+    "input": {
+      "header": {
+        "key": "x"
+      }
+    },
+    "valid": true
+  },
+  {
+    "id": "socket-absent",
+    "category": "oneof/numeric/enum",
+    "type": "envoy.config.core.v3.SocketAddress",
+    "input": {
+      "address": "127.0.0.1"
+    },
+    "valid": false
+  },
+  {
+    "id": "socket-zero",
+    "category": "oneof/numeric/enum",
+    "type": "envoy.config.core.v3.SocketAddress",
+    "input": {
+      "address": "127.0.0.1",
+      "portValue": 0
+    },
+    "valid": true
+  },
+  {
+    "id": "socket-upper",
+    "category": "oneof/numeric/enum",
+    "type": "envoy.config.core.v3.SocketAddress",
+    "input": {
+      "address": "127.0.0.1",
+      "portValue": 65535
+    },
+    "valid": true
+  },
+  {
+    "id": "socket-above",
+    "category": "oneof/numeric/enum",
+    "type": "envoy.config.core.v3.SocketAddress",
+    "input": {
+      "address": "127.0.0.1",
+      "portValue": 65536
+    },
+    "valid": false
+  },
+  {
+    "id": "socket-enum",
+    "category": "oneof/numeric/enum",
+    "type": "envoy.config.core.v3.SocketAddress",
+    "input": {
+      "address": "127.0.0.1",
+      "portValue": 80,
+      "protocol": 42
+    },
+    "valid": false
+  },
+  {
+    "id": "repeated-empty",
+    "category": "repeated/nested",
+    "type": "envoy.config.core.v3.DnsResolutionConfig",
+    "input": {},
+    "valid": false
+  },
+  {
+    "id": "repeated-valid",
+    "category": "repeated/nested",
+    "type": "envoy.config.core.v3.DnsResolutionConfig",
+    "input": {
+      "resolvers": [
+        {
+          "socketAddress": {
+            "address": "127.0.0.1",
+            "portValue": 53
+          }
+        }
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "repeated-invalid-item",
+    "category": "repeated/nested",
+    "type": "envoy.config.core.v3.DnsResolutionConfig",
+    "input": {
+      "resolvers": [
+        {}
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "map-empty",
+    "category": "map/keys",
+    "type": "envoy.config.core.v3.Metadata",
+    "input": {},
+    "valid": true
+  },
+  {
+    "id": "map-empty-key",
+    "category": "map/keys",
+    "type": "envoy.config.core.v3.Metadata",
+    "input": {
+      "filterMetadata": {
+        "": {}
+      }
+    },
+    "valid": false
+  },
+  {
+    "id": "map-valid-key",
+    "category": "map/keys",
+    "type": "envoy.config.core.v3.Metadata",
+    "input": {
+      "filterMetadata": {
+        "example": {}
+      }
+    },
+    "valid": true
+  },
+  {
+    "id": "duration-absent",
+    "category": "duration/required",
+    "type": "envoy.config.core.v3.BackoffStrategy",
+    "input": {},
+    "valid": false
+  },
+  {
+    "id": "duration-below",
+    "category": "duration/required",
+    "type": "envoy.config.core.v3.BackoffStrategy",
+    "input": {
+      "baseInterval": "0.000999999s"
+    },
+    "valid": false
+  },
+  {
+    "id": "duration-boundary",
+    "category": "duration/required",
+    "type": "envoy.config.core.v3.BackoffStrategy",
+    "input": {
+      "baseInterval": "0.001s"
+    },
+    "valid": true
+  },
+  {
+    "id": "duration-above",
+    "category": "duration/required",
+    "type": "envoy.config.core.v3.BackoffStrategy",
+    "input": {
+      "baseInterval": "0.001000001s"
+    },
+    "valid": true
+  },
+  {
+    "id": "any-missing",
+    "category": "any/required/opaque",
+    "type": "envoy.config.core.v3.TypedExtensionConfig",
+    "input": {
+      "name": "file"
+    },
+    "valid": false
+  },
+  {
+    "id": "any-opaque-invalid-payload",
+    "category": "any/required/opaque",
+    "type": "envoy.config.core.v3.TypedExtensionConfig",
+    "input": {
+      "name": "file",
+      "typedConfig": {
+        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
+        "path": ""
+      }
+    },
+    "valid": true
+  },
+  {
+    "id": "payload-invalid",
+    "category": "any-payload-direct",
+    "type": "envoy.extensions.access_loggers.file.v3.FileAccessLog",
+    "input": {
+      "path": ""
+    },
+    "valid": false
+  },
+  {
+    "id": "payload-valid",
+    "category": "any-payload-direct",
+    "type": "envoy.extensions.access_loggers.file.v3.FileAccessLog",
+    "input": {
+      "path": "/tmp/access.log"
+    },
+    "valid": true
+  },
+  {
+    "id": "oneof-alternative",
+    "category": "optional-oneof/conditional-required",
+    "type": "envoy.extensions.access_loggers.file.v3.FileAccessLog",
+    "input": {
+      "path": "/tmp/access.log",
+      "format": "%REQ(:METHOD)%"
+    },
+    "valid": true
+  },
+  {
+    "id": "oneof-selected-empty",
+    "category": "optional-oneof/conditional-required",
+    "type": "envoy.extensions.access_loggers.file.v3.FileAccessLog",
+    "input": {
+      "path": "/tmp/access.log",
+      "logFormat": {}
+    },
+    "valid": false
+  },
+  {
+    "id": "oneof-selected-valid",
+    "category": "optional-oneof/conditional-required",
+    "type": "envoy.extensions.access_loggers.file.v3.FileAccessLog",
+    "input": {
+      "path": "/tmp/access.log",
+      "logFormat": {
+        "textFormatSource": {
+          "inlineString": "%REQ(:METHOD)%"
+        }
+      }
+    },
+    "valid": true
+  },
+  {
+    "id": "skip-invalid-entry",
+    "category": "message/skip",
+    "type": "envoy.config.core.v3.KeyValueAppend",
+    "input": {
+      "entry": {}
+    },
+    "valid": true
+  }
+]

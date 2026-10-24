@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Envoy.ControlPlane.Protocol/Envoy.ControlPlane.Protocol.csproj" />
+    <ProjectReference Include="../../src/Envoy.ControlPlane.Validation/Envoy.ControlPlane.Validation.csproj" />
+    <PackageReference Include="xunit.v3.mtp-v2" />
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <Compile Include="../../scripts/validation/OverlayTransform.cs" Link="Support/OverlayTransform.cs" />
+    <Compile Include="../../scripts/validation/VerifiedValidationSources.cs" Link="Support/VerifiedValidationSources.cs" />
+    <Compile Include="../../scripts/validation/ValidationPaths.cs" Link="Support/ValidationPaths.cs" />
+    <Compile Include="../../scripts/bindings/BindingIntegrity.cs" Link="Support/BindingIntegrity.cs" />
+    <EmbeddedResource Include="Fixtures/pgv-cases.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvCases.json" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,9 @@
+version: v2
+clean: true
+managed:
+  enabled: false
+plugins:
+  - remote: buf.build/protocolbuffers/csharp:v35.1
+    revision: 1
+    out: src/Envoy.ControlPlane.Validation.Annotations/obj/generated
+    opt: base_namespace=

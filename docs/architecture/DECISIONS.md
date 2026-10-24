@@ -46,7 +46,7 @@ See [architecture](ARCHITECTURE.md), [validation](VALIDATION.md), and [implement
 
 **Alternatives:** A monolith couples all consumers to hosting/validation dependencies. Multiple overlapping generated catalogs cause ambiguous types. A third-party or Buf SDK is acceptable only after exact input/service/descriptor and clean-consumption proofs; availability alone is insufficient.
 
-**Consequence:** Keep the three root packages and a separate optional validator. If an external provider owns the messages, Protocol becomes a dependency facade rather than regenerating overlapping classes. T02 proposes binding/annotation ownership; T03 proves validation feasibility before G1 freezes it. The validator references those same message types and owns evaluator dependencies. Any derived annotation overlay must preserve wire identity and have recorded provenance. An incompatible provider change after publication may require a major version.
+**Consequence:** Keep the three root packages and a separate optional validator. If an external provider owns the messages, Protocol becomes a dependency facade rather than regenerating overlapping classes. T02 proposes binding/annotation ownership; T03 proves validation feasibility before G1 freezes it. The T03 evaluator consumes those same message instances through IMessage and references the shared annotation owner; it owns evaluator dependencies. The annotation-only package contains no CEL/evaluator dependency. Any derived annotation overlay must preserve wire identity and have recorded provenance. An incompatible provider change after publication may require a major version.
 
 ## ADR05 — Resource lifetime safety
 
@@ -93,6 +93,8 @@ See [architecture](ARCHITECTURE.md), [validation](VALIDATION.md), and [implement
 **Reason:** Validation constraints form part of schema compatibility. Preserving wire fields alone does not preserve those rules. The user has included optional validation and an early feasibility check in scope. The target is the selected upstream Go PGV semantics; Protovalidate is a candidate pending proof.
 
 **Boundary:** Original validation annotations and descriptors ship from the first binding release. T03 assesses candidates, metadata access, single-owner descriptors, and representative Go/.NET outcomes before G1 binding freeze. Full T26 conformance is gated by GV and does not block the streaming preview or root-runtime parity claim.
+
+**T03 source decision, 25 October 2026:** The user selected the [pinned source-built ProtoValidate arrangement](../../schemas/VALIDATION.md). A separate annotation assembly has one owner for buf.validate; Protocol references annotations only, and the optional evaluator owns CEL dependencies. Original PGV options remain. Typed metadata translation preserves conditional oneof-member requirements while retaining Protovalidate's intentional required semantics. The bounded 33-case comparison and local package proof inform G1; full T26/GV and publication remain separate. Source adaptations and all fingerprints are recorded.
 
 **Consequence:** Supply an explicitly invoked optional package, with no evaluator dependency or validator contract in Core. No publication decorator or automatic validation is added. Every schema update reports rule changes, unsupported constraints, and coverage. A validation package or parity claim cannot ship before its GV evidence passes. Exact Go API shape/error wording is a separate commitment.
 

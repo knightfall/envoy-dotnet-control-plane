@@ -1,6 +1,6 @@
 # Optional schema validation
 
-Reviewed **24 October 2026**. Status: approved project scope; implementation and runtime selection remain planned. T03 establishes feasibility before the bindings freeze. T26 implements the optional validator and must pass GV before package publication or validation-parity claims. No validation runtime has been restored, executed, or selected in this workspace.
+Reviewed **25 October 2026**. The user selected an implementation built from pinned ProtoValidate source. [T03 evidence](../../schemas/VALIDATION.md) records separate annotation ownership, the derived metadata correction and the 33-case Go comparison. The provider arrangement is implemented for bounded local review. Full T26/GV conformance is required before optional-validator publication or validation-parity claims.
 
 ## 1. Compatibility boundary
 
@@ -12,7 +12,7 @@ Keep three commitments separate:
 | Optional explicit validation | Proven acceptance/rejection semantics for the selected catalog, structured field/rule diagnostics, and visible unsupported rules |
 | Cache and discovery behavior | SetSnapshot and other publication APIs preserve Go behavior without automatically validating resources |
 
-The target is the pinned upstream Go PGV validation semantics. Protovalidate is a possible implementation, not the compatibility contract. Exact Go Validate/ValidateAll signatures, error text, and violation ordering are not promised. A full semantic-parity claim requires all applicable rules in its declared catalog to pass GV. A package with approved exclusions must describe limited coverage rather than claim full parity.
+The target is the pinned upstream Go PGV validation semantics. The selected implementation uses ProtoValidate source and Protovalidate annotations; the pinned Go PGV behavior remains the compatibility contract. Exact Go Validate/ValidateAll signatures, error text, and violation ordering are not promised. A full semantic-parity claim requires all applicable rules in its declared catalog to pass GV. A package with approved exclusions must describe limited coverage rather than claim full parity.
 
 Schema validation does not establish Snapshot.Consistent reference-set correctness or acceptance by a released Envoy proxy. Those remain independent checks.
 
@@ -34,8 +34,8 @@ Candidate assessment includes pinned package/runtime versions, dependency owners
 
 | Candidate | Package assessed by T03 | Selection status |
 |---|---|---|
-| [telus-labs/protovalidate-net](https://github.com/telus-labs/protovalidate-net) | ProtoValidate | Not selected or executed |
-| [bsidio/celly](https://github.com/bsidio/celly) | Celly.Protovalidate | Not selected or executed |
+| [telus-labs/protovalidate-net](https://github.com/telus-labs/protovalidate-net) | Pinned source at `88e9c909e82c569bba7d6d722dd5c6b76ba9e965` | Selected source arrangement: separate annotation owner, source adaptations and controlled metadata translation |
+| [bsidio/celly](https://github.com/bsidio/celly) | Celly.Protovalidate 1.2.0 | Assessed; duplicates 24 selected CEL message names; current PGV rules are not executed |
 
 Existing Envoy PGV annotations do not become executable by adding a Protovalidate runtime. The [official migration guide](https://protovalidate.com/migration-guides/migrate-from-protoc-gen-validate/) describes new annotations and constraint changes. Any migration must be tested against the original Go outcomes.
 
@@ -45,7 +45,7 @@ Reject a provider arrangement that prevents required metadata access or introduc
 
 ## 4. Optional package and explicit invocation — T26
 
-The proposed Envoy.ControlPlane.Validation package references Protocol and owns evaluator integration. A provider-specific name may follow T03. Core and ASP.NET Core do not reference the validator or its CEL/runtime dependencies.
+The candidate Envoy.ControlPlane.Validation package owns the source evaluator and references the shared annotation contracts. It accepts Protocol resources through IMessage without referencing Protocol itself. Protocol references the annotation-only package; Core and ASP.NET Core do not reference the evaluator or its CEL/runtime dependencies.
 
 Callers explicitly invoke validation before deciding whether to publish configuration. Return distinguishable outcomes:
 
@@ -86,6 +86,6 @@ Unknown, unsupported, or changed unevaluated rules block validation-package acce
 
 T03 is active foundation work and a G1 prerequisite. T26 is active optional-package work with its own GV gate; optional means consumers can omit it, not that the task is deferred. Matcher and broader catalogs remain T27/T28 deferred scope.
 
-No implementation, package restore/build, conformance, or Envoy interoperability result is established by this document.
+The linked assessment separates bounded source/metadata/package proof from full T26/GV conformance. No official conformance or Envoy interoperability result is established by this design document.
 
 Related: [ADR10/ADR13](DECISIONS.md), [implementation tasks](../plan/IMPLEMENTATION-PLAN.md), [requirements and gates](../plan/TRACEABILITY.md).

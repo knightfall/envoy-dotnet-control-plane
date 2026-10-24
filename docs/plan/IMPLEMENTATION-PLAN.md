@@ -1,6 +1,6 @@
 # Implementation plan: tasks and subtasks
 
-Reviewed **24 October 2026**. T01 source work and V01 verification are **complete, awaiting PR review**, with [provenance evidence](../../schemas/PROVENANCE.md) and [automated CLI tests](../../tests/README.md). T01 brought the test framework/runner and tooling CI forward from T04; the remaining library work is **planned**. T03 is required before G1 binding freeze; T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. No runtime implementation result is claimed. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
+Reviewed **25 October 2026**. T01/T02 merged in PRs #33/#34, with [provenance evidence](../../schemas/PROVENANCE.md) and [binding evidence](../../schemas/BINDINGS.md). T03 has a user-selected source arrangement and [bounded local feasibility evidence](../../schemas/VALIDATION.md), pending review at G1. T01 brought the test framework/runner and tooling CI forward from T04; the remaining library work is **planned**. T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. No runtime implementation result is claimed. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
 
 ## Execution rules
 
@@ -86,7 +86,7 @@ Subtasks:
 
 **Scope:** foundation / R02, R04. **Depends on:** T01. **Outputs:** candidate provider decision, pinned toolchain/package lock, generation/restore script, original annotation/descriptor inventory, clean-consumer evidence. G1 freezes the choice after T03.
 
-**Status:** Candidate implemented and proved locally, awaiting review/publication. Buf CLI generates the full selected catalog from unchanged upstream schemas; Protocol targets net10.0 with centralized package management. Eight binding tests and the same eight clean-package consumer tests pass. Three exact-fingerprint C# generator naming corrections are explicit limitations. See [T02 evidence and requirement mapping](../../schemas/BINDINGS.md). T03 and G1 remain open.
+**Status:** Merged in PR #34. Buf CLI generates the full selected catalog from unchanged upstream schemas; Protocol targets net10.0 with centralized package management. The merged CI passed 24 offline tests, eight binding tests and eight clean-package consumer tests on Linux/macOS/Windows. Three exact-fingerprint C# generator naming corrections are explicit limitations. See [T02 evidence and requirement mapping](../../schemas/BINDINGS.md). T03 and G1 remain open.
 
 Subtasks:
 
@@ -99,6 +99,8 @@ Subtasks:
 **Acceptance:** V02–V04 and the binding portion of V37/V38 pass with exact versions. No overlapping Envoy message definitions are loaded. A usable common extension catalog and required service bases exist. Failed providers have recorded reasons; a new provider is not silently substituted later.
 
 ### T03 — Prove validation feasibility before binding freeze
+
+**Status:** Source implementation and bounded verification under local review. The user selected pinned ProtoValidate source with a separate annotation owner. [T03 evidence](../../schemas/VALIDATION.md) records 39 source fingerprints, explicit adaptations, 16 conditional-oneof metadata corrections, preserved original descriptors and 33 cases matching Go PGV. The native validation suite has 17 cases. G1 reviews the arrangement and package evidence; full T26/GV remains separate. Earlier published-provider probes are retained historical research; Celly cleanup is deferred.
 
 **Scope:** foundation / R23. **Depends on:** T02. **Outputs:** rule inventory, candidate/metadata assessment, bounded Go/.NET comparison results, provider decision, and ADR10 update. This task gates G1; full GV conformance does not.
 

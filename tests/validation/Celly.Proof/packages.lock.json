@@ -1,0 +1,64 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net10.0": {
+      "Celly.Protovalidate": {
+        "type": "Direct",
+        "requested": "[1.2.0, )",
+        "resolved": "1.2.0",
+        "contentHash": "7fAdWNT9GIJlDiL2Se7DErGdrEQA5Zf/TUg974ARhNfE89IIq1Qnvjbi9ktcHELhhvPvh057hP/16kQavr9eHA==",
+        "dependencies": {
+          "Celly": "1.2.0",
+          "Celly.Protobuf": "1.2.0",
+          "Google.Protobuf": "3.31.1"
+        }
+      },
+      "Roslynator.Analyzers": {
+        "type": "Direct",
+        "requested": "[5.0.1, )",
+        "resolved": "5.0.1",
+        "contentHash": "sCZ0Di4B937wKa9pwKbdsE6Njr8A/FdCLw28+yDKyMaDZ/f8JWxcFn6NOCukzKhCG/eA6M2DbXlKkrPi0g0lIA=="
+      },
+      "Celly": {
+        "type": "Transitive",
+        "resolved": "1.2.0",
+        "contentHash": "3NuJoocWJLn82zl9SF8zuC/kJpnBLr7lrysQ1TNlT6OjxK4r+u0/2SWRwTu7hl9P7xybc88KHDKJY/PE4CIYbw=="
+      },
+      "Celly.Protobuf": {
+        "type": "Transitive",
+        "resolved": "1.2.0",
+        "contentHash": "oKxAEWutbk16y0JBKWrOvtD6nPLqNVFK3vKDOdKvYlupQ9KJ5beI/YT13BIOM344qD7UbUx0vg0wW/rByVDdaA==",
+        "dependencies": {
+          "Celly": "1.2.0",
+          "Google.Protobuf": "3.31.1"
+        }
+      },
+      "envoy.controlplane.protocol": {
+        "type": "Project",
+        "dependencies": {
+          "Envoy.ControlPlane.Validation.Annotations": "[0.1.0-t03, )",
+          "Google.Protobuf": "[3.35.1, )",
+          "Grpc.Core.Api": "[2.84.0, )"
+        }
+      },
+      "envoy.controlplane.validation.annotations": {
+        "type": "Project",
+        "dependencies": {
+          "Google.Protobuf": "[3.35.1, )"
+        }
+      },
+      "Google.Protobuf": {
+        "type": "CentralTransitive",
+        "requested": "[3.35.1, )",
+        "resolved": "3.35.1",
+        "contentHash": "pxtkuXhR8svkvDTQrYew9GZQt6eWhblz/V/WKUFrQgkHYlQPsumJTeF6ppHRJpe6j9ffukkd5lQULiiKaek4xA=="
+      },
+      "Grpc.Core.Api": {
+        "type": "CentralTransitive",
+        "requested": "[2.84.0, )",
+        "resolved": "2.84.0",
+        "contentHash": "p2SOMl6q/GZ4/5MLkgboC/z55g4zKUEruRn/g46QgppjQBVnsLZVBU/9VO7n60ll38G3Eo8Zu9b7x+W01GKFVg=="
+      }
+    }
+  }
+}

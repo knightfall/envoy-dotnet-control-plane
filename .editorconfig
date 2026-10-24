@@ -11,3 +11,8 @@ trim_trailing_whitespace = true
 # Promote Roslynator's enabled rules to build diagnostics.
 dotnet_analyzer_diagnostic.category-roslynator.severity = warning
 roslynator_configure_await = false
+
+# Materialized, fingerprint-verified third-party source keeps its upstream style.
+# Compiler warnings remain errors; Roslynator checks our authored source and tests.
+[src/Envoy.ControlPlane.Validation/obj/vendor/**.cs]
+generated_code = true
