@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <Deterministic>true</Deterministic>
+    <PackageId>Envoy.ControlPlane.Protocol</PackageId>
+    <Version>0.1.0-t02</Version>
+    <Description>Candidate generated bindings for the pinned Envoy control-plane schema catalog.</Description>
+    <Authors>knightfall</Authors>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/knightfall/envoy-dotnet-control-plane</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <ProtocolInputs>$(MSBuildThisFileDirectory)obj/upstream</ProtocolInputs>
+    <ProtocolGenerated>$(MSBuildThisFileDirectory)obj/generated</ProtocolGenerated>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Core.Api" />
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <EmbeddedResource Include="$(ProtocolInputs)/catalog.pb" LogicalName="Envoy.ControlPlane.Protocol.catalog.pb" />
+    <EmbeddedResource Include="../../schemas/catalog.json" LogicalName="Envoy.ControlPlane.Protocol.catalog.json" />
+    <EmbeddedResource Include="../../schemas/bindings.lock.json" LogicalName="Envoy.ControlPlane.Protocol.bindings.lock.json" />
+    <EmbeddedResource Include="../../schemas/annotations.json" LogicalName="Envoy.ControlPlane.Protocol.annotations.json" />
+    <Compile Include="$(ProtocolGenerated)/**/*.cs" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="$(ProtocolInputs)/licenses/**/*" Pack="true" PackagePath="licenses/" />
+    <None Include="../../schemas/NOTICES.md;../../schemas/upstream.lock.json;../../schemas/catalog.json;../../schemas/bindings.lock.json;../../schemas/annotations.json"
+          Pack="true" PackagePath="schemas/" />
+  </ItemGroup>
+  <Target Name="RequireVerifiedInputs" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(ProtocolInputs)/catalog.pb') or !Exists('$(ProtocolGenerated)/Envoy/Config/Listener/V3/Listener.cs')"
+           Text="Generate with Buf first: dotnet run --file scripts/Bindings.cs -- --cache &lt;external-directory&gt;" />
+  </Target>
+</Project>

@@ -1,0 +1,3 @@
+version: v2
+modules:
+  - path: src/Envoy.ControlPlane.Protocol/obj/upstream/inputs

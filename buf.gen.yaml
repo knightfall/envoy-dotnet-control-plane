@@ -1,0 +1,17 @@
+version: v2
+clean: true
+managed:
+  enabled: false
+plugins:
+  - remote: buf.build/protocolbuffers/csharp:v35.1
+    revision: 1
+    out: src/Envoy.ControlPlane.Protocol/obj/generated
+    opt: base_namespace=
+  - remote: buf.build/grpc/csharp:v1.84.0
+    revision: 1
+    out: src/Envoy.ControlPlane.Protocol/obj/generated
+    opt: base_namespace=
+inputs:
+  - directory: .
+    exclude_paths:
+      - src/Envoy.ControlPlane.Protocol/obj/upstream/inputs/google/protobuf

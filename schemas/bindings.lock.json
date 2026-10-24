@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "provider": "owned-generation",
+  "status": "candidate-until-T03-G1",
+  "targetFramework": "net10.0",
+  "catalogSha256": "6af96cd168d1808563d66bcb316fadf853a22e55647616aa37c972ff91afe713",
+  "descriptorSetSha256": "c34501434b0580470167d4a257269e25d921dbd5c6ba4968255642cf1e3d10a4",
+  "generatedCodeCorrections": [
+    {
+      "path": "Envoy/Extensions/RateLimitDescriptors/Expr/V3/Expr.cs",
+      "inputSha256": "d814272c9bd9f04030834221296454c6728a5db2b67636d6dd99cee55fb248e4",
+      "outputSha256": "ef6213caa640a24e1d43ede5d63bdcf9b87941f8e99b44272f6c75769eeaa682",
+      "replacements": [
+        {
+          "before": "public static pbr::MessageDescriptor Descriptor {",
+          "after": "public static pbr::MessageDescriptor MessageDescriptor {",
+          "occurrences": 1
+        },
+        {
+          "before": "get { return Descriptor; }",
+          "after": "get { return MessageDescriptor; }",
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": "Envoy/Extensions/RateLimitDescriptors/JwtClaim/V3/JwtClaim.cs",
+      "inputSha256": "8cbccb07f4adc1b9d65c185899289698dd2d194a823b05dcc817dbd842e91601",
+      "outputSha256": "150911a15765a59f429506a6a42c62fe8d0b12b8cf84c4ec4ea3cf375f26e6de",
+      "replacements": [
+        {
+          "before": "public static pbr::MessageDescriptor Descriptor {",
+          "after": "public static pbr::MessageDescriptor MessageDescriptor {",
+          "occurrences": 1
+        },
+        {
+          "before": "get { return Descriptor; }",
+          "after": "get { return MessageDescriptor; }",
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": "Envoy/Service/ExtProc/V3/ExternalProcessor.cs",
+      "inputSha256": "bd1d5584a9fc39c8ca8588a39bbd93a139ef80d410334fd007c753a4c4512c52",
+      "outputSha256": "dfee146222a7c04587c8b29f4a149da333f3f518c1cfb36bc01501fe122a7727",
+      "replacements": [
+        {
+          "before": "public void ClearBody() {",
+          "after": "public void ClearBodyValue() {",
+          "occurrences": 1
+        }
+      ]
+    }
+  ],
+  "buf": {
+    "version": "1.75.0",
+    "executables": {
+      "osx-arm64": {
+        "url": "https://github.com/bufbuild/buf/releases/download/v1.75.0/buf-Darwin-arm64",
+        "sha256": "f71b009ebd8530b12fd85b060c6c245e15d6e5110ccc8da48d8b6fa71e59330b"
+      },
+      "linux-x64": {
+        "url": "https://github.com/bufbuild/buf/releases/download/v1.75.0/buf-Linux-x86_64",
+        "sha256": "fad1e38d6909bbb583a4da81d8c02a01046e2cd663bde7e337dd24277393764b"
+      },
+      "win-x64": {
+        "url": "https://github.com/bufbuild/buf/releases/download/v1.75.0/buf-Windows-x86_64.exe",
+        "sha256": "de35b288e7962ac72aefee5048aff80551a4f0e6ac865a21f838693461ac8b8d"
+      },
+      "osx-x64": {
+        "url": "https://github.com/bufbuild/buf/releases/download/v1.75.0/buf-Darwin-x86_64",
+        "sha256": "ff6d0979143c661d59178a032c57be883b2ac03dc9bf7d00ffca222b0354bd46"
+      }
+    }
+  },
+  "plugins": [
+    {
+      "remote": "buf.build/protocolbuffers/csharp:v35.1",
+      "revision": 1
+    },
+    {
+      "remote": "buf.build/grpc/csharp:v1.84.0",
+      "revision": 1
+    }
+  ],
+  "configurationSha256": {
+    "buf.yaml": "fa81d9290e4307a13703f9f3184fc96bd4567fdd1dff77766d7c600254ac86c9",
+    "buf.gen.yaml": "190119b130ed3667433c27265ce8527d59899a71c4c0a7dc3cf88e38502b21fe"
+  },
+  "generatedSourceCount": 540,
+  "generatedSourcesSha256": "75f703a5ccf75567169bfdc5d7e4645c9648d6bb8218f7e075825be12f2c929c"
+}

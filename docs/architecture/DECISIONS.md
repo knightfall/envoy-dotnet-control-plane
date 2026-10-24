@@ -9,7 +9,7 @@ See [architecture](ARCHITECTURE.md), [validation](VALIDATION.md), and [implement
 | ID | Decision | Status | Closure / implementation |
 |---|---|---|---|
 | ADR01 | Target maintained root-library v3 behavior, with a SotW preview | Recommended | T01, T12, T25 |
-| ADR02 | .NET 10 runtime target; Protocol target chosen by consumption proof | Recommended | T02, T04 |
+| ADR02 | .NET 10 runtime and Protocol targets; broaden only for a named consumer | Protocol candidate proved locally | T02, T04 |
 | ADR03 | Protocol/Core/ASP.NET packages plus optional validation package | Recommended | T02, T03, T04, T26 |
 | ADR04 | Exactly one binding and descriptor owner, compatible with validation metadata | Proof required | T02, T03; G1 |
 | ADR05 | Stable published resources under the Go lifetime convention | Recommended | T05, T07 |
@@ -35,6 +35,8 @@ See [architecture](ARCHITECTURE.md), [validation](VALIDATION.md), and [implement
 **Reason:** Recommend the supported .NET 10 runtime for a new library and use its async/runtime facilities. Older runtimes add a support matrix without a named consumer in the current requirements. Confirm policy/version details at implementation kickoff against [Microsoft support policy](https://dotnet.microsoft.com/en-us/platform/support/policy).
 
 **Alternative:** Multi-target Core immediately. Revisit if an actual consumer requires it. A broader Protocol target is useful only if it compiles and restores with the chosen protobuf/gRPC toolchain.
+
+**T02 outcome:** Protocol targets net10.0; no older-runtime consumer requirement exists. Its candidate is generated through Buf CLI with centrally managed package dependencies. See the [binding proof](../../schemas/BINDINGS.md) for clean consumption, unchanged schema identity and the three C# generator exceptions. T03 still gates provider freeze.
 
 **Consequence:** T04 pins the SDK. The eventual compatibility report names targets; documentation cannot imply all .NET versions.
 

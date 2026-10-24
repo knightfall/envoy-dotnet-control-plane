@@ -69,7 +69,7 @@ The table and task dependency fields are authoritative; the diagram summarizes t
 
 ### T01 — Lock the complete upstream input set
 
-**Status:** Implemented and verified, awaiting PR review. Source lock/catalog, rate-limit descriptor comparison, license inventory, C# retrieval/inspection app and automated V01 acceptance/rejection tests are complete. All 17 CLI tests and the full 523-schema inspection passed locally. See [G0 evidence](../../schemas/PROVENANCE.md) and [test mapping](../../tests/README.md).
+**Status:** Merged in PR #33. Source lock/catalog, rate-limit descriptor comparison, license inventory, C# retrieval/inspection app and automated V01 acceptance/rejection tests are complete. The original 17 CLI tests and full 523-schema inspection passed; T02 extends the CLI suite to 19 tests for source export. See [G0 evidence](../../schemas/PROVENANCE.md) and [test mapping](../../tests/README.md).
 
 **Scope:** foundation / R01. **Depends on:** none. **Outputs:** `schemas/upstream.lock.json`, `schemas/catalog.json`, provenance report, updated baseline JSON if input data is added.
 
@@ -85,6 +85,8 @@ Subtasks:
 ### T02 — Prove a candidate binding provider
 
 **Scope:** foundation / R02, R04. **Depends on:** T01. **Outputs:** candidate provider decision, pinned toolchain/package lock, generation/restore script, original annotation/descriptor inventory, clean-consumer evidence. G1 freezes the choice after T03.
+
+**Status:** Candidate implemented and proved locally, awaiting review/publication. Buf CLI generates the full selected catalog from unchanged upstream schemas; Protocol targets net10.0 with centralized package management. Eight binding tests and the same eight clean-package consumer tests pass. Three exact-fingerprint C# generator naming corrections are explicit limitations. See [T02 evidence and requirement mapping](../../schemas/BINDINGS.md). T03 and G1 remain open.
 
 Subtasks:
 

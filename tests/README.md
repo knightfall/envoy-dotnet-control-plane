@@ -1,6 +1,20 @@
-# Upstream CLI verification
+# Schema-tooling and binding verification
 
-The [test project](Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj) exercises the real [Upstream.cs](../scripts/Upstream.cs) CLI through subprocesses. The production tool remains a C# file-based app. A build target compiles it once into the test output's `upstream/` directory; tests invoke that binary rather than a copied implementation. There is no production `.csproj` to reference and no solution artifact yet. The project path below is the repository and CI test entry point.
+The [T02 binding proof](../schemas/BINDINGS.md) documents the generated Protocol project, exact test mapping, provider limitations and clean NuGet consumer. Its [test project](Envoy.ControlPlane.Protocol.Tests/Envoy.ControlPlane.Protocol.Tests.csproj) references Protocol; `Bindings.cs verify` runs the same test source in a temporary package-only consumer as well. Both use the existing xUnit/Microsoft Testing Platform conventions. Neither binding test execution contacts an external service; Buf remote generation and package restore are preparation steps requiring network access.
+
+```sh
+dotnet run --file scripts/Bindings.cs -- verify --cache ../upstream-sources
+```
+
+Both projects are registered in the [schema verification workflow](../.github/workflows/upstream-verification.yml). There is no solution artifact yet; each project's command is its CI entry point. All project and file-based app dependency versions come from [Directory.Packages.props](../Directory.Packages.props), with project dependency graphs recorded in lock files.
+
+The binding suite is organized by behavior: `CatalogTests`, `AnnotationTests`, `SerializationTests`, `ServiceContractTests` and `GeneratorCompatibilityTests`. Shared inspection helpers and RPC fixture data live in `Envoy.ControlPlane.Protocol.Tests/Support/`. A shared xUnit collection retains sequential execution. The clean package consumer copies all handwritten test/support sources, so this organization does not reduce the package proof to a subset of checks.
+
+## Upstream CLI suite
+
+The [test project](Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj) exercises the real [Upstream.cs](../scripts/Upstream.cs) CLI through subprocesses. The production tool remains a C# file-based app with explicitly included helpers under `scripts/upstream/`. A build target tracks the entry point and all helpers, compiles them once into the test output's `upstream/` directory, and invokes that binary rather than a copied implementation. There is no production `.csproj` to reference and no solution artifact yet. The project path below is the repository and CI test entry point.
+
+[BindingIntegrityTests.cs](Envoy.ControlPlane.Upstream.Tests/BindingIntegrityTests.cs) also exercises the binding tool's checksum helper, linked from its original source. Four platform-representation cases verify the same independently calculated fingerprint with Windows/Unix separators and CRLF/LF contents, including paths whose native sort order differs. A content-change case verifies that source changes still produce a distinct, exact fingerprint. These tests run in the existing offline CI matrix.
 
 ## Framework and execution
 
@@ -49,8 +63,10 @@ Test methods are in [UpstreamCliTests.cs](Envoy.ControlPlane.Upstream.Tests/Upst
 | Missing registry patch | `Sync_MissingRegistryPatch_RejectsPatchGap` |
 | Altered module replacement | `Sync_AlteredModuleReplacement_RejectsModuleDrift` |
 | Missing cached archive in offline mode | `Sync_MissingOfflineArchive_ReportsMissingArtifact` |
+| Verified export selection and repeatability | `Export_ValidFixture_WritesOnlySelectedVerifiedInputs` |
+| Export rejects catalog drift before creating output | `Export_DriftedCatalog_RejectsBeforeWritingInputs` |
 
-Observed locally on macOS arm64, 24 October 2026: **Passed: 17, Failed: 0, Skipped: 0**. The command above exited **0** and wrote `artifacts/test-results/upstream.trx`. A locked restore also completed successfully.
+The offline matrix runs 19 provenance/export cases and five binding-fingerprint cases. Platform execution results belong to the current PR checks and their uploaded TRX reports.
 
 ## CI and full-source evidence
 
