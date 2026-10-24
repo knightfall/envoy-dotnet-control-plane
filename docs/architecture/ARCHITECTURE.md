@@ -1,6 +1,6 @@
 # Detailed architecture
 
-Reviewed **24 October 2026**. Status: proposed design, with no implementation results. This document uses the Go behavior pin and the separate Envoy schema pin in [upstream-baseline.json](../../upstream-baseline.json). Requirements, task IDs, and verification IDs are defined in [traceability](../plan/TRACEABILITY.md) and the [implementation plan](../plan/IMPLEMENTATION-PLAN.md).
+Reviewed **24 October 2026**. Status: proposed runtime design, with no runtime implementation results. [T01 source provenance](../../schemas/PROVENANCE.md) has implementation evidence. This document uses the Go behavior pin and the separate Envoy schema pin in [upstream-baseline.json](../../upstream-baseline.json). Requirements, task IDs, and verification IDs are defined in [traceability](../plan/TRACEABILITY.md) and the [implementation plan](../plan/IMPLEMENTATION-PLAN.md).
 
 ## 1. Purpose and compatibility contract
 
@@ -278,7 +278,7 @@ Upstream update tooling records old/new behavior and schema pins, regenerates se
 | Risk / decision | Required closure |
 |---|---|
 | SDK cannot prove exact schema/server-contract coverage | T02 selects owned generation; G1 blocks public API freeze |
-| Ratelimit source provenance unresolved | T01/T02 identify revision and compare descriptors before bindings pass |
+| Ratelimit descriptor filename differs from its source import root | T01 identifies matching sources/definitions; T02 resolves provider filename/ownership before G1 |
 | Duplicate Envoy/annotation types across runtime dependencies | T02 clean-consumer proof and dependency graph; one owner |
 | Binding choice blocks validation | T03 metadata/descriptor and bounded equivalence proof before G1; full conformance remains GV |
 | Migration or schema update changes constraints | T24/T26 rule diff and coverage report; unsupported rules fail visibly and block affected validation claims |

@@ -6,7 +6,7 @@ Reviewed 24 October 2026. Source paths below are relative to go-control-plane/.
 
 - Envoy v3 Protobuf/gRPC discovery supports SotW, Delta, ADS, unary fetch, and the HTTP/JSON gateway.
 - StreamRlsConfigs and FetchRlsConfigs are part of the root server; no dedicated rate-limit Delta method or HTTP route is declared.
-- Envoy/contrib bindings come from a separate Envoy checkout. The generated rate-limit files identify schema paths but record no separate source revision.
+- Envoy/contrib bindings come from a separate Envoy checkout. The generated rate-limit files identify schema paths but record no separate source revision; the target's [T01 source lock and descriptor comparison](../../schemas/PROVENANCE.md) resolve matching original sources and record the configuration descriptor filename discrepancy.
 - Only the matcher test proto is checked in as a .proto input.
 
 ## Proposed .NET integration

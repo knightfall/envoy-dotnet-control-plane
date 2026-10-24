@@ -1,6 +1,6 @@
 # Implementation plan: tasks and subtasks
 
-Reviewed **24 October 2026**. All active tasks are **planned**. T03 is required before G1 binding freeze; T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. None is an implementation result. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
+Reviewed **24 October 2026**. T01 source work is **implemented**, with [provenance evidence and remaining V01 acceptance](../../schemas/PROVENANCE.md). Other active tasks are **planned**. T03 is required before G1 binding freeze; T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. No runtime implementation result is claimed. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
 
 ## Execution rules
 
@@ -69,6 +69,8 @@ The table and task dependency fields are authoritative; the diagram summarizes t
 
 ### T01 — Lock the complete upstream input set
 
+**Status:** Source lock/catalog, rate-limit descriptor comparison, license inventory and C# retrieval/inspection app implemented. See [evidence](../../schemas/PROVENANCE.md); G0 awaits the remaining V01 negative cases and review.
+
 **Scope:** foundation / R01. **Depends on:** none. **Outputs:** `schemas/upstream.lock.json`, `schemas/catalog.json`, provenance report, updated baseline JSON if input data is added.
 
 Subtasks:
@@ -118,7 +120,7 @@ Subtasks:
 
 - T04.1 Pin SDK and package versions; select a .NET test framework/runner and document invocation modes.
 - T04.2 Create Protocol/Core/ASP.NET references and the separate validation-project layout selected by T03. Keep evaluator references in that optional project; root projects must not depend on it.
-- T04.3 Add formatting/analyzers, nullable policy, deterministic builds, package metadata/license notices, and a clean build/pack script.
+- T04.3 Apply the repository's Roslynator code-quality policy to all runtime projects; add formatting, nullable policy, deterministic builds, package metadata/license notices, and a clean build/pack script. T01 already uses Roslynator in the C# file-based provenance app.
 - T04.4 Establish fixture and evidence directories plus Linux/macOS/Windows build jobs; keep substantial workflow logic in scripts.
 
 **Acceptance:** A clean build and local package consumption succeed for selected targets. No implementation or test project is omitted from solution/CI discovery. Package graph matches ADR03/04; V37 has an initial smoke result.

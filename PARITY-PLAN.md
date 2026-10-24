@@ -74,7 +74,7 @@ Evaluate providers in this order before freezing public APIs:
 
 At the new pin, envoy/ and contrib/ contain 1,488 generated *.pb.go files and 717 *.pb.validate.go files; ratelimit/ adds two *.pb.go files. These totals include Go-specific generated variants. They describe generation and dependency maintenance, not equivalent handwritten C# work.
 
-The Go checkout has only a matcher test .proto. Envoy API inputs must be obtained at the Envoy source pin. The ratelimit/*.pb.go files identify additional proto paths, but this checkout does not record their original schema revision; resolve that provenance and compare descriptors during the generation checkpoint. Pin external imported schema sources as well.
+The Go checkout has only a matcher test .proto. Envoy API inputs must be obtained at the Envoy source pin. The ratelimit/*.pb.go files identify additional proto paths, but this checkout does not record their original schema revision. [T01 provenance](schemas/PROVENANCE.md) now locks matching original rate-limit sources and all selected external imports, with the descriptor filename discrepancy explicitly recorded for T02.
 
 ## Validation and compatibility boundaries
 
