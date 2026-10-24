@@ -38,9 +38,10 @@ internal static class PackageVerification
             string consumer = CreateConsumerProject(scratch);
             WriteConsumerPackageSources(scratch, repository);
 
-            // A fresh cache ensures this consumes the package just packed.
-            await BuildProcess.RunAsync("dotnet", ["restore", consumer, "--packages", Path.Combine(scratch, "packages")], scratch);
-            await BuildProcess.RunAsync("dotnet", ["restore", consumer, "--locked-mode", "--packages", Path.Combine(scratch, "packages")], scratch);
+            // Keep the fresh cache under obj so SDK source globs exclude package content.
+            string packageCache = Path.Combine(scratch, "obj", "packages");
+            await BuildProcess.RunAsync("dotnet", ["restore", consumer, "--packages", packageCache], scratch);
+            await BuildProcess.RunAsync("dotnet", ["restore", consumer, "--locked-mode", "--packages", packageCache], scratch);
             await BuildProcess.RunAsync("dotnet", ["test", "--project", consumer, "--configuration", "Release", "--no-restore",
                 "--results-directory", Path.Combine(repository, InputsDirectory, "results/consumer"),
                 "--report-xunit-trx", "--report-xunit-trx-filename", "consumer.trx"], scratch);
