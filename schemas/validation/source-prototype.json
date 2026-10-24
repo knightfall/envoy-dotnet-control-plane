@@ -1,0 +1,31 @@
+{
+  "status": "Exploratory macOS arm64 source build; not an accepted provider or a repeatable CI gate",
+  "testedOn": "2026-10-25",
+  "runtimeSourceCommit": "88e9c909e82c569bba7d6d722dd5c6b76ba9e965",
+  "ownership": "Temporary annotation-only assembly owns buf.validate; temporary Protocol references annotations only; temporary evaluator references annotations and Cel",
+  "adaptations": [
+    "Apply the existing three C# naming corrections to the migrated generated sources, with new temporary fingerprints",
+    "Move the non-protobuf Violation.Value partial property from the evaluator into the annotation assembly",
+    "Build evaluator source against the annotation-only assembly instead of its bundled generated types"
+  ],
+  "caseCount": 29,
+  "matchingGoOutcomes": 28,
+  "evaluatorFaultCount": 0,
+  "duplicateProtobufMessageCount": 0,
+  "mismatches": [
+    {
+      "Id": "payload-valid",
+      "Type": "envoy.extensions.access_loggers.file.v3.FileAccessLog",
+      "ExpectedValid": true,
+      "ActualValid": false,
+      "Violations": 1,
+      "Error": null
+    }
+  ],
+  "limitations": [
+    "Prototype build inputs are temporary; the versioned assess/migrate commands do not execute this source variant",
+    "No migrated-concurrency, official conformance, full rule-corpus, clean optional package or live Envoy proof",
+    "Imported evaluator source was built without Roslynator; repository tooling and regression tests retain Roslynator"
+  ],
+  "gate": "G1 OPEN: migration changes required-field semantics inside an unselected oneof"
+}

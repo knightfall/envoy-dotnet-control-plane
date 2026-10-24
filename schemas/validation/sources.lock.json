@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "runtime": {
+    "repository": "https://github.com/telus-labs/protovalidate-net",
+    "commit": "88e9c909e82c569bba7d6d722dd5c6b76ba9e965",
+    "archiveName": "protovalidate-net-88e9c909e82c569bba7d6d722dd5c6b76ba9e965.tar.gz",
+    "archivePrefix": "protovalidate-net-88e9c909e82c569bba7d6d722dd5c6b76ba9e965",
+    "archiveUrl": "https://codeload.github.com/telus-labs/protovalidate-net/tar.gz/88e9c909e82c569bba7d6d722dd5c6b76ba9e965",
+    "archiveSha256": "2c022bfd35d3634deff334fd9ad8d55c4837044e76665e856a054b189432ab6b",
+    "licenseSha256": "d16d5e8d910321384e179b4e499995a8c24348d1ce73b9ed696ca752c7aa958a",
+    "annotationSchemaSha256": "780f450e5e1b773cb6c52d32b93655ec915187d2c777aa9ddc0119b573c1e1d2",
+    "adaptations": [
+      {
+        "path": "ValidationResult.cs",
+        "before": "namespace Buf.Validate\n{\n    public partial class Violation\n    {\n        public object? Value { get; set; }\n    }\n}\n\n",
+        "after": "",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/UnknownDescriptorEvaluator.cs",
+        "before": "        return new ValidationResult(new[]\n        {\n            new Violation\n            {\n                Message = $\"No evaluator available for {Descriptor.FullName}.\"\n            }\n        });",
+        "after": "        throw new ProtoValidate.Exceptions.CompilationException($\"No evaluator available for {Descriptor.FullName}.\");",
+        "occurrences": 1
+      },
+      {
+        "path": "Validator.cs",
+        "before": "EvaluatorBuilder.Load(messageDescriptor);",
+        "after": "EvaluatorBuilder.LoadOrBuildDescriptor(messageDescriptor);",
+        "occurrences": 1
+      },
+      {
+        "path": "Validator.cs",
+        "before": "EvaluatorBuilder.Load(nestedTypeMessageDescriptor);",
+        "after": "EvaluatorBuilder.LoadOrBuildDescriptor(nestedTypeMessageDescriptor);",
+        "occurrences": 1
+      }
+    ],
+    "csharpSources": [
+      {
+        "path": "Exceptions/CompilationException.cs",
+        "sourceSha256": "27f27d099e0f3d0c751742e36b2f91b347e1bdc6547a799448609f53fbe8668a",
+        "adaptedSha256": "287374a4b6ee1e45285a51b2a2662960aa2963448b19ad1b5e22177fc66819c2"
+      },
+      {
+        "path": "Exceptions/ExecutionException.cs",
+        "sourceSha256": "988d224a6fcba5e79cf95b7f8a977a369552e215a72a42d421d6d57f32717d23",
+        "adaptedSha256": "2ea509513cf44824173ff0254ed12090559e52491146f1caa917e7fcdef2edcd"
+      },
+      {
+        "path": "Exceptions/ValidationException.cs",
+        "sourceSha256": "5531eb3363be5c27b1558ef2a014d4799c35c045f345e1047ada534548c309a8",
+        "adaptedSha256": "86d918dd98c949a61bc3be4f64dc3c4e29aea2cb725ea1050615f079320fc9f3"
+      },
+      {
+        "path": "Extensions/FieldPathExtensions.cs",
+        "sourceSha256": "a48dca62f3af2c863100426b2bc47771620364cdc449f45022c91c595eda62e6",
+        "adaptedSha256": "0ab58f52aca65cb8c5ad1f69bec8483a2121c3254830c569fbc764b0cdb8c816"
+      },
+      {
+        "path": "Extensions/ViolationExtensions.cs",
+        "sourceSha256": "0e8c4fb748d72ead7b5d6f36f5ffc842ca4f37cf6cb2828ed95faa3b30f602dd",
+        "adaptedSha256": "fda7cc345cafc0e524458cb43d16f1a359697893f1680004a0864e941215702b"
+      },
+      {
+        "path": "Extensions.cs",
+        "sourceSha256": "e35853b33a7fc2753f7ea40df42f3d39dc12b3d1dd504863658ec41eed6bdfcc",
+        "adaptedSha256": "0969ba604c97a07fedb4fbc20ea3ec47e5d940860d34ee1fb64e4d0257916d5b"
+      },
+      {
+        "path": "IValidator.cs",
+        "sourceSha256": "8f9d5bc4eb82b7d8c99840f4a06267a08bc6c56162c6e5fd9c9ad06d20a69944",
+        "adaptedSha256": "ec44dd54e5dfbf1374e6c069761fd18a62174c162e86126481c17f0d866d3b3a"
+      },
+      {
+        "path": "Internal/Cel/CompiledProgram.cs",
+        "sourceSha256": "d12e362d32552431b6a934b9ccc1755f737794770cadea292ef9e6c328db3f53",
+        "adaptedSha256": "2285839ff95a9d58f62fc6661bf0a9afa7ef97592512205438436007bea1c599"
+      },
+      {
+        "path": "Internal/Cel/CompiledProgramsEvaluator.cs",
+        "sourceSha256": "d800b0d5757e76a8854e9ba4f97f1ff6e21830c8aa3c7076a5bc2b19a02aa677",
+        "adaptedSha256": "541b98c4ecf00cfb4c8c9e32e9875c20f7182b503ddd6fc21ab557514fa737d7"
+      },
+      {
+        "path": "Internal/Cel/Expression.cs",
+        "sourceSha256": "b897cc97f4dc611682d1f630cc6b955f13921d1d282de330569c98351ec6095a",
+        "adaptedSha256": "dd7c9395ec3edcf2e00c9cb27b05e7348e6242ffe925b0ddc24fc2fe55025c3b"
+      },
+      {
+        "path": "Internal/Cel/FormatFunction.cs",
+        "sourceSha256": "c8458872a2d14a79601530e99050e98b1445dece32cd3887007ffe75a86cef7d",
+        "adaptedSha256": "3fb673c324511a175a48185aa90712980d17dd0838af5d25c65ffe415ade0280"
+      },
+      {
+        "path": "Internal/Cel/Functions.cs",
+        "sourceSha256": "5df324524fa27e0f54ca4ba3fded31613f56d66fe9824c6fb5f8953f1d6c6ade",
+        "adaptedSha256": "3c4d1d4d6cf33a1ca245d4c0133daf26e10dcc6646b8fac3b342b07e7341e7e9"
+      },
+      {
+        "path": "Internal/Evaluator/AnyEvaluator.cs",
+        "sourceSha256": "2cd1c55ddf2e2653a61b12dab7a558493ad51cc0dc7ca7ad7fba550d127c65ab",
+        "adaptedSha256": "4d4d651d9ef7074c470b9bcb840db8f21e1a93f4252a0562ee7951872ab5e662"
+      },
+      {
+        "path": "Internal/Evaluator/EmbeddedMessageEvaluator.cs",
+        "sourceSha256": "b1a414633b14650a42c70ffd93d59ae9b68e862647f39d8626d56e5e5931b2bd",
+        "adaptedSha256": "0e7faa53930265a8b2c686ea96899716ac7e92f8650ecb20b4d74bd6b3d17f9b"
+      },
+      {
+        "path": "Internal/Evaluator/EnumEvaluator.cs",
+        "sourceSha256": "472a5ba9c8d82a85e525bd2f2bb2ee1cc991b059464f9523ac58ce0884168c2b",
+        "adaptedSha256": "65a701336dc8c6525dd6a1163a10034edb6c6e83d29da5013c04eebce1e22e05"
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "sourceSha256": "9c5ec20238d3e7f9cebbce637bea1b7644886dcffd9f2e80aed20389812d27e4",
+        "adaptedSha256": "86534e1e750591fc35bdb3d583973121bba479fa1bf06a2a2f1dc363d1727038"
+      },
+      {
+        "path": "Internal/Evaluator/FieldEvaluator.cs",
+        "sourceSha256": "1fd4b0e46b54853a8a993b612cd83f5530e59cde5dd5d1cf06d09e383f2aeba9",
+        "adaptedSha256": "8fd89fdeda953961f2d5d816ad76434d29b0d8f0d061401b7793412d1c6fce0e"
+      },
+      {
+        "path": "Internal/Evaluator/FieldPathUtils.cs",
+        "sourceSha256": "8add7283233bb970f4ba80012940e84d0f58c1a61e51a5f516517dea802550e2",
+        "adaptedSha256": "4522e7a6d5bc63fa4771073c835913d0ec1eeee7149672f6b8e0ed3f0217dece"
+      },
+      {
+        "path": "Internal/Evaluator/IEvaluator.cs",
+        "sourceSha256": "a4cc23e931ee36cee6b0afa5f8283fd3725821a48ff5b9c29520ed0b64ce4ab1",
+        "adaptedSha256": "8ab090a37f4308bd0862a826098305b41c82d6e4044c8f61c9794c59bcb04d4a"
+      },
+      {
+        "path": "Internal/Evaluator/IValue.cs",
+        "sourceSha256": "2557ebaca86c0bbf822f4b4853a247b6e0501e220dc65161600ee33a0a028c11",
+        "adaptedSha256": "0036e62cccf0db90169d4390117f1ff4a6242cf0490989ac2f68f49962350ef0"
+      },
+      {
+        "path": "Internal/Evaluator/ListEvaluator.cs",
+        "sourceSha256": "45fa137660a1f6b290ad355f000e266836836346049e69a21c6295750e699250",
+        "adaptedSha256": "3765e553e69444f48568e8b1f3305b51d7b4e92433f6eb154c65c015456a4219"
+      },
+      {
+        "path": "Internal/Evaluator/MapEvaluator.cs",
+        "sourceSha256": "4dc6b41183273d8acb5aba702f6b80b1f15a33646ff189dd5581452e73f52fc2",
+        "adaptedSha256": "f90073966f1e0f6cffd83c46b4fe4a78b1202f2964b217c0a30f8a5881c642e5"
+      },
+      {
+        "path": "Internal/Evaluator/MessageEvaluator.cs",
+        "sourceSha256": "1d1cb9a7397eb8013ee1cccd86f3b62d1578685067720dc08eb5affbece0e781",
+        "adaptedSha256": "a4efa21a1a1efcfa03e01eb9e92c9ea14852cb8966ff998c141a49cadffda37c"
+      },
+      {
+        "path": "Internal/Evaluator/MessageOneofEvaluator.cs",
+        "sourceSha256": "e1a7df9eeafa2f3e92dfa513d172f4602bb2181ed6d9ef4134d2279458231d91",
+        "adaptedSha256": "0678ee23fcb84e41ec556cbeb1027e475006993678432d958745bbc220fdedde"
+      },
+      {
+        "path": "Internal/Evaluator/MessageValue.cs",
+        "sourceSha256": "08e3b56800fa466e2d771fc1813ed88bf14bf6a7d8333f9c5498d9c75d57cca2",
+        "adaptedSha256": "2dc4c0eed18eaa1ae4f8a63c0d3b8acc065dd4ba7525bb60a16e2c360a71d7ce"
+      },
+      {
+        "path": "Internal/Evaluator/ObjectValue.cs",
+        "sourceSha256": "7dd03a38fbe81c54a5aa6e0008eb3e2d1aac0db0924d0851f62235d70bf98b56",
+        "adaptedSha256": "ccf9c0f890a1a03a80fbaf0ed192f5a8ab5b81348b66fe8c55b4b8dd149494a3"
+      },
+      {
+        "path": "Internal/Evaluator/OneofEvaluator.cs",
+        "sourceSha256": "aded6868a699a4793fe8904552100787556e37ebdae2ffb4cbce7d8658f6dd7d",
+        "adaptedSha256": "dcc4fc14eb86846aea82fe85a681593d959603cbb2af3a05421dee36d297f806"
+      },
+      {
+        "path": "Internal/Evaluator/RuleResolver.cs",
+        "sourceSha256": "206235a3d9c155d582ed6564fd6f712e2b8f8d07f8ec69198e70206ed23fb7fa",
+        "adaptedSha256": "c6568c17f0bad28e928ef222fdc1db9fbaad3ccf293942833c9a3ccc69b01c3f"
+      },
+      {
+        "path": "Internal/Evaluator/RuleViolationHelper.cs",
+        "sourceSha256": "b30aaf879b13093661f3d1420ed4517991352d5c75268167927e648f167c7678",
+        "adaptedSha256": "c91253a415cce51f5779369bf834206b7213db4d9fb6b8ccda2800f38138afc2"
+      },
+      {
+        "path": "Internal/Evaluator/UnknownDescriptorEvaluator.cs",
+        "sourceSha256": "59e4e89324879cf0df399919f3ae6eba6ac1d670f0eefa1fb085699d4f338938",
+        "adaptedSha256": "db8da8f58c6a26a2f006b88c29b2ade41926db80c37f69baf4bf9e24b0c7a492"
+      },
+      {
+        "path": "Internal/Evaluator/ValueEvaluator.cs",
+        "sourceSha256": "44d19c70dbe0b2c24c6155481801b7dd965e4f4fe1b9074c9405585ebc6ab9b6",
+        "adaptedSha256": "510109e7ab831835554c7e9e3882f88461ae71319152b3f31ca80e8ca154f046"
+      },
+      {
+        "path": "Internal/FieldDescriptorExtensions.cs",
+        "sourceSha256": "bc43bbf0ce4175e7a7281c66c392bb200dfdd9fc1d88b0a5ec958f635ff082d6",
+        "adaptedSha256": "6068cd65f097459b01f7632558d2852e8603f7a1b66ec3ec098cfe431ea44749"
+      },
+      {
+        "path": "Internal/FieldRuleExtensions.cs",
+        "sourceSha256": "efd7a5eed30bb378677dcac7424baa08f338158b61765e573e0ffee57e06a180",
+        "adaptedSha256": "7ff6b0d7ee61b25e4fe5ea04df9f40d1cb68c15098f6c4a65ec757985b670780"
+      },
+      {
+        "path": "Internal/Rules/DescriptorMappings.cs",
+        "sourceSha256": "02d7409ed0724925d471e473c00860ec7be84881474ef3b62cc9801151de30ba",
+        "adaptedSha256": "bc53f2255c6c0c0528515f2b782e49baa3b1a653a42814deddf70a04cb17ccfd"
+      },
+      {
+        "path": "Internal/Rules/RuleCache.cs",
+        "sourceSha256": "4f88aa4529e1d6ac32e937688f429c0a3f01be618ef7ab0ee06fa36f50319d22",
+        "adaptedSha256": "b7fb122d6b264ab43046407ca53e32d4e40d7ee602b9fbe48b0d4f566c1049f2"
+      },
+      {
+        "path": "ServiceCollectionExtensions.cs",
+        "sourceSha256": "10a2cd0d5a61183fe17c14a9c4d27e222369b12aae61e691476416489342e3d0",
+        "adaptedSha256": "7b9613b5e4520e39ff1d2f1f92afe64b9dddc402dfea07cd95f1b7ab0ff1ed45"
+      },
+      {
+        "path": "ValidationResult.cs",
+        "sourceSha256": "3e88c73c5908af7131cb5b43f7062471c0df29d30d18f03aa28f11af335f27eb",
+        "adaptedSha256": "bcf074726e8084a8c403a26bd7953bb0d1d48309a24b0be68883873e4eb2ab1a"
+      },
+      {
+        "path": "Validator.cs",
+        "sourceSha256": "b15d91d261ffa7dd92cda098b1382a7ba29f903234ff8d8cd06a0ec194184623",
+        "adaptedSha256": "fabe51df360fe4486e4af92a46bd5fac1f7469a2b28a35dd0ff3c642ec480eb5"
+      },
+      {
+        "path": "ValidatorOptions.cs",
+        "sourceSha256": "513e75281beee6f7a66b72dce238e17548a5bbdd24d30bdda2aedf7d52471bf6",
+        "adaptedSha256": "8d3176de8f8bb6ed3e031eb7bac06f650bcf111c0e0e66dab2117f9ba72c939c"
+      }
+    ],
+    "materializedPrefix": "#nullable enable\n"
+  },
+  "migration": {
+    "repository": "https://github.com/bufbuild/protovalidate",
+    "commit": "04cd1e0187b7e570f3bb0f86a31daf1f2ad7237e",
+    "archiveUrl": "https://codeload.github.com/bufbuild/protovalidate/tar.gz/04cd1e0187b7e570f3bb0f86a31daf1f2ad7237e",
+    "archiveSha256": "38c3c96f0601d3a7aa5e2d65c7a79aee49c3fb9257f6324dfa9b40cc4df08611",
+    "archiveName": "protovalidate-04cd1e0187b7e570f3bb0f86a31daf1f2ad7237e.tar.gz",
+    "archivePrefix": "protovalidate-04cd1e0187b7e570f3bb0f86a31daf1f2ad7237e"
+  },
+  "corpus": {
+    "path": "tests/Envoy.ControlPlane.Validation.Tests/Fixtures/pgv-cases.json",
+    "sha256": "d65996c87fbedc83bad927ec17b268f6d039e6318e6c4764f5e318016e2b1f52",
+    "caseCount": 33,
+    "goVersion": "1.26.4"
+  }
+}

@@ -6,8 +6,9 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Envoy.ControlPlane.Protocol</PackageId>
-    <Version>0.1.0-t02</Version>
+    <Version>0.1.0-t03</Version>
     <Description>Candidate generated bindings for the pinned Envoy control-plane schema catalog.</Description>
     <Authors>knightfall</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -17,10 +18,13 @@
     <ProtocolGenerated>$(MSBuildThisFileDirectory)obj/generated</ProtocolGenerated>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../Envoy.ControlPlane.Validation.Annotations/Envoy.ControlPlane.Validation.Annotations.csproj" />
     <PackageReference Include="Google.Protobuf" />
     <PackageReference Include="Grpc.Core.Api" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
     <EmbeddedResource Include="$(ProtocolInputs)/catalog.pb" LogicalName="Envoy.ControlPlane.Protocol.catalog.pb" />
+    <EmbeddedResource Include="obj/validation/catalog.pb" LogicalName="Envoy.ControlPlane.Protocol.validation.catalog.pb" Condition="Exists('obj/validation/catalog.pb')" />
+    <EmbeddedResource Include="../../schemas/validation/bindings.lock.json" LogicalName="Envoy.ControlPlane.Protocol.validation.bindings.lock.json" />
     <EmbeddedResource Include="../../schemas/catalog.json" LogicalName="Envoy.ControlPlane.Protocol.catalog.json" />
     <EmbeddedResource Include="../../schemas/bindings.lock.json" LogicalName="Envoy.ControlPlane.Protocol.bindings.lock.json" />
     <EmbeddedResource Include="../../schemas/annotations.json" LogicalName="Envoy.ControlPlane.Protocol.annotations.json" />
@@ -32,6 +36,6 @@
   </ItemGroup>
   <Target Name="RequireVerifiedInputs" BeforeTargets="PrepareForBuild">
     <Error Condition="!Exists('$(ProtocolInputs)/catalog.pb') or !Exists('$(ProtocolGenerated)/Envoy/Config/Listener/V3/Listener.cs')"
-           Text="Generate with Buf first: dotnet run --file scripts/Bindings.cs -- --cache &lt;external-directory&gt;" />
+           Text="Generate with Buf first: dotnet run --no-cache --file scripts/Bindings.cs -- generate --cache &lt;external-source-cache&gt;" />
   </Target>
 </Project>

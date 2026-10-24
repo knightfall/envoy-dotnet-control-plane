@@ -1,5 +1,7 @@
 # T02 binding-provider proof
 
+T02 baseline evidence below is retained from PR #34. The current T03 source-built validator adds derived metadata and a separate annotation owner; see [current validation evidence](VALIDATION.md) and its binding lock for final runtime descriptors and generated-source fingerprints.
+
 Candidate: **owned generation through the Buf CLI**, using the original T01 schema inputs. Protocol targets **net10.0**. T03 must prove validation feasibility before G1 freezes this provider. No upstream `.proto` files are changed and no custom `.proto` files are added to the library or its binding tests.
 
 ## Provider assessment

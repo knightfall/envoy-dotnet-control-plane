@@ -8,6 +8,10 @@
 #:include bindings/BufTool.cs
 #:include bindings/PackageVerification.cs
 #:include bindings/BuildProcess.cs
+#:include validation/ValidationPaths.cs
+#:include validation/VerifiedValidationSources.cs
+#:include validation/ValidationGeneration.cs
+#:include validation/MigrationCorrections.cs
 
 using static Envoy.ControlPlane.Tools.BindingIntegrity;
 

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <Deterministic>true</Deterministic>
+    <Version>0.1.0-t03</Version>
+    <Description>Experimental optional source-built ProtoValidate evaluator for the pinned Envoy catalog.</Description>
+    <Authors>knightfall; TELUS</Authors>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/knightfall/envoy-dotnet-control-plane</RepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Envoy.ControlPlane.Validation.Annotations/Envoy.ControlPlane.Validation.Annotations.csproj" />
+    <PackageReference Include="Cel" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <Compile Include="obj/vendor/**/*.cs" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="obj/LICENSE.upstream" Pack="true" PackagePath="licenses/" />
+    <None Include="../../schemas/validation/sources.lock.json" Pack="true" PackagePath="schemas/" />
+  </ItemGroup>
+  <Target Name="RequirePinnedEvaluatorSource" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('obj/vendor/Validator.cs')" Text="Run scripts/Bindings.cs generate to retrieve and verify the pinned evaluator source." />
+  </Target>
+</Project>

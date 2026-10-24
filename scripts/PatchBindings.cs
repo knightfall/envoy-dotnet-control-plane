@@ -15,12 +15,13 @@ internal static class PatchBindings
     {
         try
         {
-            if (args.Length != 1)
+            if (args.Length is < 1 or > 2)
             {
                 throw new ArgumentException("Expected the generated C# output directory");
             }
 
-            var bindingLock = JsonNode.Parse(File.ReadAllText("schemas/bindings.lock.json"))!;
+            string lockPath = args.Length == 2 ? args[1] : "schemas/bindings.lock.json";
+            var bindingLock = JsonNode.Parse(File.ReadAllText(lockPath))!;
             foreach (var correction in bindingLock["generatedCodeCorrections"]!.AsArray())
             {
                 string path = Path.Combine(args[0], correction!["path"]!.GetValue<string>());

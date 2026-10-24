@@ -12,7 +12,7 @@ internal static class BindingGeneration
         VerifyConfiguration(bindingLock);
 
         // Export validates T01 provenance before replacing its own build inputs.
-        await BuildProcess.RunAsync("dotnet", ["run", "--file", "scripts/Upstream.cs", "--", "export", "--cache", sourceCache]);
+        await BuildProcess.RunAsync("dotnet", ["run", "--no-cache", "--file", "scripts/Upstream.cs", "--", "export", "--cache", sourceCache]);
 
         string buf = await BufTool.GetExecutableAsync(sourceCache, bindingLock["buf"]!);
         await BuildProcess.RunAsync(buf, ["build", "--as-file-descriptor-set", "--exclude-source-info",
@@ -20,9 +20,11 @@ internal static class BindingGeneration
         Require(GetFileSha256(InputsDirectory + "/catalog.pb") == bindingLock["descriptorSetSha256"]!.GetValue<string>(),
             "Buf source descriptor set differs from lock");
 
+        await ValidationGeneration.PrepareAsync(sourceCache, buf);
         await BuildProcess.RunAsync(buf, ["generate", "--template", "buf.gen.yaml"]);
-        await BuildProcess.RunAsync("dotnet", ["run", "--file", "scripts/PatchBindings.cs", "--", GeneratedDirectory]);
+        await BuildProcess.RunAsync("dotnet", ["run", "--no-cache", "--file", "scripts/PatchBindings.cs", "--", GeneratedDirectory]);
         VerifyGeneratedFiles(bindingLock);
+        await ValidationGeneration.GenerateAsync(sourceCache, buf);
     }
 
     internal static void VerifyConfiguration(JsonNode bindingLock)
@@ -34,15 +36,10 @@ internal static class BindingGeneration
         }
     }
 
-    internal static void VerifyGeneratedFiles(JsonNode bindingLock)
+    internal static void VerifyGeneratedFiles(JsonNode bindingLock, string description = "original PGV schema baseline")
     {
-        string[] files = Directory.GetFiles(GeneratedDirectory, "*.cs", SearchOption.AllDirectories);
-        var sources = files.Select(path =>
-            (Path.GetRelativePath(GeneratedDirectory, path), File.ReadAllText(path)));
-        string fingerprint = GetGeneratedSourcesSha256(sources);
-
-        Require(files.Length == bindingLock["generatedSourceCount"]!.GetValue<int>(), "Generated file count differs");
-        Require(fingerprint == bindingLock["generatedSourcesSha256"]!.GetValue<string>(), "Generated source fingerprint differs");
-        Console.WriteLine($"Buf generated {files.Length} verified C# files; original schemas are unchanged.");
+        int count = VerifyGeneratedSources(GeneratedDirectory, bindingLock["generatedSourceCount"]!.GetValue<int>(),
+            bindingLock["generatedSourcesSha256"]!.GetValue<string>());
+        Console.WriteLine($"Buf generated {count} verified C# files ({description}).");
     }
 }

@@ -130,8 +130,15 @@
       "envoy.controlplane.protocol": {
         "type": "Project",
         "dependencies": {
+          "Envoy.ControlPlane.Validation.Annotations": "[0.1.0-t03, )",
           "Google.Protobuf": "[3.35.1, )",
           "Grpc.Core.Api": "[2.84.0, )"
+        }
+      },
+      "envoy.controlplane.validation.annotations": {
+        "type": "Project",
+        "dependencies": {
+          "Google.Protobuf": "[3.35.1, )"
         }
       },
       "Google.Protobuf": {

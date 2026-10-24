@@ -5,8 +5,15 @@
   <ItemGroup>
     <PackageVersion Include="Google.Protobuf" Version="3.35.1" />
     <PackageVersion Include="Grpc.Core.Api" Version="2.84.0" />
-    <PackageVersion Include="Envoy.ControlPlane.Protocol" Version="0.1.0-t02" />
+    <PackageVersion Include="Envoy.ControlPlane.Protocol" Version="0.1.0-t03" />
+    <PackageVersion Include="Envoy.ControlPlane.Validation.Annotations" Version="0.1.0-t03" />
+    <PackageVersion Include="Envoy.ControlPlane.Validation" Version="0.1.0-t03" />
     <PackageVersion Include="Roslynator.Analyzers" Version="5.0.1" />
     <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.2" />
+    <PackageVersion Include="Cel" Version="0.3.3" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.2" />
+    <!-- Retained for the earlier isolated provider assessment; unused by the source implementation. -->
+    <PackageVersion Include="ProtoValidate" Version="1.0.1" />
+    <PackageVersion Include="Celly.Protovalidate" Version="1.2.0" />
   </ItemGroup>
 </Project>
