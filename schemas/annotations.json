@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "sourceDescriptorSetSha256": "c34501434b0580470167d4a257269e25d921dbd5c6ba4968255642cf1e3d10a4",
+  "extensionDefinitions": [
+    {
+      "name": "envoy.annotations.disallowed_by_default",
+      "file": "envoy/annotations/deprecation.proto",
+      "extendee": ".google.protobuf.FieldOptions",
+      "number": 189503207,
+      "type": "Bool"
+    },
+    {
+      "name": "envoy.annotations.deprecated_at_minor_version",
+      "file": "envoy/annotations/deprecation.proto",
+      "extendee": ".google.protobuf.FieldOptions",
+      "number": 157299826,
+      "type": "String"
+    },
+    {
+      "name": "envoy.annotations.disallowed_by_default_enum",
+      "file": "envoy/annotations/deprecation.proto",
+      "extendee": ".google.protobuf.EnumValueOptions",
+      "number": 70100853,
+      "type": "Bool"
+    },
+    {
+      "name": "envoy.annotations.deprecated_at_minor_version_enum",
+      "file": "envoy/annotations/deprecation.proto",
+      "extendee": ".google.protobuf.EnumValueOptions",
+      "number": 181198657,
+      "type": "String"
+    },
+    {
+      "name": "envoy.annotations.resource",
+      "file": "envoy/annotations/resource.proto",
+      "extendee": ".google.protobuf.ServiceOptions",
+      "number": 265073217,
+      "type": ".envoy.annotations.ResourceAnnotation"
+    },
+    {
+      "name": "google.api.http",
+      "file": "google/api/annotations.proto",
+      "extendee": ".google.protobuf.MethodOptions",
+      "number": 72295728,
+      "type": ".google.api.HttpRule"
+    },
+    {
+      "name": "udpa.annotations.message_migrate",
+      "file": "udpa/annotations/migrate.proto",
+      "extendee": ".google.protobuf.MessageOptions",
+      "number": 171962766,
+      "type": ".udpa.annotations.MigrateAnnotation"
+    },
+    {
+      "name": "udpa.annotations.field_migrate",
+      "file": "udpa/annotations/migrate.proto",
+      "extendee": ".google.protobuf.FieldOptions",
+      "number": 171962766,
+      "type": ".udpa.annotations.FieldMigrateAnnotation"
+    },
+    {
+      "name": "udpa.annotations.enum_migrate",
+      "file": "udpa/annotations/migrate.proto",
+      "extendee": ".google.protobuf.EnumOptions",
+      "number": 171962766,
+      "type": ".udpa.annotations.MigrateAnnotation"
+    },
+    {
+      "name": "udpa.annotations.enum_value_migrate",
+      "file": "udpa/annotations/migrate.proto",
+      "extendee": ".google.protobuf.EnumValueOptions",
+      "number": 171962766,
+      "type": ".udpa.annotations.MigrateAnnotation"
+    },
+    {
+      "name": "udpa.annotations.file_migrate",
+      "file": "udpa/annotations/migrate.proto",
+      "extendee": ".google.protobuf.FileOptions",
+      "number": 171962766,
+      "type": ".udpa.annotations.FileMigrateAnnotation"
+    },
+    {
+      "name": "udpa.annotations.security",
+      "file": "udpa/annotations/security.proto",
+      "extendee": ".google.protobuf.FieldOptions",
+      "number": 11122993,
+      "type": ".udpa.annotations.FieldSecurityAnnotation"
+    },
+    {
+      "name": "udpa.annotations.sensitive",
+      "file": "udpa/annotations/sensitive.proto",
+      "extendee": ".google.protobuf.FieldOptions",
+      "number": 76569463,
+      "type": "Bool"
+    },
+    {
+      "name": "udpa.annotations.file_status",
+      "file": "udpa/annotations/status.proto",
+      "extendee": ".google.protobuf.FileOptions",
+      "number": 222707719,
+      "type": ".udpa.annotations.StatusAnnotation"
+    },
+    {
+      "name": "udpa.annotations.versioning",
+      "file": "udpa/annotations/versioning.proto",
+      "extendee": ".google.protobuf.MessageOptions",
+      "number": 7881811,
+      "type": ".udpa.annotations.VersioningAnnotation"
+    },
+    {
+      "name": "validate.disabled",
+      "file": "validate/validate.proto",
+      "extendee": ".google.protobuf.MessageOptions",
+      "number": 1071,
+      "type": "Bool"
+    },
+    {
+      "name": "validate.ignored",
+      "file": "validate/validate.proto",
+      "extendee": ".google.protobuf.MessageOptions",
+      "number": 1072,
+      "type": "Bool"
+    },
+    {
+      "name": "validate.required",
+      "file": "validate/validate.proto",
+      "extendee": ".google.protobuf.OneofOptions",
+      "number": 1071,
+      "type": "Bool"
+    },
+    {
+      "name": "validate.rules",
+      "file": "validate/validate.proto",
+      "extendee": ".google.protobuf.FieldOptions",
+      "number": 1071,
+      "type": ".validate.FieldRules"
+    },
+    {
+      "name": "xds.annotations.v3.file_status",
+      "file": "xds/annotations/v3/status.proto",
+      "extendee": ".google.protobuf.FileOptions",
+      "number": 226829418,
+      "type": ".xds.annotations.v3.FileStatusAnnotation"
+    },
+    {
+      "name": "xds.annotations.v3.message_status",
+      "file": "xds/annotations/v3/status.proto",
+      "extendee": ".google.protobuf.MessageOptions",
+      "number": 226829418,
+      "type": ".xds.annotations.v3.MessageStatusAnnotation"
+    },
+    {
+      "name": "xds.annotations.v3.field_status",
+      "file": "xds/annotations/v3/status.proto",
+      "extendee": ".google.protobuf.FieldOptions",
+      "number": 226829418,
+      "type": ".xds.annotations.v3.FieldStatusAnnotation"
+    }
+  ],
+  "pgv": {
+    "fieldRuleCount": 1244,
+    "requiredOneofOptionCount": 127,
+    "fieldRuleCases": {
+      "Any": 3,
+      "Bool": 15,
+      "Bytes": 3,
+      "Double": 11,
+      "Duration": 111,
+      "Enum": 143,
+      "Float": 1,
+      "Int32": 3,
+      "Int64": 1,
+      "Map": 9,
+      "None": 197,
+      "Repeated": 143,
+      "String": 430,
+      "Uint32": 152,
+      "Uint64": 22
+    },
+    "originalValuesSha256": "8c5416fdd41c54f13065dd382295f8a18c7eea433deaaf33fac856415a5bb6f2"
+  }
+}

@@ -19,7 +19,7 @@ Reviewed 24 October 2026. Source paths below are relative to go-control-plane/.
 - T01 establishes xUnit/Microsoft Testing Platform for [offline CLI verification](../../tests/README.md), with a Linux/macOS/Windows tooling CI matrix. T04 extends this setup to runtime projects.
 - Use the [task acceptance criteria](../plan/IMPLEMENTATION-PLAN.md) and [named verification cases](../plan/TRACEABILITY.md). T03 provides a bounded binding/metadata and Go PGV comparison proof at G1. T26/GV expands to the full claimed catalog, applicable evaluator conformance, structured failures, clean consumers, and per-update rule coverage. Unsupported constraints cannot pass silently.
 
-T01's 17 CLI fixture tests and full pinned-source inspection passed locally. No runtime-library tests, generated C# bindings or package builds were executed during this planning review.
+The original planning review had no generated-binding or runtime evidence. T01 subsequently passed its source inspection and CLI tests. [T02](../../schemas/BINDINGS.md) now adds the Buf-generated Protocol candidate, eight binding tests and clean package-consumer execution; the CLI suite has 19 cases including export checks. No control-plane runtime or live Envoy interoperability result is claimed.
 
 ## Evidence
 

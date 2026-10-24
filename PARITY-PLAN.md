@@ -111,6 +111,8 @@ Release gates:
 
 No Go or .NET runtime tests, SDK restore, protocol generation, package build, or live Envoy interop were run during this proposal review. Git synchronization, source inspection, documentation checks, and primary-source research establish the planning evidence only.
 
+Subsequent implementation evidence: [T01](schemas/PROVENANCE.md) proves source provenance, and [T02](schemas/BINDINGS.md) proves a Buf-generated net10.0 Protocol candidate and clean package consumption. T03 validation feasibility and live Envoy/runtime parity remain separate gates.
+
 ## Implementation sequence
 
 Establish source provenance and candidate bindings, then complete T03 validation feasibility before G1 freezes the binding decision. Implement the SotW preview, complete the root-library surface, and verify the release gates. Full T26/GV validation conformance proceeds separately from the preview/root release gates; T27/T28 remain deferred. The [detailed backlog](docs/plan/IMPLEMENTATION-PLAN.md) records task dependencies and acceptance criteria.

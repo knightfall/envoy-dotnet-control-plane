@@ -6,6 +6,43 @@ namespace Envoy.ControlPlane.Upstream.Tests;
 public sealed class UpstreamCliTests
 {
     [Fact]
+    public async Task Export_ValidFixture_WritesOnlySelectedVerifiedInputs()
+    {
+        using var fixture = new UpstreamFixture();
+        var result = await fixture.Run("export", "--cache", fixture.Cache, "--offline");
+        Assert.Equal(0, result.ExitCode);
+        Assert.Empty(result.StandardError);
+        string output = Path.Combine(fixture.Root, "src/Envoy.ControlPlane.Protocol/obj/upstream");
+        string inputs = Path.Combine(output, "inputs");
+        string[] expectedPaths = ["envoy/config/core/v3/base.proto", "ratelimit/config/ratelimit/v3/rls_conf.proto", "xds/type/v1/extension.proto"];
+        var actualPaths = Directory.GetFiles(inputs, "*", SearchOption.AllDirectories)
+            .Select(p => Path.GetRelativePath(inputs, p).Replace('\\', '/')).Order(StringComparer.Ordinal);
+        Assert.Equal(expectedPaths, actualPaths);
+        string exportedSource = await File.ReadAllTextAsync(Path.Combine(inputs, expectedPaths[0]), TestContext.Current.CancellationToken);
+        Assert.Contains("message Node", exportedSource, StringComparison.Ordinal);
+        Assert.Equal(4, Directory.GetFiles(Path.Combine(output, "licenses"), "LICENSE", SearchOption.AllDirectories).Length);
+        string before = fixture.InputFingerprint();
+        var repeated = await fixture.Run("export", "--cache", fixture.Cache, "--offline");
+        Assert.Equal(0, repeated.ExitCode);
+        Assert.Equal(before, fixture.InputFingerprint());
+    }
+
+    [Fact]
+    public async Task Export_DriftedCatalog_RejectsBeforeWritingInputs()
+    {
+        using var fixture = new UpstreamFixture();
+        fixture.InputLock["catalogSha256"] = new string('0', 64);
+        fixture.SaveLock();
+        string before = fixture.InputFingerprint();
+        var result = await fixture.Run("export", "--cache", fixture.Cache, "--offline");
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("Catalog checksum differs from lock", result.StandardError, StringComparison.Ordinal);
+        Assert.Empty(result.StandardOutput);
+        Assert.False(Directory.Exists(Path.Combine(fixture.Root, "src")));
+        Assert.Equal(before, fixture.InputFingerprint());
+    }
+
+    [Fact]
     public async Task Sync_ValidOfflineFixture_VerifiesClosureAndPreservesInputs()
     {
         using var fixture = new UpstreamFixture();

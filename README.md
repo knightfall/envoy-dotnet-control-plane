@@ -1,10 +1,12 @@
 # .NET control plane — architecture and implementation plan
 
-Status: **T01 source provenance and V01 verified; PR review and runtime implementation pending**, reviewed 24 October 2026. This repository contains a proposed standalone .NET library with behavioral parity for the maintained v3 root library in go-control-plane. No runtime implementation, generated bindings, package build, or Envoy interoperability result exists yet.
+Status: **T01 merged; T02 Buf binding candidate proved locally and awaiting review**, updated 24 October 2026. This repository is building a standalone .NET library with behavioral parity for the maintained v3 root library in go-control-plane. The Protocol candidate compiles and packs, with clean-consumer evidence. Control-plane runtime implementation, T03 validation feasibility and Envoy interoperability remain pending.
 
 **Feature availability stops at Go parity.** Match the selected upstream behavior and defaults with the smallest suitable .NET implementation. The scope covers root-library v3 behavior and optional schema validation. Preserve upstream validation annotations from the first binding release, assess validation feasibility before freezing the bindings, and gate validation claims separately. The current proposal keeps Go's stream-loop/watch structure and stable-resource convention; matcher and broader catalogs remain deferred.
 
 The separate upstream checkout is `../go-control-plane/`. Its reviewed commit is **67c5345367582741334e34ffc66a561b0ce32946**; the Envoy schema source is **82a4424f760b6ba3ffc9f2911389d061656f35c8**. See the [baseline](upstream-baseline.json), [source lock](schemas/upstream.lock.json), [catalog](schemas/catalog.json), and [T01 provenance evidence](schemas/PROVENANCE.md). Retrieval and inspection use a [C# file-based app](scripts/Upstream.cs).
+
+The [T02 binding proof](schemas/BINDINGS.md) uses **Buf CLI**, pinned official C#/gRPC plugins and unchanged upstream schemas. Protocol targets **net10.0**. Its three generated C# naming corrections and exact compatibility evidence are documented there. [Bindings.cs](scripts/Bindings.cs) runs the repeatable generation, pack and clean-consumer proof; provider freeze remains gated by T03.
 
 ## Read in this order
 
@@ -25,6 +27,8 @@ The separate upstream checkout is `../go-control-plane/`. Its reviewed commit is
 
 Runtime packages target .NET 10 provisionally. A SotW/SnapshotCache preview precedes the complete root-library v3 scope. T03 is an early binding-design task; T26 delivers the optional validation package after its own conformance gate. Full validation does not block the streaming preview or root-runtime claim. T27/T28 remain deferred. Package names and public signatures remain proposals until their binding and behavioral proofs pass.
 
-C# tooling uses **Roslynator.Analyzers 5.0.1** and the root [.editorconfig](.editorconfig). The file-based app treats warnings as errors. Build it with `dotnet build scripts/Upstream.cs`; T04 applies the same analyzer policy to the runtime projects when they are created.
+C# tooling and projects use **Roslynator.Analyzers 5.0.1**, warnings as errors, and the root [.editorconfig](.editorconfig). [Directory.Packages.props](Directory.Packages.props) centrally manages dependencies, including file-based app directives without inline versions. T04 extends these conventions to the remaining runtime projects.
 
-The [project-based CLI test suite](tests/README.md) automates V01 acceptance and rejection checks with isolated offline fixtures. It uses xUnit/Microsoft Testing Platform, with locked dependencies and [CI](.github/workflows/upstream-verification.yml) for Linux, macOS and Windows. The recorded local run passed all 17 tests; full pinned-source inspection passed separately.
+[AGENTS.md](AGENTS.md) records repository-specific development and review instructions. The [command map](scripts/README.md) explains the file-based entry points and their supporting code.
+
+The [project-based tests](tests/README.md) use xUnit/Microsoft Testing Platform and locked dependencies. Locally, **19 upstream CLI tests**, **8 binding tests** and the same **8 tests from a clean NuGet consumer** pass. [CI](.github/workflows/upstream-verification.yml) registers both projects and the package proof for Linux, macOS and Windows; T02 remote execution is pending publication.
