@@ -1,6 +1,6 @@
 # T01: upstream input provenance
 
-Recorded 24 October 2026 for [T01 / issue #2](https://github.com/knightfall/envoy-dotnet-control-plane/issues/2). Source work is implemented on `feat/t01-upstream-input-lock`, with remaining G0 acceptance noted below. This report records source and descriptor inspections. It does not establish C# binding-provider compatibility, validator equivalence, or Envoy interoperability.
+Recorded 24 October 2026 for [T01 / issue #2](https://github.com/knightfall/envoy-dotnet-control-plane/issues/2). Source work and V01 verification are complete on `feat/t01-upstream-input-lock`, awaiting PR review. This report records source and descriptor inspections plus automated CLI acceptance/rejection checks. It does not establish C# binding-provider compatibility, validator equivalence, or Envoy interoperability.
 
 ## Artifacts
 
@@ -9,6 +9,7 @@ Recorded 24 October 2026 for [T01 / issue #2](https://github.com/knightfall/envo
 - [Upstream.cs](../scripts/Upstream.cs): a C# file-based app for source retrieval, catalog reconstruction and descriptor inspection.
 - [License and notice inventory](NOTICES.md).
 - [Top-level baseline](../upstream-baseline.json).
+- [Automated CLI tests and requirement mapping](../tests/README.md), with [locked test dependencies](../tests/Envoy.ControlPlane.Upstream.Tests/packages.lock.json).
 
 ## Immutable sources
 
@@ -90,7 +91,7 @@ dotnet run --file scripts/Upstream.cs -- sync --cache ../upstream-sources --writ
 
 Review the generated diff, update `catalogSha256` in the lock, and rerun `sync` and `inspect`. `--write-catalog` is an update operation, not a passing audit. No command updates a branch, tag or source pin automatically.
 
-## Observed evidence and remaining acceptance
+## Observed evidence and G0 acceptance
 
 The C# app was built with SDK 10.0.400 on macOS arm64, with Google.Protobuf 3.35.1. Commands used a temporary CLI home, NuGet package cache and source cache to keep generated artifacts outside this repository:
 
@@ -106,4 +107,24 @@ Observed: all ten archive checksums, twelve root license/notice fingerprints, re
 
 The final `sync` command began with a nonexistent external cache and retrieved all locked source archives and registry evidence successfully. The rebuilt catalog matched the recorded inventory and fingerprint. Subsequent offline source inspection used the same locked data. The sibling Go checkout remained clean at its recorded commit.
 
-V01's changed/missing-lock negative scenarios have not been executed. G0 remains pending those cases and review; this issue should remain open until its completion evidence is published. No C# runtime bindings, library build, unit tests, validator conformance or live Envoy exercise is claimed. There are no unresolved source-origin blockers in the selected catalog; T02/T03 binding/metadata decisions remain separate gates.
+The [project-based test suite](../tests/README.md) now automates V01's valid-input and changed/missing-lock cases. It uses xUnit's `xunit.v3.mtp-v2` package **4.0.2**, Microsoft Testing Platform **2.5.1**, and Roslynator **5.0.1**. Direct/transitive dependencies are pinned in its NuGet lock. Each test launches the real built CLI against fresh synthetic source archives, a temporary repository and a sibling cache, with `--offline`. The expected fixture catalog is declared independently of the production catalog builder. Every rejection asserts exit code 1, the specific failure reason, no success output and unchanged fixture inputs.
+
+Observed locally on macOS arm64, 24 October 2026: **Passed: 17, Failed: 0, Skipped: 0**, exit 0. Commands:
+
+```sh
+DOTNET_CLI_HOME=/private/tmp/envoy-dotnet-cli NUGET_PACKAGES=/private/tmp/envoy-dotnet-nuget dotnet restore tests/Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj --locked-mode
+DOTNET_CLI_HOME=/private/tmp/envoy-dotnet-cli NUGET_PACKAGES=/private/tmp/envoy-dotnet-nuget TESTINGPLATFORM_TELEMETRY_OPTOUT=1 dotnet test --project tests/Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj --configuration Release --no-restore --results-directory artifacts/test-results --report-xunit-trx --report-xunit-trx-filename upstream.trx
+DOTNET_CLI_HOME=/private/tmp/envoy-dotnet-cli dotnet tests/Envoy.ControlPlane.Upstream.Tests/bin/Release/net10.0/upstream/Upstream.dll inspect --cache /private/tmp/envoy-dotnet-upstream/cache --offline
+```
+
+The first command verified locked restore. The second built the CLI/test project with warnings as errors and wrote `artifacts/test-results/upstream.trx`. The third reran the complete real-source audit and both rate-limit descriptor comparisons successfully after the test-driven diagnostic change. Missing/duplicate required sources now have explicit diagnostics rather than generic collection errors.
+
+A separate Release rebuild of the test project with Roslynator completed with **0 warnings, 0 errors and 0 SARIF findings**:
+
+```sh
+DOTNET_CLI_HOME=/private/tmp/envoy-dotnet-cli NUGET_PACKAGES=/private/tmp/envoy-dotnet-nuget dotnet build tests/Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj --configuration Release --no-restore --nologo -t:Rebuild -p:ErrorLog=/private/tmp/envoy-dotnet-upstream/test-quality.sarif
+```
+
+The [CI workflow](../.github/workflows/upstream-verification.yml) executes the same offline test project on Linux, macOS and Windows for PRs, pushes to `main` and manual runs, retaining TRX results. The full protoc inspection is recorded separately on macOS arm64 and is not claimed as part of that portable fixture CI matrix.
+
+**V01 and G0 source-provenance checks pass.** PR review and merge remain pending; [issue #2](https://github.com/knightfall/envoy-dotnet-control-plane/issues/2) can close when the reviewed change merges. There are no unresolved source-origin blockers in the selected catalog. T02/T03 binding/metadata decisions remain separate gates. No C# runtime bindings, library test results, validator conformance or live Envoy exercise is claimed.

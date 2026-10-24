@@ -73,14 +73,18 @@ internal static partial class Upstream
                     S(inputLock["inspectionTools"]!["dotnet"]!, "version"), "SDK pin differs from lock");
             var baseline = ReadObject(Path.Combine(root, "upstream-baseline.json"));
             var sourceList = A(inputLock, "sources");
+            var lockedSources = new Dictionary<string, JsonNode>(StringComparer.Ordinal);
+            foreach (var source in sourceList.Select(s => s!))
+                Require(lockedSources.TryAdd(S(source, "id"), source), "Duplicate source ID: " + S(source, "id"));
             foreach (var (key, id) in new[] { ("goControlPlane", "go-control-plane"), ("envoyApi", "envoy"), ("ratelimitApi", "ratelimit") })
             {
-                var source = sourceList.Single(s => S(s!, "id") == id)!;
+                Require(lockedSources.ContainsKey(id), "Missing required source: " + id);
+                var source = lockedSources[id];
                 Require(S(baseline[key]!, "commit") == S(source, "commit") &&
                         S(baseline[key]!, "repository") == S(source, "repository"), "Baseline/lock origin mismatch: " + id);
             }
             var sources = await Retrieve(inputLock, cache, offline);
-            var envoy = sourceList.Single(s => S(s!, "id") == "envoy")!;
+            var envoy = lockedSources["envoy"];
             Require(Text(sources["go-control-plane"]["envoy/COMMIT"]).Trim() == S(envoy, "commit"), "Go's Envoy pin differs from lock");
             Require(JsonNode.DeepEquals(ModuleInventory(sources["go-control-plane"]), inputLock["goModules"]), "Go module inventory differs from lock");
             var catalog = BuildCatalog(inputLock, sources);
