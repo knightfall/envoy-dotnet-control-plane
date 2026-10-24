@@ -25,6 +25,8 @@ The cache must be outside the implementation and upstream reference repositories
 
 `bindings/` separates Buf executable verification, generation/output verification, process execution and package-consumer verification. `BindingPaths` names the repository artifacts. `BindingIntegrity` provides the command's checksum and rejection operations.
 
+The generated-source fingerprint uses LF contents and forward-slash relative paths, sorted after normalization. This keeps the locked inventory identical across operating systems while preserving content checks.
+
 ```sh
 dotnet run --file scripts/Bindings.cs -- generate --cache ../upstream-sources
 dotnet run --file scripts/Bindings.cs -- verify --cache ../upstream-sources

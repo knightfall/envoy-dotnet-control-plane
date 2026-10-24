@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json.Nodes;
 using static Envoy.ControlPlane.Tools.BindingPaths;
 using static Envoy.ControlPlane.Tools.BindingIntegrity;
@@ -37,15 +36,10 @@ internal static class BindingGeneration
 
     internal static void VerifyGeneratedFiles(JsonNode bindingLock)
     {
-        string[] files = Directory.GetFiles(GeneratedDirectory, "*.cs", SearchOption.AllDirectories)
-            .Order(StringComparer.Ordinal).ToArray();
-        var inventory = files.Select(path =>
-        {
-            string relativePath = Path.GetRelativePath(GeneratedDirectory, path).Replace('\\', '/');
-            string sourceHash = ComputeSha256(Encoding.UTF8.GetBytes(File.ReadAllText(path).ReplaceLineEndings("\n")));
-            return relativePath + ":" + sourceHash;
-        });
-        string fingerprint = ComputeSha256(Encoding.UTF8.GetBytes(string.Join('\n', inventory)));
+        string[] files = Directory.GetFiles(GeneratedDirectory, "*.cs", SearchOption.AllDirectories);
+        var sources = files.Select(path =>
+            (Path.GetRelativePath(GeneratedDirectory, path), File.ReadAllText(path)));
+        string fingerprint = GetGeneratedSourcesSha256(sources);
 
         Require(files.Length == bindingLock["generatedSourceCount"]!.GetValue<int>(), "Generated file count differs");
         Require(fingerprint == bindingLock["generatedSourcesSha256"]!.GetValue<string>(), "Generated source fingerprint differs");

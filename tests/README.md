@@ -14,6 +14,8 @@ The binding suite is organized by behavior: `CatalogTests`, `AnnotationTests`, `
 
 The [test project](Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj) exercises the real [Upstream.cs](../scripts/Upstream.cs) CLI through subprocesses. The production tool remains a C# file-based app with explicitly included helpers under `scripts/upstream/`. A build target tracks the entry point and all helpers, compiles them once into the test output's `upstream/` directory, and invokes that binary rather than a copied implementation. There is no production `.csproj` to reference and no solution artifact yet. The project path below is the repository and CI test entry point.
 
+[BindingIntegrityTests.cs](Envoy.ControlPlane.Upstream.Tests/BindingIntegrityTests.cs) also exercises the binding tool's checksum helper, linked from its original source. Four platform-representation cases verify the same independently calculated fingerprint with Windows/Unix separators and CRLF/LF contents, including paths whose native sort order differs. A content-change case verifies that source changes still produce a distinct, exact fingerprint. These tests run in the existing offline CI matrix.
+
 ## Framework and execution
 
 - .NET SDK **10.0.400**, target **net10.0**.
@@ -64,7 +66,7 @@ Test methods are in [UpstreamCliTests.cs](Envoy.ControlPlane.Upstream.Tests/Upst
 | Verified export selection and repeatability | `Export_ValidFixture_WritesOnlySelectedVerifiedInputs` |
 | Export rejects catalog drift before creating output | `Export_DriftedCatalog_RejectsBeforeWritingInputs` |
 
-Observed locally on macOS arm64, 24 October 2026: **Passed: 19, Failed: 0, Skipped: 0** after adding the two export cases. The suite's command exited **0** and wrote a TRX report. A locked restore also completed successfully. The original 17-case suite additionally passed remote Linux/macOS/Windows CI in T01; T02's 19-case remote result is pending publication.
+The offline matrix runs 19 provenance/export cases and five binding-fingerprint cases. Platform execution results belong to the current PR checks and their uploaded TRX reports.
 
 ## CI and full-source evidence
 
