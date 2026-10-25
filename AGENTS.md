@@ -13,6 +13,7 @@ Read [README.md](README.md) for the implementation status and [docs/plan/IMPLEME
 | `tests/` | Automated verification, fixtures and shared test support |
 | `tools/` | Project-based repository CLI and generation-dependent schema helper |
 | `scripts/` | Retained historical research helpers |
+| `examples/` | Maintained application hosting and update-source examples |
 | `schemas/` | Source/tool locks, catalog, annotation inventory and provenance |
 | `docs/` | Architecture, decisions, parity requirements and implementation plan |
 

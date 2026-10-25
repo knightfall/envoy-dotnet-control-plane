@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Description>Foundation package for the planned ASP.NET Core adapters for Envoy.ControlPlane.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Description>ASP.NET Core gRPC hosting for the Envoy.ControlPlane SotW engine.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Envoy.ControlPlane/Envoy.ControlPlane.csproj" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Grpc.AspNetCore.Server" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
     <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>

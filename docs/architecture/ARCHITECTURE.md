@@ -1,6 +1,6 @@
 # Detailed architecture
 
-Reviewed **26 October 2026**. Status: runtime design with implemented resource/cache/SotW sections; [T10 evidence](../plan/T10-ORDERED-ADS.md) records current verification, while later features remain proposals. [T01 source provenance](../../schemas/PROVENANCE.md) records the source baseline. This document uses the Go behavior pin and the separate Envoy schema pin in [upstream-baseline.json](../../upstream-baseline.json). Requirements, task IDs, and verification IDs are defined in [traceability](../plan/TRACEABILITY.md) and the [implementation plan](../plan/IMPLEMENTATION-PLAN.md).
+Reviewed **26 October 2026**. Status: runtime design with implemented resource/cache/SotW/hosting sections; [T11 evidence](../plan/T11-ASP-NET-HOST.md) records current verification, while later features remain proposals. [T01 source provenance](../../schemas/PROVENANCE.md) records the source baseline. This document uses the Go behavior pin and the separate Envoy schema pin in [upstream-baseline.json](../../upstream-baseline.json). Requirements, task IDs, and verification IDs are defined in [traceability](../plan/TRACEABILITY.md) and the [implementation plan](../plan/IMPLEMENTATION-PLAN.md).
 
 ## 1. Purpose and compatibility contract
 
@@ -247,7 +247,7 @@ Routes: `/v3/discovery:endpoints`, `:clusters`, `:listeners`, `:routes`, `:scope
 
 ## 13. ASP.NET Core integration and lifecycle
 
-Proposed registration is `AddEnvoyControlPlane(...)` with application-provided cache, callback, descriptor-registry, and upstream-equivalent option instances, followed by separate gRPC and HTTP endpoint mapping. Runtime caches are shared singletons unless the application deliberately supplies another lifetime. Stream sessions are per-call objects. Use ordinary ASP.NET Core dependency injection and call lifetimes; do not add a callback-factory framework.
+T11 implements parameterless `AddEnvoyControlPlane()` using application-registered singleton cache, optional callbacks and initialized SotW options. `MapEnvoyControlPlane()` returns a standard route group for the nine preview SotW services and application endpoint conventions. HTTP/Fetch mapping and JSON descriptor registry configuration remain T18. Runtime caches are shared singletons unless the application deliberately supplies another lifetime. Stream sessions are per-call objects. Use ordinary ASP.NET Core dependency injection and call lifetimes; do not add a callback-factory framework.
 
 Startup builds the descriptor registry, validates options, and starts explicitly enabled timers. Shutdown stops accepting calls, cancels sessions through a linked host token, cancels/disposes all watches, awaits reader/event-loop completion, and disposes owned timers/resources. Cleanup runs on open-hook rejection, EOF, reader failure, writer failure, callback failure, and host stop. Close notification occurs once after watch cleanup even if open was rejected, matching source lifecycle intent.
 

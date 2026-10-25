@@ -24,6 +24,8 @@ internal static class ConsumerChecks
         if (hosting)
         {
             expected.Add("Envoy.ControlPlane.AspNetCore");
+            expected.Add("Grpc.AspNetCore.Server");
+            expected.Add("Grpc.Net.Common");
         }
         var assets = JsonNode.Parse(File.ReadAllText("obj/project.assets.json"))!;
         var packages = assets["libraries"]!.AsObject().Select(item => item.Key.Split('/')[0]).ToHashSet(StringComparer.OrdinalIgnoreCase);

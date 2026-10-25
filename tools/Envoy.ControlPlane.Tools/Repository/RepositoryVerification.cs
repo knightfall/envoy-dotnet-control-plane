@@ -29,9 +29,10 @@ internal static class RepositoryVerification
             await PackageVerification.VerifyCleanConsumerAsync();
             await PackageVerification.VerifyCleanConsumerAsync(ValidationPaths.TestsProject, "validation-consumer");
             await PackageVerification.VerifyCleanConsumerAsync("tests/Envoy.ControlPlane.Tests/Envoy.ControlPlane.Tests.csproj", "core-consumer");
+            await PackageVerification.VerifyCleanConsumerAsync("tests/Envoy.ControlPlane.AspNetCore.Tests/Envoy.ControlPlane.AspNetCore.Tests.csproj", "hosting-consumer");
             await RootConsumerVerification.RunAsync("Core");
             await RootConsumerVerification.RunAsync("AspNetCore");
-            Console.WriteLine($"Repository build, tests, packages and consumers passed; {cases} Go PGV cases and the snapshot/cache/subscription/stream corpora matched. Network adapters, Delta delivery and full GV remain separate tasks.");
+            Console.WriteLine($"Repository build, tests, packages and consumers passed; {cases} Go PGV cases and the snapshot/cache/subscription/stream corpora matched. Delta, Fetch, released-Envoy acceptance and full GV remain separate tasks.");
             return 0;
         }
         catch (Exception error) when (error is not OutOfMemoryException)
@@ -45,7 +46,7 @@ internal static class RepositoryVerification
     {
         var registered = XDocument.Load(Solution).Descendants("Project")
             .Select(project => project.Attribute("Path")!.Value.Replace('\\', '/')).ToHashSet(StringComparer.Ordinal);
-        var maintained = new[] { "src", "tests", "tools" }
+        var maintained = new[] { "src", "tests", "tools", "examples" }
             .SelectMany(directory => Directory.EnumerateFiles(directory, "*.csproj", SearchOption.AllDirectories))
             .Where(path => !path.Split(Path.DirectorySeparatorChar).Any(segment => segment is "bin" or "obj"))
             .Select(path => path.Replace('\\', '/'))

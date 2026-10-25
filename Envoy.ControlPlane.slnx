@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/examples/">
+    <Project Path="examples/Envoy.ControlPlane.Example/Envoy.ControlPlane.Example.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Envoy.ControlPlane.AspNetCore/Envoy.ControlPlane.AspNetCore.csproj" />
     <Project Path="src/Envoy.ControlPlane.Protocol/Envoy.ControlPlane.Protocol.csproj" />
@@ -7,6 +10,7 @@
     <Project Path="src/Envoy.ControlPlane/Envoy.ControlPlane.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Envoy.ControlPlane.AspNetCore.Tests/Envoy.ControlPlane.AspNetCore.Tests.csproj" />
     <Project Path="tests/Envoy.ControlPlane.Protocol.Tests/Envoy.ControlPlane.Protocol.Tests.csproj" />
     <Project Path="tests/Envoy.ControlPlane.Tests/Envoy.ControlPlane.Tests.csproj" />
     <Project Path="tests/Envoy.ControlPlane.TransportProbe/Envoy.ControlPlane.TransportProbe.csproj" />
