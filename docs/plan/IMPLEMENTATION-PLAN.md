@@ -370,6 +370,8 @@ Subtasks:
 
 ### T22 — Exercise concurrency, callbacks, and cleanup
 
+Preview implementation and bounded V14/V15/V28–V30 evidence: [T22 preview lifecycle](T22-PREVIEW-LIFECYCLE.md). Full Delta/Linear/Mux and timer concurrency remain in the separate 1.0 deliverable.
+
 **Scope:** preview subset then 1.0 / R06, R10, R11, R21, R22. **Depends on for completion:** T21. **Outputs:** deterministic schedule fixtures and lifecycle/stress evidence.
 
 Subtasks:
