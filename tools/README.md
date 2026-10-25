@@ -9,7 +9,7 @@ Run the project-based CLI from the repository root. The pinned SDK, central pack
 
 The main CLI builds before any generated contracts exist. Generation exports verified source inputs, generates annotation contracts and bootstrap Protocol through Buf, builds the schema helper, then applies the typed overlay and generates final Protocol. This order avoids a circular build dependency. The main CLI calls its source-export and correction code directly; only the generation-dependent schema helper runs as another .NET application.
 
-`Upstream/`, `Bindings/` and `Validation/` contain focused implementation files. `Program.cs` only routes commands. Common tooling build settings live in [Directory.Build.props](Directory.Build.props); package versions remain in [Directory.Packages.props](../Directory.Packages.props).
+`Upstream/`, `Bindings/`, `Validation/` and `Repository/` contain focused implementation files. `Program.cs` only routes commands. Common tooling build settings live in [Directory.Build.props](Directory.Build.props); package versions remain in [Directory.Packages.props](../Directory.Packages.props).
 
 The root [.gitattributes](../.gitattributes) keeps tracked text at LF on all platforms, including Windows checkouts with `core.autocrlf=true`. Configuration fingerprints verify exact bytes. Generated-source fingerprints normalize LF contents and forward-slash paths before ordinal sorting.
 
@@ -64,11 +64,11 @@ dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache
 dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify
 ```
 
-`repository verify` checks solution registration, verifies pinned validation inputs, performs locked solution restore/build/test, compares the corpus with Go PGV, and packs all five runtime packages with symbols. It inspects readmes, licenses, assemblies, XML documentation where supplied, and separate portable-symbol packages. The source-built evaluator retains upstream's existing XML-documentation limitation.
+`repository verify` checks solution registration, verifies pinned validation inputs, performs locked solution restore/build/test, compares validation and snapshot corpora with the pinned Go implementations, and packs all five runtime packages with symbols. It inspects readmes, licenses, assemblies, XML documentation where supplied, and separate portable-symbol packages. The source-built evaluator retains upstream's existing XML-documentation limitation.
 
-The command runs the full Protocol and Validation suites against fresh NuGet packages, then runs the Core and ASP.NET consumers under [tests/consumers/](../tests/consumers/README.md). Each consumer restores into a separate empty NuGet cache. Core's exact package graph excludes hosting and evaluator dependencies; ASP.NET adds its shared framework and Core dependency without an evaluator. The package projects are foundations; functional Core resources and hosting adapters remain later tasks.
+The command runs the full Protocol, Validation and Core suites against fresh NuGet packages, then runs the Core and ASP.NET consumers under [tests/consumers/](../tests/consumers/README.md). Each consumer restores into a separate empty NuGet cache. Core's exact package graph excludes hosting and evaluator dependencies; ASP.NET adds its shared framework and Core dependency without an evaluator. Core consumers exercise resource snapshots, explicit consistency and Delta version construction. Watches, caches and hosting adapters remain later tasks.
 
-Solution tests use native MTP through `dotnet test --solution Envoy.ControlPlane.slnx`. The three existing suites are registered without changing their test methods. Reports and consumer locks are under Protocol's `obj/upstream/results/`; packages and `.snupkg` files remain under its `bin/packages/`. This is local candidate packaging, not a NuGet publishing command.
+Solution tests use native MTP through `dotnet test --solution Envoy.ControlPlane.slnx`. All four maintained suites are registered, including the T05 Core suite. Reports and consumer locks are under Protocol's `obj/upstream/results/`; packages and `.snupkg` files remain under its `bin/packages/`. This is local candidate packaging, not a NuGet publishing command.
 
 ## Focused maintenance commands
 

@@ -1,0 +1,9 @@
+# Independent resource/snapshot comparison
+
+`GoOracle/` uses the upstream cache at commit `67c5345367582741334e34ffc66a561b0ce32946`. Its root and Envoy modules are pinned to pseudo-versions ending in `67c534536758`; `ResourceVerification` rejects replacements or revisions that differ from the repository baseline. `go.sum` records dependencies. Use the Go toolchain selected by the repository source lock.
+
+The Core suite reads `tests/Envoy.ControlPlane.Tests/Fixtures/snapshot-cases.json`. These 19 fixtures declare names, versions and consistency outcomes. It exports original protobuf wire payloads, optional TTL nanoseconds and the observed .NET outcomes to its output directory. The Go executable reconstructs the messages and invokes `NewSnapshotWithTTLs`, `Consistent`, resource access and explicit version-map construction. Differences fail the command. The report must contain every declared fixture exactly once.
+
+Run the complete comparison through `dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify` after binding generation. The Go result is saved under Protocol's `obj/upstream/results/resources/go-results.json` and uploaded with CI evidence. The command uses `-mod=readonly`; it does not alter an upstream checkout.
+
+Coverage includes absent/empty/partial groups, duplicate names, absent/zero/nonzero TTLs, invalid-but-unvalidated messages, EDS service overrides and missing/extra resources, RDS normal/default/standalone chains, and scoped routes including an empty referenced name. The oracle also rejects an unknown built-in snapshot type and checks lazy version-map availability and SHA256 shape. It does not assert cross-language literal hash equality or replace the focused deterministic-byte/hash tests. .NET TTL fixtures use values representable by `TimeSpan` (100 ns precision).

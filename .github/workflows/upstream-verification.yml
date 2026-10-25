@@ -76,11 +76,14 @@ jobs:
             src/Envoy.ControlPlane.Validation/packages.lock.json
             tests/Envoy.ControlPlane.Upstream.Tests/packages.lock.json
             tests/Envoy.ControlPlane.Protocol.Tests/packages.lock.json
+            tests/Envoy.ControlPlane.Tests/packages.lock.json
             tests/Envoy.ControlPlane.Validation.Tests/packages.lock.json
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: '1.26.4'
-          cache-dependency-path: tests/validation/GoOracle/go.sum
+          cache-dependency-path: |
+            tests/validation/GoOracle/go.sum
+            tests/resources/GoOracle/go.sum
       - name: Restore pinned tooling dependencies
         run: dotnet restore tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj --locked-mode
       - name: Generate verified contracts with Buf

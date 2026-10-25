@@ -6,7 +6,7 @@ The [T02 binding proof](../schemas/BINDINGS.md) documents the generated Protocol
 dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings verify --cache ../upstream-sources
 ```
 
-All three maintained suites are registered in [Envoy.ControlPlane.slnx](../Envoy.ControlPlane.slnx) and the [schema verification workflow](../.github/workflows/upstream-verification.yml). The solution-level command is `dotnet test --solution Envoy.ControlPlane.slnx --configuration Release` after generation; focused project commands remain available. All project dependency versions come from [Directory.Packages.props](../Directory.Packages.props), with project dependency graphs recorded in lock files.
+All four maintained suites are registered in [Envoy.ControlPlane.slnx](../Envoy.ControlPlane.slnx) and the [schema verification workflow](../.github/workflows/upstream-verification.yml). The solution-level command is `dotnet test --solution Envoy.ControlPlane.slnx --configuration Release` after generation; focused project commands remain available. All project dependency versions come from [Directory.Packages.props](../Directory.Packages.props), with project dependency graphs recorded in lock files.
 
 The binding suite is organized by behavior: `CatalogTests`, `AnnotationTests`, `SerializationTests`, `ServiceContractTests` and `GeneratorCompatibilityTests`. Shared inspection helpers and RPC fixture data live in `Envoy.ControlPlane.Protocol.Tests/Support/`. A shared xUnit collection retains sequential execution. The clean package consumer copies all handwritten test/support sources, so this organization does not reduce the package proof to a subset of checks.
 
@@ -81,3 +81,9 @@ The separate [full-source provenance audit](../schemas/PROVENANCE.md) verifies a
 ## Core and hosting package consumers
 
 The [executable probes](consumers/README.md) restore the freshly packed Core and ASP.NET packages into separate NuGet caches. They load the candidate assembly, use transitive Protocol contracts, verify exact dependency and shared-framework boundaries, and build an ASP.NET application host without opening a listener. `repository verify` stages their `.csproj.template` files into temporary projects; the templates do not join the source-build solution or require an unpublished package during bootstrap.
+
+## Resource and snapshot suite
+
+[T05 evidence](../docs/plan/T05-RESOURCES-AND-SNAPSHOTS.md) maps requirements to the Core tests in `Envoy.ControlPlane.Tests`. Its 38 native MTP cases cover naming, TTL indexing, partial snapshots, stable message replacement, opaque versions, deterministic serialization, unknown fields, explicit consistency and application-owned descriptor registration. The checked-in 19-case JSON corpus declares expected outcomes independently of the implementation.
+
+`repository verify` runs all 92 solution cases, passes the corpus wire payloads to the [pinned Go snapshot oracle](resources/README.md), and runs all 38 Core cases again against the newly packed NuGet package in a fresh cache. These checks do not exercise network streams or a live Envoy proxy. There are no timing-based race tests in T05; watches and cancellation begin in T06.

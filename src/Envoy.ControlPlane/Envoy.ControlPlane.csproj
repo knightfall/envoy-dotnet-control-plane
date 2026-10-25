@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Description>Foundation package for the planned Envoy control-plane resource, cache and protocol runtime.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Description>Envoy control-plane resource entries, snapshots, reference checks and protocol runtime primitives.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Envoy.ControlPlane.Protocol/Envoy.ControlPlane.Protocol.csproj" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
     <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="../Envoy.ControlPlane.Protocol/obj/upstream/licenses/go-control-plane/LICENSE" Pack="true" PackagePath="licenses/upstream/" />
   </ItemGroup>
 </Project>
