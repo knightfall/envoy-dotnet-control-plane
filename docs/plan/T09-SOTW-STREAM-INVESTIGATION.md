@@ -1,6 +1,6 @@
 # T09 — SotW stream investigation
 
-Investigated 25 October 2026 on T08 commit `95ca449a46963edebcda81d6101db1e6f16a84c3`. Behavior reference: `67c5345367582741334e34ffc66a561b0ce32946`. Investigation complete; the transport decision below was accepted on 25 October 2026. This records findings and implementation direction for [issue #10](https://github.com/knightfall/envoy-dotnet-control-plane/issues/10). **The C# stream engine and its comparison tests are not implemented yet.**
+Investigated 25 October 2026 on T08 commit `95ca449a46963edebcda81d6101db1e6f16a84c3`. Behavior reference: `67c5345367582741334e34ffc66a561b0ce32946`. Investigation complete; the transport decision below was accepted on 25 October 2026. This records findings and implementation direction for [issue #10](https://github.com/knightfall/envoy-dotnet-control-plane/issues/10). This document preserves the investigation evidence. The subsequent [T09 implementation](T09-SOTW-STREAM-ENGINE.md) records the C# engine and its comparison tests.
 
 ## Accepted transport decision
 

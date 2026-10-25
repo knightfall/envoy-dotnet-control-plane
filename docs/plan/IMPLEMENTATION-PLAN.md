@@ -194,7 +194,7 @@ Subtasks:
 
 ### T09 — Implement the SotW stream engine and callbacks
 
-**Status:** Source investigation completed; C# implementation and stream comparison tests remain pending. [T09 investigation](T09-SOTW-STREAM-INVESTIGATION.md) records callback/nonce order, the fixed failure/cleanup direction, existing upstream test results and why no separate xDS protocol library is needed.
+**Status:** Implements the transport-independent SotW engine and callbacks with 35 new native cases and six independent traces through the actual pinned Go handler. See [T09 evidence](T09-SOTW-STREAM-ENGINE.md) for behavior and verification limits; [the completed investigation](T09-SOTW-STREAM-INVESTIGATION.md) records source findings and the accepted transport tradeoff. Ordered ADS and network adapters remain T10/T11.
 
 **Scope:** preview / R08, R10. **Depends on:** T07, T08. **Outputs:** transport-independent SotW session loop and callback contracts.
 
