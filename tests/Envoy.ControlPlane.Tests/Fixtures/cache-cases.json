@@ -1,0 +1,963 @@
+[
+  {
+    "id": "missing-then-publication",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": null,
+    "requestVersion": "",
+    "names": [],
+    "wildcard": true,
+    "known": {},
+    "prefixes": [],
+    "events": [
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v1",
+          "names": [
+            "a"
+          ],
+          "omitGroup": false
+        }
+      }
+    ],
+    "expected": [
+      {
+        "state": "pending",
+        "pendingWatchCount": 1,
+        "snapshotVersion": null,
+        "response": null
+      },
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "a"
+          ],
+          "returned": {
+            "a": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "immediate",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "",
+    "names": [],
+    "wildcard": true,
+    "known": {},
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "a"
+          ],
+          "returned": {
+            "a": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "same-version-known-pending",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "v1",
+    "names": [],
+    "wildcard": true,
+    "known": {
+      "a": "v1"
+    },
+    "prefixes": [],
+    "events": [
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v1",
+          "names": [
+            "a"
+          ],
+          "omitGroup": false
+        }
+      },
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v2",
+          "names": [
+            "a"
+          ],
+          "omitGroup": false
+        }
+      }
+    ],
+    "expected": [
+      {
+        "state": "pending",
+        "pendingWatchCount": 1,
+        "snapshotVersion": "v1",
+        "response": null
+      },
+      {
+        "state": "pending",
+        "pendingWatchCount": 1,
+        "snapshotVersion": "v1",
+        "response": null
+      },
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v2",
+        "response": {
+          "version": "v2",
+          "names": [
+            "a"
+          ],
+          "returned": {
+            "a": "v2"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "same-version-listener-full-state",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a",
+        "b"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "v1",
+    "names": [
+      "a",
+      "b"
+    ],
+    "wildcard": false,
+    "known": {
+      "a": "v1"
+    },
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "a",
+            "b"
+          ],
+          "returned": {
+            "a": "v1",
+            "b": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "same-version-route-new-only",
+    "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a",
+        "b"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "v1",
+    "names": [
+      "a",
+      "b"
+    ],
+    "wildcard": false,
+    "known": {
+      "a": "older"
+    },
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "b"
+          ],
+          "returned": {
+            "a": "older",
+            "b": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "same-version-route-wildcard-new-only",
+    "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a",
+        "b"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "v1",
+    "names": [],
+    "wildcard": true,
+    "known": {
+      "a": "older"
+    },
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "b"
+          ],
+          "returned": {
+            "a": "older",
+            "b": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "same-version-listener-deletion",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "v1",
+    "names": [
+      "a"
+    ],
+    "wildcard": false,
+    "known": {
+      "a": "v1",
+      "gone": "v1"
+    },
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "a"
+          ],
+          "returned": {
+            "a": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "same-version-route-deletion-only-pends",
+    "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "v1",
+    "names": [
+      "a"
+    ],
+    "wildcard": false,
+    "known": {
+      "a": "v1",
+      "gone": "v1"
+    },
+    "prefixes": [],
+    "events": [
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v2",
+          "names": [
+            "a"
+          ],
+          "omitGroup": false
+        }
+      }
+    ],
+    "expected": [
+      {
+        "state": "pending",
+        "pendingWatchCount": 1,
+        "snapshotVersion": "v1",
+        "response": null
+      },
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v2",
+        "response": {
+          "version": "v2",
+          "names": [
+            "a"
+          ],
+          "returned": {
+            "a": "v2"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "same-version-route-metadata-cleanup",
+    "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "b"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "v1",
+    "names": [
+      "b"
+    ],
+    "wildcard": false,
+    "known": {
+      "a": "v0"
+    },
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "b"
+          ],
+          "returned": {
+            "b": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ads-incomplete-coverage-untracked",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": true,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a",
+        "b"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "",
+    "names": [
+      "a"
+    ],
+    "wildcard": false,
+    "known": {},
+    "prefixes": [],
+    "events": [
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v2",
+          "names": [
+            "a"
+          ],
+          "omitGroup": false
+        }
+      },
+      {
+        "kind": "cancel",
+        "snapshot": null
+      }
+    ],
+    "expected": [
+      {
+        "state": "pending",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": null
+      },
+      {
+        "state": "pending",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v2",
+        "response": null
+      },
+      {
+        "state": "canceled",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v2",
+        "response": null
+      }
+    ]
+  },
+  {
+    "id": "ads-extra-requested-missing-is-allowed",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": true,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "",
+    "names": [
+      "a",
+      "missing"
+    ],
+    "wildcard": false,
+    "known": {},
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "a"
+          ],
+          "returned": {
+            "a": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ads-active-watch-survives-incomplete-snapshot",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": true,
+    "initial": null,
+    "requestVersion": "",
+    "names": [
+      "a"
+    ],
+    "wildcard": false,
+    "known": {},
+    "prefixes": [],
+    "events": [
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v1",
+          "names": [
+            "a",
+            "b"
+          ],
+          "omitGroup": false
+        }
+      },
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v2",
+          "names": [
+            "a"
+          ],
+          "omitGroup": false
+        }
+      }
+    ],
+    "expected": [
+      {
+        "state": "pending",
+        "pendingWatchCount": 1,
+        "snapshotVersion": null,
+        "response": null
+      },
+      {
+        "state": "pending",
+        "pendingWatchCount": 1,
+        "snapshotVersion": "v1",
+        "response": null
+      },
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v2",
+        "response": {
+          "version": "v2",
+          "names": [
+            "a"
+          ],
+          "returned": {
+            "a": "v2"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ads-wildcard-bypasses-coverage",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": true,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a",
+        "b"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "",
+    "names": [],
+    "wildcard": true,
+    "known": {},
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "a",
+            "b"
+          ],
+          "returned": {
+            "a": "v1",
+            "b": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "wildcard-exact-overlap-duplicates-payload",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a",
+        "b"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "",
+    "names": [
+      "a"
+    ],
+    "wildcard": true,
+    "known": {},
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "a",
+            "a",
+            "b"
+          ],
+          "returned": {
+            "a": "v1",
+            "b": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "same-version-full-state-overlap-duplicates",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a",
+        "b"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "v1",
+    "names": [
+      "a"
+    ],
+    "wildcard": true,
+    "known": {
+      "a": "v1"
+    },
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "a",
+            "a",
+            "b"
+          ],
+          "returned": {
+            "a": "v1",
+            "b": "v1"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "snapshot-path-does-not-expand-prefixes",
+    "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "collection/a"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "",
+    "names": [],
+    "wildcard": false,
+    "known": {},
+    "prefixes": [
+      "collection/"
+    ],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [],
+          "returned": {}
+        }
+      }
+    ]
+  },
+  {
+    "id": "cancel-before-publication",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": null,
+    "requestVersion": "",
+    "names": [],
+    "wildcard": true,
+    "known": {},
+    "prefixes": [],
+    "events": [
+      {
+        "kind": "cancel",
+        "snapshot": null
+      },
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v1",
+          "names": [
+            "a"
+          ],
+          "omitGroup": false
+        }
+      }
+    ],
+    "expected": [
+      {
+        "state": "pending",
+        "pendingWatchCount": 1,
+        "snapshotVersion": null,
+        "response": null
+      },
+      {
+        "state": "canceled",
+        "pendingWatchCount": 0,
+        "snapshotVersion": null,
+        "response": null
+      },
+      {
+        "state": "canceled",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": null
+      }
+    ]
+  },
+  {
+    "id": "clear-leaves-old-watch-untracked",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "v1",
+    "names": [],
+    "wildcard": true,
+    "known": {
+      "a": "v1"
+    },
+    "prefixes": [],
+    "events": [
+      {
+        "kind": "clear",
+        "snapshot": null
+      },
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v2",
+          "names": [
+            "a"
+          ],
+          "omitGroup": false
+        }
+      },
+      {
+        "kind": "cancel",
+        "snapshot": null
+      }
+    ],
+    "expected": [
+      {
+        "state": "pending",
+        "pendingWatchCount": 1,
+        "snapshotVersion": "v1",
+        "response": null
+      },
+      {
+        "state": "pending",
+        "pendingWatchCount": null,
+        "snapshotVersion": null,
+        "response": null
+      },
+      {
+        "state": "pending",
+        "pendingWatchCount": null,
+        "snapshotVersion": "v2",
+        "response": null
+      },
+      {
+        "state": "canceled",
+        "pendingWatchCount": null,
+        "snapshotVersion": "v2",
+        "response": null
+      }
+    ]
+  },
+  {
+    "id": "explicit-empty-group-responds",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [],
+      "omitGroup": false
+    },
+    "requestVersion": "",
+    "names": [],
+    "wildcard": true,
+    "known": {},
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [],
+          "returned": {}
+        }
+      }
+    ]
+  },
+  {
+    "id": "non-ads-missing-name-empty-response",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "",
+    "names": [
+      "missing"
+    ],
+    "wildcard": false,
+    "known": {},
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [],
+          "returned": {}
+        }
+      }
+    ]
+  },
+  {
+    "id": "cluster-deletion-empty-full-state",
+    "typeUrl": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [],
+      "omitGroup": false
+    },
+    "requestVersion": "v1",
+    "names": [],
+    "wildcard": true,
+    "known": {
+      "gone": "v1"
+    },
+    "prefixes": [],
+    "events": [],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [],
+          "returned": {}
+        }
+      }
+    ]
+  },
+  {
+    "id": "absent-group-retains-no-version",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [],
+      "omitGroup": true
+    },
+    "requestVersion": "",
+    "names": [],
+    "wildcard": true,
+    "known": {},
+    "prefixes": [],
+    "events": [
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v2",
+          "names": [
+            "a"
+          ],
+          "omitGroup": false
+        }
+      }
+    ],
+    "expected": [
+      {
+        "state": "pending",
+        "pendingWatchCount": 1,
+        "snapshotVersion": "",
+        "response": null
+      },
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v2",
+        "response": {
+          "version": "v2",
+          "names": [
+            "a"
+          ],
+          "returned": {
+            "a": "v2"
+          }
+        }
+      }
+    ]
+  }
+]

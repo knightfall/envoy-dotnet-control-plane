@@ -70,7 +70,7 @@ See [architecture](ARCHITECTURE.md), [validation](VALIDATION.md), and [implement
 
 **Alternative:** A generalized engine built from the specification alone cannot establish compatibility with the pinned Go baseline. Keep each mode's direct processing path.
 
-**Consequence:** Keep source/spec divergences visible in fixtures. `Snapshot.Consistent` and validation remain explicit. The unusual ADS missing-resource no-registration case needs a recorded decision before changing it. Ordered ADS remains a SotW option, not a global transaction.
+**Consequence:** Keep source/spec divergences visible in fixtures. `Snapshot.EnsureConsistent()` and validation remain explicit. The unusual ADS snapshot-coverage no-registration case needs a recorded decision before changing it. Ordered ADS remains a SotW option, not a global transaction.
 
 ## ADR08 — Version and serialization compatibility
 

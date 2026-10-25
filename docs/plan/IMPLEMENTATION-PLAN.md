@@ -1,6 +1,6 @@
 # Implementation plan: tasks and subtasks
 
-Reviewed **25 October 2026**. T01/T02 merged in PRs #33/#34, with [provenance evidence](../../schemas/PROVENANCE.md) and [binding evidence](../../schemas/BINDINGS.md). T03 has a user-selected source arrangement and [bounded local feasibility evidence](../../schemas/VALIDATION.md), merged in PR #35 for the bounded binding decision. T01 brought the test framework/runner and tooling CI forward from T04; T04 merged in PR #38 with the [build/package foundation](T04-BUILD-FOUNDATION.md). T05 merged in PR #39 with [resource/snapshot primitives](T05-RESOURCES-AND-SNAPSHOTS.md). T06 implements [watch primitives and custom response contracts](T06-WATCHES.md); caches and streaming behavior remain **planned**. T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. T05 evidence covers resource primitives and snapshot behavior; it does not establish an operational control-plane server. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
+Reviewed **25 October 2026**. T01/T02 merged in PRs #33/#34, with [provenance evidence](../../schemas/PROVENANCE.md) and [binding evidence](../../schemas/BINDINGS.md). T03 has a user-selected source arrangement and [bounded local feasibility evidence](../../schemas/VALIDATION.md), merged in PR #35 for the bounded binding decision. T01 brought the test framework/runner and tooling CI forward from T04; T04 merged in PR #38 with the [build/package foundation](T04-BUILD-FOUNDATION.md). T05 merged in PR #39 with [resource/snapshot primitives](T05-RESOURCES-AND-SNAPSHOTS.md). T06 merged in PR #40 with [watch primitives and custom response contracts](T06-WATCHES.md). T07 implements the [SotW SnapshotCache](T07-SNAPSHOT-CACHE.md); streaming behavior and Delta cache delivery remain **planned**. T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. T05 evidence covers resource primitives and snapshot behavior; it does not establish an operational control-plane server. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
 
 ## Execution rules
 
@@ -148,7 +148,7 @@ Subtasks:
 
 ### T06 — Implement one-shot watches and cancellation
 
-**Status:** Implemented task-based watch completion, cancellation, subscription/response interfaces and creation-context adaptation. Ten new native test cases cover primitive schedules and custom contracts. See [T06 evidence](T06-WATCHES.md). Actual cache registration/publication and stream cleanup remain T07/T09/T22 integration checks.
+**Status:** Merged in PR #40 after all ten checks passed, including Linux/macOS/Windows package verification. Implements task-based watch completion, cancellation, subscription/response interfaces and creation-context adaptation. Ten new native test cases cover primitive schedules and custom contracts. See [T06 evidence](T06-WATCHES.md). Actual cache registration/publication and stream cleanup remain T07/T09/T22 integration checks.
 
 **Scope:** preview, both modes / R06. **Depends on:** T05. **Outputs:** `Cache/` watch/subscription-view/response contracts and completion primitives.
 
@@ -163,6 +163,8 @@ Subtasks:
 
 ### T07 — Implement SnapshotCache and status
 
+**Status:** Implements SotW publication, selection, live status and lazy normal responses with 21 new native cases and 22 independent Go event traces. See [T07 evidence](T07-SNAPSHOT-CACHE.md). Delta cache delivery and heartbeat scheduling remain T14/T17.
+
 **Scope:** preview, later Delta/TTL paths extended by T14/T17 / R05, R11. **Depends on:** T06. **Outputs:** SnapshotCache, node hashing, status views, publication/get/clear APIs.
 
 Subtasks:
@@ -170,7 +172,7 @@ Subtasks:
 - T07.1 Implement per-node snapshot storage with default ID hash and custom hasher support.
 - T07.2 Implement version/selection/readiness eligibility, immediate and deferred watches, and atomic publication versus watch registration.
 - T07.3 Implement source-equivalent synchronized status, watch counts/timestamps, missing snapshot behavior, and clear semantics.
-- T07.4 Capture special ADS missing-name/no-registration behavior and custom snapshot cases in fixtures.
+- T07.4 Capture special ADS snapshot-coverage/no-registration behavior and custom snapshot cases in fixtures.
 
 **Acceptance:** V07–V10/V14 pass for SotW. SetSnapshot neither auto-validates nor awaits proxy ACK. Clear behavior and the unusual ADS case match source evidence or have an explicitly accepted divergence record.
 
