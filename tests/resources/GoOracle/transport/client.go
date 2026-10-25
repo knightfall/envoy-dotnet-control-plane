@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"fmt"
 	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	endpoint "github.com/envoyproxy/go-control-plane/envoy/service/endpoint/v3"
 	"google.golang.org/grpc"
@@ -306,7 +307,8 @@ func measure(address, admin, certificateDirectory string, size, workers int, sep
 	}
 	after := readStats(admin)
 	require(after.Active == 0, "measurement leaked stream")
-	require(after.AllocatedBytes >= before.AllocatedBytes && after.CPUSeconds >= before.CPUSeconds, "process counters decreased")
+	require(after.AllocatedBytes >= before.AllocatedBytes, fmt.Sprintf("allocation counter decreased: before=%+v after=%+v", before, after))
+	require(after.CPUSeconds >= before.CPUSeconds, fmt.Sprintf("CPU counter decreased: before=%+v after=%+v", before, after))
 	sort.Slice(samples, func(i, j int) bool { return samples[i] < samples[j] })
 	percentile := func(p float64) float64 { return float64(samples[int(float64(len(samples)-1)*p)]) / 1000 }
 	seconds := ended.Sub(started).Seconds()
