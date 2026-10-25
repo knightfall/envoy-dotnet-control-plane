@@ -1,6 +1,6 @@
 # Requirements, verification cases, and release gates
 
-Reviewed **24 October 2026**. **V01 has passing source-audit and automated CLI evidence** in [T01 provenance](../../schemas/PROVENANCE.md) and the [test requirement mapping](../../tests/README.md); G0 source checks pass, with PR review pending. Other verification below remains **planned**. The [implementation plan](IMPLEMENTATION-PLAN.md) owns task definitions; the [architecture](../architecture/ARCHITECTURE.md) owns proposed behavior. The [parity matrix](PARITY-MATRIX.md) bounds the compatibility claim.
+Reviewed **25 October 2026**. Implemented evidence is recorded in [T01 provenance](../../schemas/PROVENANCE.md), [T02 bindings](../../schemas/BINDINGS.md), [bounded T03 validation](../../schemas/VALIDATION.md), [T04 packaging](T04-BUILD-FOUNDATION.md), [T05 snapshots](T05-RESOURCES-AND-SNAPSHOTS.md) and [T06 watch primitives](T06-WATCHES.md). Each evidence document distinguishes observed outcomes from pending integration. A primitive or bounded-corpus result does not close an entire scenario family. Remaining cache, stream, lifecycle, transport and full optional-validation scenarios below remain **planned**. The [implementation plan](IMPLEMENTATION-PLAN.md) owns task definitions; the [architecture](../architecture/ARCHITECTURE.md) owns proposed behavior. The [parity matrix](PARITY-MATRIX.md) bounds the compatibility claim.
 
 ## Requirements
 

@@ -82,7 +82,7 @@ T02 preserves original upstream validation annotations and required option defin
 
 ## 4. Proposed contracts
 
-The resource snapshot contract below is implemented by T05; the other contracts remain responsibility sketches for later tasks. See [T05 evidence](../plan/T05-RESOURCES-AND-SNAPSHOTS.md) for the implemented surface. Actual generated service signatures come from the selected bindings.
+The snapshot contract is implemented by T05; watcher/subscription/response contracts and one-shot completion are implemented by T06. Fetch and node-hash contracts remain sketches for later tasks. See [T05 evidence](../plan/T05-RESOURCES-AND-SNAPSHOTS.md) and [T06 evidence](../plan/T06-WATCHES.md) for the implemented surface. Actual generated service signatures come from the selected bindings.
 
 ```csharp
 public interface INodeHasher { string Hash(Node? node); }
@@ -98,13 +98,13 @@ public interface IResourceSnapshot
 
 public interface IConfigWatcher
 {
-    IWatch<SotwResponse> CreateWatch(DiscoveryRequest request, SubscriptionView subscription);
-    IWatch<DeltaResponse> CreateDeltaWatch(DeltaDiscoveryRequest request, SubscriptionView subscription);
+    IWatch<ISotwResponse> CreateWatch(DiscoveryRequest request, ISubscription subscription);
+    IWatch<IDeltaResponse> CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription);
 }
 
-public interface IWatch<T> : IAsyncDisposable
+public interface IWatch<T> : IDisposable
 {
-    ValueTask<T> WaitAsync(CancellationToken cancellationToken);
+    Task<T> Completion { get; }
 }
 
 public interface IConfigFetcher
@@ -113,9 +113,9 @@ public interface IConfigFetcher
 }
 ```
 
-`ResourceEntry` retains a resource message and optional TTL. `ResourceCatalog.GetName` derives the indexing name from the message; applications can implement `INamedResource` for custom naming. `SubscriptionView` describes the exact names, prefixes, wildcard state, and returned metadata needed by the cache. These signatures are responsibility sketches; a separate immutable-view framework is not required. The stream owns subscription updates; a cache retains a stable view only for its watch lifetime. Response envelopes retain the originating request, context, version, returned metadata, and materialization behavior needed for upstream custom-cache parity. Keep stream-specific nonce mutation away from data shared by multiple streams.
+`ResourceEntry` retains a resource message and optional TTL. `ResourceCatalog.GetName` derives the indexing name from the message; applications can implement `INamedResource` for custom naming. `ISubscription` describes the exact names, prefixes, wildcard state, and returned metadata needed by the cache. Its collections remain stable for the watch lifetime; a separate immutable-view framework is not required. The stream owns subscription updates; a cache retains a stable view only for its watch lifetime. Response envelopes retain the originating request, context, version, returned metadata, and materialization behavior needed for upstream custom-cache parity. `ResponseContext` carries the creation cancellation token and optional caller state for callback correlation, adapting Go context without depending on ASP.NET or ambient state. Custom response interfaces preserve lazy materialization and failure propagation. Keep stream-specific nonce mutation away from data shared by multiple streams.
 
-`IWatch` sketches a one-shot asynchronous result with idempotent cancellation/disposal. It can already be completed when returned. Immediate response, pending response, cancellation, and cache failure remain distinguishable. Choose a task or channel representation during the SotW slice; do not require both wrappers or a generalized watch framework. Cache completion must not invoke network I/O inside publication locks, and an immediate result must remain valid before the stream begins awaiting it.
+`IWatch` exposes a one-shot completion task with idempotent synchronous disposal. It can already be completed when returned. Immediate response, pending response, cancellation and cache failure remain distinguishable. `Watch<T>` claims one outcome, releases its producer registration once and runs task continuations asynchronously. Consumers use a disposal scope around `Completion.WaitAsync(cancellationToken)`; canceling that wait alone does not dispose the registration. No channel wrapper or generalized watch framework is required. Cache completion must not invoke network I/O inside publication locks, and an immediate result must remain valid before the stream begins awaiting it.
 
 Use `FetchResult` with `Response` and `NotModified` cases. Model unsupported fetch, missing classifier, missing snapshot, materialization failure, and callback rejection separately; preserve transport mappings rather than flattening every failure into `InvalidArgument`. Exceptions may expose library error types internally; host adapters own transport translation.
 
