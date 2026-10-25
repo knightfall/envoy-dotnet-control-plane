@@ -82,7 +82,7 @@ T02 preserves original upstream validation annotations and required option defin
 
 ## 4. Proposed contracts
 
-The snapshot contract is implemented by T05; watcher/subscription/response contracts and one-shot completion are implemented by T06. Fetch and node-hash contracts remain sketches for later tasks. See [T05 evidence](../plan/T05-RESOURCES-AND-SNAPSHOTS.md) and [T06 evidence](../plan/T06-WATCHES.md) for the implemented surface. Actual generated service signatures come from the selected bindings.
+The snapshot contract is implemented by T05; watcher/subscription/response contracts and one-shot completion are implemented by T06. Node hashing is implemented by T07; Fetch remains a sketch for later tasks. See [T05 evidence](../plan/T05-RESOURCES-AND-SNAPSHOTS.md) and [T06 evidence](../plan/T06-WATCHES.md) for the implemented surface. Actual generated service signatures come from the selected bindings.
 
 ```csharp
 public interface INodeHasher { string Hash(Node? node); }
@@ -133,16 +133,16 @@ Preserve upstream lazy materialization/version computation where used. Do not ca
 
 ### 6.1 SnapshotCache
 
-State is keyed by `INodeHasher`; default behavior is `Node.Id`, with empty string for absent node. Each node entry holds a stable snapshot reference, SotW and Delta watch indexes, and source-equivalent status. Start with the cache-level synchronization used by Go; per-node locks and additional lock layers are not prescribed. Clear removes snapshot and status according to source semantics; it does not synthesize deletion responses.
+State is keyed by `INodeHasher`; default behavior is `Node.Id`, with empty string for absent node. Each node entry holds a stable snapshot reference, SotW and Delta watch indexes, and source-equivalent status. Start with the cache-level synchronization used by Go; per-node locks and additional lock layers are not prescribed. Clear removes snapshot and indexed status; it neither completes/cancels old watches nor synthesizes deletion responses. A previously obtained status handle retains its old state. T07 implements this SotW cache; Delta delivery and heartbeats remain T14/T17.
 
 Publication algorithm:
 
 1. The application constructs a snapshot and keeps its messages stable while published.
 2. Under cache synchronization, replace the snapshot reference and evaluate eligible watches, matching Go's registration/publication behavior.
-3. Deliver one-shot results without running stream callbacks or awaiting network I/O under that synchronization.
+3. Deliver one-shot results through tasks whose continuations run asynchronously, without running stream callbacks or awaiting network I/O under that synchronization.
 4. Return publication status without waiting for Envoy to receive, ACK, or apply the change.
 
-Watch registration and snapshot lookup occur under the same cache synchronization so an update between lookup and registration cannot be lost. Response eligibility includes snapshot version, resource selection, subscriptions, and ADS readiness. If no snapshot exists, register a pending watch. Preserve the source's special ADS partial-name edge: a request for missing resources may return neither a response nor a registered watch. Represent that as a pending cancelable wait without falsely reporting an indexed cache watch; capture the case in V09 before considering a behavior change.
+Watch registration and snapshot lookup occur under the same cache synchronization so an update between lookup and registration cannot be lost. Response eligibility includes snapshot version, resource selection, subscriptions, and ADS readiness. If no snapshot exists, register a pending watch. Preserve the source's special ADS coverage edge: when a non-wildcard request omits a name present in the snapshot, creation returns neither a response nor a registered watch. An extra requested name absent from the snapshot is allowed if all snapshot resources are covered. T07 represents the untracked case as a pending cancelable task; its Go comparison fixtures establish the direction of the check.
 
 Default snapshots support the resource families mapped by `GetResponseType`; arbitrary type constants alone do not add snapshot storage slots. Custom resource types use custom snapshot/cache implementations or LinearCache/MuxCache. Generic ADS dispatch remains type-URL based.
 

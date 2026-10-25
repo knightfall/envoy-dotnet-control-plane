@@ -1,6 +1,6 @@
 # Requirements, verification cases, and release gates
 
-Reviewed **25 October 2026**. Implemented evidence is recorded in [T01 provenance](../../schemas/PROVENANCE.md), [T02 bindings](../../schemas/BINDINGS.md), [bounded T03 validation](../../schemas/VALIDATION.md), [T04 packaging](T04-BUILD-FOUNDATION.md), [T05 snapshots](T05-RESOURCES-AND-SNAPSHOTS.md) and [T06 watch primitives](T06-WATCHES.md). Each evidence document distinguishes observed outcomes from pending integration. A primitive or bounded-corpus result does not close an entire scenario family. Remaining cache, stream, lifecycle, transport and full optional-validation scenarios below remain **planned**. The [implementation plan](IMPLEMENTATION-PLAN.md) owns task definitions; the [architecture](../architecture/ARCHITECTURE.md) owns proposed behavior. The [parity matrix](PARITY-MATRIX.md) bounds the compatibility claim.
+Reviewed **25 October 2026**. Implemented evidence is recorded in [T01 provenance](../../schemas/PROVENANCE.md), [T02 bindings](../../schemas/BINDINGS.md), [bounded T03 validation](../../schemas/VALIDATION.md), [T04 packaging](T04-BUILD-FOUNDATION.md), [T05 snapshots](T05-RESOURCES-AND-SNAPSHOTS.md), [T06 watch primitives](T06-WATCHES.md) and [T07 SotW SnapshotCache](T07-SNAPSHOT-CACHE.md). Each evidence document distinguishes observed outcomes from pending integration. A primitive or bounded-corpus result does not close an entire scenario family. Remaining cache, stream, lifecycle, transport and full optional-validation scenarios below remain **planned**. The [implementation plan](IMPLEMENTATION-PLAN.md) owns task definitions; the [architecture](../architecture/ARCHITECTURE.md) owns proposed behavior. The [parity matrix](PARITY-MATRIX.md) bounds the compatibility claim.
 
 ## Requirements
 
@@ -51,7 +51,7 @@ Each ID is a scenario family with positive, negative, and boundary examples; it 
 | V06 | Versions: same/changed payload and version-prefix relationships, caller version behavior, lazy hashes and unknown binary fields; no assumed Go/C# hash equality. |
 | V07 | Snapshot consistency: partial/empty graphs, missing/extra EDS/RDS references, explicit check failures; SetSnapshot does not invoke checks automatically. |
 | V08 | Watch/publication: no snapshot, immediate response, same-version pending, register/update interleaving, custom responses, cancel/double-cancel, lost-wakeup detection. |
-| V09 | ADS readiness: partial names, missing requested resource no-registration source edge, later publication, consistent snapshots and independent readiness/order settings. |
+| V09 | ADS readiness: partial names, uncovered snapshot resource causing the no-registration source edge, later publication, consistent snapshots and independent readiness/order settings. |
 | V10 | SotW selection: cluster/listener full-state rules versus selected resource families, empty results, named/prefix response metadata and custom resource types. |
 | V11 | SotW subscriptions: initial empty legacy wildcard, explicit names then empty, `*`, prefixes, overlapping names/prefixes, unsubscribe/re-subscribe, global/per-type deactivation. |
 | V12 | SotW protocol: node omission/later replacement, implied/absent type URL, matching/stale nonce after request callback, ACK/NACK and version relationships; no automatic rollback. |

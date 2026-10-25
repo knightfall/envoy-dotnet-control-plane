@@ -1,6 +1,6 @@
 # Envoy.ControlPlane resources and snapshots
 
-Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions and one-shot watch primitives. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. Caches and streaming services remain later implementation tasks.
+Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watch primitives and the SotW SnapshotCache. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. Streaming services, Delta cache delivery and heartbeat scheduling remain later implementation tasks.
 
 ```csharp
 using Envoy.Config.Listener.V3;
@@ -39,3 +39,9 @@ var discoveryResponse = response.GetDiscoveryResponse();
 ```
 
 The disposal scope releases the registration when the consumer exits, including a canceled wait. A custom watcher can throw during creation; a producer can fault pending delivery; response materialization can fail after delivery. `ISubscription` retains the stable exact names, prefixes, wildcard flag and returned resource versions. `ISotwResponse`/`IDeltaResponse` retain the originating request, version, returned metadata and `ResponseContext` cancellation/caller state. Actual cache selection, raw/TTL encoding and network delivery follow in later tasks.
+
+`SnapshotCache` stores snapshots by node ID by default; applications can provide `INodeHasher` and a standard `TimeProvider` for their clock. `SetSnapshot` retains the replacement snapshot, completes eligible SotW watches and returns without waiting for proxy ACK. It invokes neither a validator nor consistency checks. No snapshot and an up-to-date subscription remain pending; an available update can complete before `CreateWatch` returns.
+
+`GetSnapshot` throws `KeyNotFoundException` when absent. `GetStatusInfo` returns a synchronized live view of the first retained node, watch counts and request times; publication alone does not create status. `ClearSnapshot` removes indexed snapshot/status without completing or canceling old watches. Dispose watches when the consumer exits. Normal responses retain request/version/context and serialize only when materialized; TTL entries use the standard discovery-resource wrapper. Delta delivery currently throws `NotSupportedException`.
+
+The optional ADS readiness gate preserves upstream's exact coverage rule: non-wildcard requested names must cover resources present in the snapshot. Failing that check during creation leaves an untracked pending watch. SnapshotCache follows the upstream selection path, including its prefix-only and overlapping wildcard/exact-name outcomes; repository fixtures document those limits. This does not implement the ordered ADS stream engine.
