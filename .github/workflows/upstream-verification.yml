@@ -34,7 +34,9 @@ jobs:
         with:
           global-json-file: global.json
           cache: true
-          cache-dependency-path: tests/Envoy.ControlPlane.Upstream.Tests/packages.lock.json
+          cache-dependency-path: |
+            tools/Envoy.ControlPlane.Tools/packages.lock.json
+            tests/Envoy.ControlPlane.Upstream.Tests/packages.lock.json
       - name: Restore pinned test dependencies
         run: dotnet restore tests/Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj --locked-mode
       - name: Build with Roslynator and run offline fixture tests
@@ -65,6 +67,8 @@ jobs:
           global-json-file: global.json
           cache: true
           cache-dependency-path: |
+            tools/Envoy.ControlPlane.Tools/packages.lock.json
+            tools/Envoy.ControlPlane.SchemaTools/packages.lock.json
             src/Envoy.ControlPlane.Protocol/packages.lock.json
             src/Envoy.ControlPlane.Validation.Annotations/packages.lock.json
             src/Envoy.ControlPlane.Validation/packages.lock.json
@@ -74,10 +78,12 @@ jobs:
         with:
           go-version: '1.26.4'
           cache-dependency-path: tests/validation/GoOracle/go.sum
+      - name: Restore pinned tooling dependencies
+        run: dotnet restore tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj --locked-mode
       - name: Generate with Buf, pack, and verify project and clean package consumers
-        run: dotnet run --no-cache --file scripts/Bindings.cs -- verify --cache ../upstream-sources
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- bindings verify --cache ../upstream-sources
       - name: Verify source-built validator against Go PGV and fresh packages
-        run: dotnet run --no-cache --file scripts/Validation.cs -- verify
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- validation verify
       - name: Upload binding evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -36,6 +36,6 @@
   </ItemGroup>
   <Target Name="RequireVerifiedInputs" BeforeTargets="PrepareForBuild">
     <Error Condition="!Exists('$(ProtocolInputs)/catalog.pb') or !Exists('$(ProtocolGenerated)/Envoy/Config/Listener/V3/Listener.cs')"
-           Text="Generate with Buf first: dotnet run --no-cache --file scripts/Bindings.cs -- generate --cache &lt;external-source-cache&gt;" />
+           Text="Generate with Buf first: dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache &lt;external-source-cache&gt;" />
   </Target>
 </Project>

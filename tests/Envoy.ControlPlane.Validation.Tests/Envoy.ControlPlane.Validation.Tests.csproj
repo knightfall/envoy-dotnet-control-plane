@@ -16,10 +16,10 @@
     <ProjectReference Include="../../src/Envoy.ControlPlane.Validation/Envoy.ControlPlane.Validation.csproj" />
     <PackageReference Include="xunit.v3.mtp-v2" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
-    <Compile Include="../../scripts/validation/OverlayTransform.cs" Link="Support/OverlayTransform.cs" />
-    <Compile Include="../../scripts/validation/VerifiedValidationSources.cs" Link="Support/VerifiedValidationSources.cs" />
-    <Compile Include="../../scripts/validation/ValidationPaths.cs" Link="Support/ValidationPaths.cs" />
-    <Compile Include="../../scripts/bindings/BindingIntegrity.cs" Link="Support/BindingIntegrity.cs" />
+    <Compile Include="../../tools/Envoy.ControlPlane.SchemaTools/OverlayTransform.cs" Link="Support/OverlayTransform.cs" />
+    <Compile Include="../../tools/Envoy.ControlPlane.Tools/Validation/VerifiedValidationSources.cs" Link="Support/VerifiedValidationSources.cs" />
+    <Compile Include="../../tools/Envoy.ControlPlane.Tools/Validation/ValidationPaths.cs" Link="Support/ValidationPaths.cs" />
+    <Compile Include="../../tools/Envoy.ControlPlane.Tools/Bindings/BindingIntegrity.cs" Link="Support/BindingIntegrity.cs" />
     <EmbeddedResource Include="Fixtures/pgv-cases.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvCases.json" />
   </ItemGroup>
 </Project>

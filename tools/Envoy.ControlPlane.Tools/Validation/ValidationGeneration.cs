@@ -43,13 +43,15 @@ internal static class ValidationGeneration
         await BuildProcess.RunAsync(buf, ["build", "--as-file-descriptor-set", "--output", migrated], inputs);
 
         const string descriptor = root + "/catalog.pb";
-        await BuildProcess.RunAsync("dotnet", ["run", "--no-cache", "--file", "scripts/ValidationOverlay.cs", "--",
+        const string schemaTools = "tools/Envoy.ControlPlane.SchemaTools/Envoy.ControlPlane.SchemaTools.csproj";
+        await BuildProcess.RunAsync("dotnet", ["restore", schemaTools, "--locked-mode"]);
+        await BuildProcess.RunAsync("dotnet", ["run", "--project", schemaTools, "--configuration", "Release", "--no-restore", "--", "overlay",
             BindingPaths.InputsDirectory + "/catalog.pb", migrated, descriptor]);
         string generationDescriptor = Path.ChangeExtension(descriptor, "generation.pb");
         await BuildProcess.RunAsync(buf, ["generate", generationDescriptor + "#format=bin", "--template", "buf.validation.gen.yaml",
             "--exclude-path", "google/protobuf", "--exclude-path", "buf/validate"]);
-        await BuildProcess.RunAsync("dotnet", ["run", "--no-cache", "--file", "scripts/PatchBindings.cs", "--",
-            BindingPaths.GeneratedDirectory, ValidationPaths.BindingsLock]);
+        Require(PatchBindings.Run([BindingPaths.GeneratedDirectory, ValidationPaths.BindingsLock]) == 0,
+            "Derived generated-code correction failed");
         VerifyOutputs();
     }
 

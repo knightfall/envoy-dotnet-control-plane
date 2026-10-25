@@ -4,7 +4,7 @@ using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Validate;
 
-namespace Envoy.ControlPlane.Protocol.Tests;
+namespace Envoy.ControlPlane.Tools;
 
 internal static class PgvRuleInventory
 {

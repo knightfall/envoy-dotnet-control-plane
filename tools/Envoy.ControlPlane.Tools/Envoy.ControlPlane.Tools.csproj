@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
+    <InternalsVisibleTo Include="Envoy.ControlPlane.Upstream.Tests" />
+  </ItemGroup>
+</Project>

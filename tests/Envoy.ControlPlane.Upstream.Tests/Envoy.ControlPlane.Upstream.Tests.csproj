@@ -14,16 +14,6 @@
   <ItemGroup>
     <PackageReference Include="xunit.v3.mtp-v2" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
-    <UpstreamCliSource Include="../../scripts/Upstream.cs;../../scripts/upstream/**/*.cs" />
-    <!-- Test the file-based binding tool's checksum helper from its original source. -->
-    <Compile Include="../../scripts/bindings/BindingIntegrity.cs" Link="Tooling/BindingIntegrity.cs" />
+    <ProjectReference Include="../../tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj" />
   </ItemGroup>
-  <!-- The production entry point is a file-based app, so exercise its built CLI
-       rather than linking a copy of its implementation into the test assembly. -->
-  <Target Name="BuildUpstreamCli" BeforeTargets="Build"
-          Inputs="@(UpstreamCliSource);$(MSBuildThisFileDirectory)../../global.json;$(MSBuildThisFileDirectory)../../Directory.Packages.props;$(MSBuildThisFileDirectory)../../.editorconfig"
-          Outputs="$(TargetDir)upstream/Upstream.dll">
-    <Exec WorkingDirectory="$(MSBuildThisFileDirectory)../.."
-          Command="dotnet build scripts/Upstream.cs --configuration $(Configuration) --output &quot;$(TargetDir)upstream&quot; --nologo" />
-  </Target>
 </Project>

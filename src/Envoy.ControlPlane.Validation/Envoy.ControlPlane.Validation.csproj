@@ -24,6 +24,6 @@
     <None Include="../../schemas/validation/sources.lock.json" Pack="true" PackagePath="schemas/" />
   </ItemGroup>
   <Target Name="RequirePinnedEvaluatorSource" BeforeTargets="PrepareForBuild">
-    <Error Condition="!Exists('obj/vendor/Validator.cs')" Text="Run scripts/Bindings.cs generate to retrieve and verify the pinned evaluator source." />
+    <Error Condition="!Exists('obj/vendor/Validator.cs')" Text="Run dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache &lt;external-source-cache&gt; to retrieve and verify the pinned evaluator source." />
   </Target>
 </Project>

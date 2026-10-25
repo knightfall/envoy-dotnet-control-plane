@@ -1,8 +1,3 @@
-#!/usr/bin/env -S dotnet --
-#:property PublishAot=false
-#:property TreatWarningsAsErrors=true
-#:package Roslynator.Analyzers
-
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -11,7 +6,7 @@ namespace Envoy.ControlPlane.Tools;
 
 internal static class PatchBindings
 {
-    public static int Main(string[] args)
+    internal static int Run(string[] args)
     {
         try
         {

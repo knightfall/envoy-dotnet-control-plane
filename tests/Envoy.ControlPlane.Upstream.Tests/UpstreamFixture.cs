@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Envoy.ControlPlane.Tools;
 
 namespace Envoy.ControlPlane.Upstream.Tests;
 
@@ -169,7 +170,8 @@ internal sealed class UpstreamFixture : IDisposable
         {
             WorkingDirectory = Root, RedirectStandardOutput = true, RedirectStandardError = true,
         };
-        start.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory, "upstream/Upstream.dll"));
+        start.ArgumentList.Add(typeof(BindingIntegrity).Assembly.Location);
+        start.ArgumentList.Add("upstream");
         foreach (string argument in arguments) start.ArgumentList.Add(argument);
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Could not start the upstream CLI");
         var stdout = process.StandardOutput.ReadToEndAsync();

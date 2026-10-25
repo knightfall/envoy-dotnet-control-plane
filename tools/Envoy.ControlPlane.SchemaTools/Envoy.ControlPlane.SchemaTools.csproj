@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/Envoy.ControlPlane.Protocol/Envoy.ControlPlane.Protocol.csproj" />
+  </ItemGroup>
+</Project>

@@ -23,6 +23,6 @@
     <None Include="../../schemas/validation/sources.lock.json" Pack="true" PackagePath="schemas/" />
   </ItemGroup>
   <Target Name="RequireGeneratedAnnotations" BeforeTargets="PrepareForBuild">
-    <Error Condition="!Exists('obj/generated/Buf/Validate/Validate.cs')" Text="Run scripts/Bindings.cs generate before building annotation contracts." />
+    <Error Condition="!Exists('obj/generated/Buf/Validate/Validate.cs')" Text="Run dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache &lt;external-source-cache&gt; before building annotation contracts." />
   </Target>
 </Project>

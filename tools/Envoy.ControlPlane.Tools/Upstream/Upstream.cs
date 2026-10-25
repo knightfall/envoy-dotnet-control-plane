@@ -1,18 +1,3 @@
-#!/usr/bin/env -S dotnet --
-#:property PublishAot=false
-#:property TreatWarningsAsErrors=true
-#:package Google.Protobuf
-#:package Roslynator.Analyzers
-#:include upstream/UpstreamData.cs
-#:include upstream/RepositoryPaths.cs
-#:include upstream/SchemaExporter.cs
-#:include upstream/SourceArchives.cs
-#:include upstream/GoModuleInventory.cs
-#:include upstream/SchemaCatalog.cs
-#:include upstream/SchemaInspector.cs
-#:include upstream/UpstreamOptions.cs
-#:include upstream/SourceBaseline.cs
-
 using System.Text.Json.Nodes;
 using static Envoy.ControlPlane.Tools.UpstreamData;
 
@@ -20,13 +5,13 @@ namespace Envoy.ControlPlane.Tools;
 
 internal static class Upstream
 {
-    public static async Task<int> Main(string[] args)
+    internal static async Task<int> RunAsync(string[] args)
     {
         try
         {
             if (args.Length == 0 || args.Contains("--help"))
             {
-                Console.WriteLine("Upstream.cs <sync|inspect|export> --cache <external-directory> [--offline] [--write-catalog]");
+                Console.WriteLine("upstream <sync|inspect|export> --cache <external-directory> [--offline] [--write-catalog]");
                 return 0;
             }
             var options = UpstreamOptions.Parse(args);
