@@ -46,6 +46,8 @@ func main() {
 	var err error
 	if len(os.Args) > 1 && os.Args[1] == "cache" {
 		err = runCache(os.Args[2:])
+	} else if len(os.Args) > 1 && os.Args[1] == "subscription" {
+		err = runSubscriptions(os.Args[2:])
 	} else {
 		err = run()
 	}

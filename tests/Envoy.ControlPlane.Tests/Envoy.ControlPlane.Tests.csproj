@@ -12,6 +12,7 @@
     <ProjectReference Include="../../src/Envoy.ControlPlane/Envoy.ControlPlane.csproj" />
     <PackageReference Include="xunit.v3.mtp-v2" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <EmbeddedResource Include="Fixtures/sotw-subscription-cases.json" LogicalName="Envoy.ControlPlane.Tests.SotwCases.json" />
     <EmbeddedResource Include="Fixtures/cache-cases.json" LogicalName="Envoy.ControlPlane.Tests.CacheCases.json" />
     <EmbeddedResource Include="Fixtures/snapshot-cases.json" LogicalName="Envoy.ControlPlane.Tests.SnapshotCases.json" />
   </ItemGroup>

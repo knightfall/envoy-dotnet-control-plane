@@ -1,4 +1,4 @@
-# Envoy.ControlPlane resources and snapshots
+# Envoy.ControlPlane Core
 
 Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watch primitives and the SotW SnapshotCache. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. Streaming services, Delta cache delivery and heartbeat scheduling remain later implementation tasks.
 
@@ -45,3 +45,7 @@ The disposal scope releases the registration when the consumer exits, including 
 `GetSnapshot` throws `KeyNotFoundException` when absent. `GetStatusInfo` returns a synchronized live view of the first retained node, watch counts and request times; publication alone does not create status. `ClearSnapshot` removes indexed snapshot/status without completing or canceling old watches. Dispose watches when the consumer exits. Normal responses retain request/version/context and serialize only when materialized; TTL entries use the standard discovery-resource wrapper. Delta delivery currently throws `NotSupportedException`.
 
 The optional ADS readiness gate preserves upstream's exact coverage rule: non-wildcard requested names must cover resources present in the snapshot. Failing that check during creation leaves an untracked pending watch. SnapshotCache follows the upstream selection path, including its prefix-only and overlapping wildcard/exact-name outcomes; repository fixtures document those limits. This does not implement the ordered ADS stream engine.
+
+`SotwSubscription` implements the subscription contract using source-equivalent wildcard flags and exact/prefix sets. Initial empty requests retain legacy wildcard until the first explicit name, prefix or `*`; later empty requests do not reactivate it. `SotwOptions` can disable this legacy behavior globally or for ordinal type URLs, while explicit `*` remains available. `SetResourceSubscription` replaces names and cleans returned versions no longer covered by exact/prefix subscriptions. `SetReturnedResources` copies read-only response metadata into stream-owned bookkeeping, allowing a resource to be returned again after unsubscribe/re-subscribe without a snapshot version change.
+
+Cancel or complete the current watch before changing subscription state. `MatchesResponse` checks all returned metadata names against the current exact/prefix/wildcard view, without materializing the payload; it supplies the source's obsolete-response predicate. Stream-loop integration and nonce/callback behavior remain later work. Subscription state is owned by the processing loop and adds no locks or generalized state-machine framework.

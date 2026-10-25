@@ -1,0 +1,723 @@
+[
+  {
+    "id": "legacy-empty-stops-after-explicit",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": false,
+    "disabledTypes": [],
+    "initial": [],
+    "steps": [
+      {
+        "kind": "subscribe",
+        "names": null,
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [
+          "a"
+        ],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": null,
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "explicit-star-transitions",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": false,
+    "disabledTypes": [],
+    "initial": [
+      "*"
+    ],
+    "steps": [
+      {
+        "kind": "subscribe",
+        "names": [
+          "*",
+          "a"
+        ],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [
+          "b"
+        ],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [
+          "*"
+        ],
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": true,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "b"
+        ],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "global-deactivation",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": true,
+    "disabledTypes": [],
+    "initial": [],
+    "steps": [
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [
+          "*"
+        ],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "per-type-deactivation",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": false,
+    "disabledTypes": [
+      "type.googleapis.com/envoy.config.listener.v3.Listener"
+    ],
+    "initial": [],
+    "steps": [
+      {
+        "kind": "subscribe",
+        "names": [
+          "*"
+        ],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "other-type-remains-legacy",
+    "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+    "disableAll": false,
+    "disabledTypes": [
+      "type.googleapis.com/envoy.config.listener.v3.Listener"
+    ],
+    "initial": [],
+    "steps": [
+      {
+        "kind": "subscribe",
+        "names": null,
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "custom-type-deactivation",
+    "typeUrl": "application/custom",
+    "disableAll": false,
+    "disabledTypes": [
+      "application/custom"
+    ],
+    "initial": [],
+    "steps": [
+      {
+        "kind": "subscribe",
+        "names": [
+          "custom"
+        ],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "custom"
+        ],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "named-initial-prevents-legacy",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": false,
+    "disabledTypes": [],
+    "initial": [
+      "a"
+    ],
+    "steps": [
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": null,
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "prefix-duplicates-and-literal-stars",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": false,
+    "disabledTypes": [],
+    "initial": [
+      "*",
+      "a",
+      "a",
+      "collection/*",
+      "collection/*",
+      "x*",
+      "collection/**"
+    ],
+    "steps": [],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [
+          "a",
+          "collection/**",
+          "x*"
+        ],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "returned-cleanup-keeps-prefixes",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": false,
+    "disabledTypes": [],
+    "initial": [
+      "a",
+      "collection/*"
+    ],
+    "steps": [
+      {
+        "kind": "returned",
+        "names": null,
+        "returned": {
+          "a": "v1",
+          "collection/x": "v2",
+          "collectionDeep/y": "v3",
+          "gone": "v4"
+        }
+      },
+      {
+        "kind": "subscribe",
+        "names": [
+          "collection/*"
+        ],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [
+          "*"
+        ],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {
+          "a": "v1",
+          "collection/x": "v2",
+          "collectionDeep/y": "v3",
+          "gone": "v4"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {
+          "collection/x": "v2"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "collection/x": "v2"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "explicit-star-keeps-returned-metadata",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": false,
+    "disabledTypes": [],
+    "initial": [
+      "*"
+    ],
+    "steps": [
+      {
+        "kind": "returned",
+        "names": null,
+        "returned": {
+          "a": "v1",
+          "other": "v0"
+        }
+      },
+      {
+        "kind": "subscribe",
+        "names": [
+          "*",
+          "a"
+        ],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [
+          "a"
+        ],
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "v1",
+          "other": "v0"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1",
+          "other": "v0"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      }
+    ]
+  },
+  {
+    "id": "prefix-ends-legacy-fallback",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": false,
+    "disabledTypes": [],
+    "initial": [
+      "collection/*"
+    ],
+    "steps": [
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "empty-name-is-an-explicit-resource",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": false,
+    "disabledTypes": [],
+    "initial": [
+      "",
+      "/*",
+      "nested/*/literal",
+      "root*"
+    ],
+    "steps": [
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [
+          "",
+          "nested/*/literal",
+          "root*"
+        ],
+        "prefixes": [
+          "/"
+        ],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "type-url-matching-is-ordinal",
+    "typeUrl": "application/custom",
+    "disableAll": false,
+    "disabledTypes": [
+      "APPLICATION/custom"
+    ],
+    "initial": [],
+    "steps": [],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "legacy-empty-ack-retains-returned-versions",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "disableAll": false,
+    "disabledTypes": [],
+    "initial": [],
+    "steps": [
+      {
+        "kind": "returned",
+        "names": null,
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "kind": "subscribe",
+        "names": null,
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [
+          "a"
+        ],
+        "returned": null
+      },
+      {
+        "kind": "subscribe",
+        "names": [],
+        "returned": null
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  }
+]
