@@ -14,6 +14,8 @@ internal sealed class HostCallbacks : ISotwCallbacks
     internal Channel<DiscoveryRequest> Requested { get; } = Channel.CreateUnbounded<DiscoveryRequest>();
     internal Channel<Node> Closed { get; } = Channel.CreateUnbounded<Node>();
     internal Exception? RequestFailure { get; set; }
+    internal Func<DiscoveryRequest, CancellationToken, ValueTask>? RequestHandler { get; set; }
+    internal Func<DiscoveryResponse, CancellationToken, ValueTask>? ResponseHandler { get; set; }
     internal ConcurrentQueue<long> StreamIds { get; } = new();
 
     public ValueTask OnStreamOpenAsync(ResponseContext context, long streamId, string typeUrl, CancellationToken cancellationToken)
@@ -26,11 +28,14 @@ internal sealed class HostCallbacks : ISotwCallbacks
     public ValueTask OnStreamRequestAsync(long streamId, DiscoveryRequest request, CancellationToken cancellationToken)
     {
         Requested.Writer.TryWrite(request);
-        return RequestFailure is null ? ValueTask.CompletedTask : ValueTask.FromException(RequestFailure);
+        return RequestFailure is null
+            ? RequestHandler?.Invoke(request, cancellationToken) ?? ValueTask.CompletedTask
+            : ValueTask.FromException(RequestFailure);
     }
 
     public ValueTask OnStreamResponseAsync(ResponseContext context, long streamId, DiscoveryRequest request,
-        DiscoveryResponse response, CancellationToken cancellationToken) => ValueTask.CompletedTask;
+        DiscoveryResponse response, CancellationToken cancellationToken) =>
+        ResponseHandler?.Invoke(response, cancellationToken) ?? ValueTask.CompletedTask;
 
     public ValueTask OnStreamClosedAsync(long streamId, Node node)
     {

@@ -18,6 +18,7 @@ internal static class RepositoryVerification
             await BuildProcess.RunAsync("dotnet", ["build", Solution, "--configuration", "Release", "--no-restore"]);
             await BuildProcess.RunAsync("dotnet", ["test", "--solution", Solution, "--configuration", "Release", "--no-build", "--no-restore",
                 "--results-directory", Path.GetFullPath(BindingPaths.InputsDirectory + "/results/repository"), "--report-xunit-trx"]);
+            CopyLifecycleReports();
             int cases = await ValidationVerification.CompareWithGoAsync();
             await ResourceVerification.CompareWithGoAsync();
             await PreviewHelperVerification.CompareWithGoAsync();
@@ -40,6 +41,19 @@ internal static class RepositoryVerification
         {
             Console.Error.WriteLine(error.Message);
             return 1;
+        }
+    }
+
+    private static void CopyLifecycleReports()
+    {
+        string output = Path.Combine(BindingPaths.InputsDirectory, "results", "lifecycle");
+        Directory.CreateDirectory(output);
+        foreach (string mode in new[] { "ordered", "unordered" })
+        {
+            string name = $"sotw-stress-{mode}.json";
+            string source = Path.Combine("tests", "Envoy.ControlPlane.AspNetCore.Tests", "bin", "Release", "net10.0", name);
+            Require(File.Exists(source), "Missing SotW lifecycle report: " + source);
+            File.Copy(source, Path.Combine(output, name), overwrite: true);
         }
     }
 
