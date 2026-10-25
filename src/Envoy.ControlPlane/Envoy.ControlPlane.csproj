@@ -2,7 +2,7 @@
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Description>Envoy control-plane resource entries, snapshots, SotW SnapshotCache, watches and reference checks.</Description>
+    <Description>Envoy control-plane resources, snapshots, SotW caches, subscriptions, stream processing and callbacks.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Envoy.ControlPlane.Protocol/Envoy.ControlPlane.Protocol.csproj" />

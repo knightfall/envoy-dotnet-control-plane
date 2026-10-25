@@ -105,3 +105,9 @@ Concurrency tests use explicit gates and bounded failure waits. They observe a p
 The maintained commands are `transport verify` and `transport benchmark` through the repository CLI. Go source is under `resources/GoOracle/transport/` and uses the existing module lock. Linux CI is a dedicated workflow; existing solution verification builds the host on all configured platforms. Actual xDS protocol behavior, service inventory and released-Envoy acceptance remain separate work.
 
 `TransportSummaryTests.AllocationRegression_ExcludesEveryGroupForAffectedRuntimeAndRetainsOtherRuntime` verifies that a regressing allocation checkpoint excludes the entire affected runtime series while preserving valid Go results and raw null/checkpoint data. This adds one offline reporting case: 25 offline CLI tests and 136 solution cases in total.
+
+## SotW stream engine
+
+[T09 evidence](../docs/plan/T09-SOTW-STREAM-ENGINE.md) maps 37 native cases to request/callback order, nonce/watch lifetime, filtering/ownership, NACK cache reentry, serial writes and failure cleanup. `SotwRequestTests`, `SotwResponseTests` and `SotwLifecycleTests` use explicit channels/gates and bounded failure waits. `SotwStreamCorpusTests.SourceTraces_MatchDeclaredCallbacksWatchesAndSends` verifies six declared traces and exports their observations for the real pinned Go handler. Core has 118 cases and the solution has 173. The fresh package consumer includes all Core sources and fixtures.
+
+The repository CLI runs the Go stream comparison as part of `repository verify` and saves evidence under `obj/upstream/results/streams/`. The tests use the transport-independent loop; discovery adapters and actual xDS HTTP/2/Envoy acceptance remain later tasks.
