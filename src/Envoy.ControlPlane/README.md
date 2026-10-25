@@ -1,6 +1,6 @@
 # Envoy.ControlPlane Core
 
-Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watches, the SotW SnapshotCache, subscription state and transport-independent stream processing with optional ordered ADS. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. Service adapters, Delta cache delivery and heartbeat scheduling remain later implementation tasks.
+Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watches, the SotW SnapshotCache, subscription state and transport-independent stream processing with optional ordered ADS. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. The separate ASP.NET Core package supplies preview SotW service adapters. Delta cache delivery and heartbeat scheduling remain later implementation tasks.
 
 ```csharp
 using Envoy.Config.Listener.V3;
