@@ -1,6 +1,6 @@
 # Implementation plan: tasks and subtasks
 
-Reviewed **25 October 2026**. T01/T02 merged in PRs #33/#34, with [provenance evidence](../../schemas/PROVENANCE.md) and [binding evidence](../../schemas/BINDINGS.md). T03 has a user-selected source arrangement and [bounded local feasibility evidence](../../schemas/VALIDATION.md), merged in PR #35 for the bounded binding decision. T01 brought the test framework/runner and tooling CI forward from T04; T04 merged in PR #38 with the [build/package foundation](T04-BUILD-FOUNDATION.md). T05 merged in PR #39 with [resource/snapshot primitives](T05-RESOURCES-AND-SNAPSHOTS.md). T06 merged in PR #40 with [watch primitives and custom response contracts](T06-WATCHES.md). T07 implements the [SotW SnapshotCache](T07-SNAPSHOT-CACHE.md); streaming behavior and Delta cache delivery remain **planned**. T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. T05 evidence covers resource primitives and snapshot behavior; it does not establish an operational control-plane server. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
+Reviewed **25 October 2026**. T01/T02 merged in PRs #33/#34, with [provenance evidence](../../schemas/PROVENANCE.md) and [binding evidence](../../schemas/BINDINGS.md). T03 has a user-selected source arrangement and [bounded local feasibility evidence](../../schemas/VALIDATION.md), merged in PR #35 for the bounded binding decision. T01 brought the test framework/runner and tooling CI forward from T04; T04 merged in PR #38 with the [build/package foundation](T04-BUILD-FOUNDATION.md). T05 merged in PR #39 with [resource/snapshot primitives](T05-RESOURCES-AND-SNAPSHOTS.md). T06 merged in PR #40 with [watch primitives and custom response contracts](T06-WATCHES.md). T07 merged in PR #41 with the [SotW SnapshotCache](T07-SNAPSHOT-CACHE.md). T08 implements [SotW subscription transitions](T08-SOTW-SUBSCRIPTIONS.md); streaming behavior and Delta cache delivery remain **planned**. T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. T05 evidence covers resource primitives and snapshot behavior; it does not establish an operational control-plane server. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
 
 ## Execution rules
 
@@ -163,7 +163,7 @@ Subtasks:
 
 ### T07 — Implement SnapshotCache and status
 
-**Status:** Implements SotW publication, selection, live status and lazy normal responses with 21 new native cases and 22 independent Go event traces. See [T07 evidence](T07-SNAPSHOT-CACHE.md). Delta cache delivery and heartbeat scheduling remain T14/T17.
+**Status:** Merged in PR #41 after all ten checks passed, including full Linux/macOS/Windows verification. Implements SotW publication, selection, live status and lazy normal responses with 21 new native cases and 22 independent Go event traces. See [T07 evidence](T07-SNAPSHOT-CACHE.md). Delta cache delivery and heartbeat scheduling remain T14/T17.
 
 **Scope:** preview, later Delta/TTL paths extended by T14/T17 / R05, R11. **Depends on:** T06. **Outputs:** SnapshotCache, node hashing, status views, publication/get/clear APIs.
 
@@ -179,6 +179,8 @@ Subtasks:
 ## Epic C — SotW preview
 
 ### T08 — Implement SotW subscription transitions
+
+**Status:** Implements subscription/legacy options and the response-name matching predicate, verified by 12 new native cases and 14 actual Go transition traces. See [T08 evidence](T08-SOTW-SUBSCRIPTIONS.md). Calling the predicate from the stream loop remains T09/T10.
 
 **Scope:** preview / R07. **Depends on:** T05, T06. **Outputs:** SotW subscription state and option model.
 
