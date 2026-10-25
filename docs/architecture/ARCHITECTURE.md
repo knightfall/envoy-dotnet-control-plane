@@ -52,7 +52,7 @@ The root release uses Protocol, Core, and ASP.NET Core packages. The optional va
 
 Core targets .NET 10 provisionally. Protocol may use a wider compatible target after the package-consumption proof. Pin actual package/compiler versions during T02/T04; no floating dependencies. Core uses Google.Protobuf contracts, the chosen gRPC abstractions, logging abstractions, and `TimeProvider`. The client accepts an application-owned call invoker; it does not force an HTTP channel implementation on cache-only applications.
 
-Proposed repository layout; the paths below do **not** exist as implementation yet:
+The T04 package/build layout exists; the resource, cache, server and hosting feature folders below remain planned. See [T04 build evidence](../plan/T04-BUILD-FOUNDATION.md):
 
 ```text
 src/Envoy.ControlPlane.Protocol/          generated binding facade or owned outputs
@@ -62,8 +62,11 @@ src/Envoy.ControlPlane.Validation/       optional validator; final provider/name
 tests/                                  unit, differential, transport, Envoy, package tests
 examples/MinimalControlPlane/            runnable host and Envoy bootstrap
 schemas/                                input manifests, lock data, controlled overlays
-scripts/                                generation, descriptor checks, interop, upstream updates
-eng/                                    pinned SDK/package/build configuration
+tools/                                  project-based generation and verification commands
+scripts/                                retained historical provider research
+Directory.Build.props                   shared build policy
+Directory.Packages.props                central package versions
+Envoy.ControlPlane.slnx                 maintained build/test project graph
 docs/                                   design, usage, compatibility and evidence
 ```
 

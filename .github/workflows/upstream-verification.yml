@@ -69,9 +69,12 @@ jobs:
           cache-dependency-path: |
             tools/Envoy.ControlPlane.Tools/packages.lock.json
             tools/Envoy.ControlPlane.SchemaTools/packages.lock.json
+            src/Envoy.ControlPlane/packages.lock.json
+            src/Envoy.ControlPlane.AspNetCore/packages.lock.json
             src/Envoy.ControlPlane.Protocol/packages.lock.json
             src/Envoy.ControlPlane.Validation.Annotations/packages.lock.json
             src/Envoy.ControlPlane.Validation/packages.lock.json
+            tests/Envoy.ControlPlane.Upstream.Tests/packages.lock.json
             tests/Envoy.ControlPlane.Protocol.Tests/packages.lock.json
             tests/Envoy.ControlPlane.Validation.Tests/packages.lock.json
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
@@ -80,10 +83,10 @@ jobs:
           cache-dependency-path: tests/validation/GoOracle/go.sum
       - name: Restore pinned tooling dependencies
         run: dotnet restore tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj --locked-mode
-      - name: Generate with Buf, pack, and verify project and clean package consumers
-        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- bindings verify --cache ../upstream-sources
-      - name: Verify source-built validator against Go PGV and fresh packages
-        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- validation verify
+      - name: Generate verified contracts with Buf
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- bindings generate --cache ../upstream-sources
+      - name: Build solution, run tests and Go comparisons, pack and verify fresh consumers
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- repository verify
       - name: Upload binding evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

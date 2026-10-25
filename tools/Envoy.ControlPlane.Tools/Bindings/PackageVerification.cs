@@ -35,7 +35,7 @@ internal static class PackageVerification
 
         try
         {
-            foreach (string name in new[] { "global.json", "Directory.Packages.props", ".editorconfig" })
+            foreach (string name in new[] { "global.json", "Directory.Build.props", "Directory.Packages.props", ".editorconfig" })
             {
                 File.Copy(name, Path.Combine(scratch, name));
             }

@@ -6,7 +6,7 @@ The [T02 binding proof](../schemas/BINDINGS.md) documents the generated Protocol
 dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings verify --cache ../upstream-sources
 ```
 
-Both projects are registered in the [schema verification workflow](../.github/workflows/upstream-verification.yml). There is no solution artifact yet; each project's command is its CI entry point. All project dependency versions come from [Directory.Packages.props](../Directory.Packages.props), with project dependency graphs recorded in lock files.
+All three maintained suites are registered in [Envoy.ControlPlane.slnx](../Envoy.ControlPlane.slnx) and the [schema verification workflow](../.github/workflows/upstream-verification.yml). The solution-level command is `dotnet test --solution Envoy.ControlPlane.slnx --configuration Release` after generation; focused project commands remain available. All project dependency versions come from [Directory.Packages.props](../Directory.Packages.props), with project dependency graphs recorded in lock files.
 
 The binding suite is organized by behavior: `CatalogTests`, `AnnotationTests`, `SerializationTests`, `ServiceContractTests` and `GeneratorCompatibilityTests`. Shared inspection helpers and RPC fixture data live in `Envoy.ControlPlane.Protocol.Tests/Support/`. A shared xUnit collection retains sequential execution. The clean package consumer copies all handwritten test/support sources, so this organization does not reduce the package proof to a subset of checks.
 
@@ -16,7 +16,7 @@ The [source validation proof](../schemas/VALIDATION.md) is in `Envoy.ControlPlan
 
 ## Upstream CLI suite
 
-The [test project](Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj) references the main [CLI project](../tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj) and exercises its `upstream` commands through subprocesses. MSBuild builds and copies the referenced executable and dependencies. The fixture invokes that actual binary, rather than compiling a copy or maintaining a separate script-build target. Each project's documented command remains its CI entry point.
+The [test project](Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj) references the main [CLI project](../tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj) and exercises its `upstream` commands through subprocesses. MSBuild builds and copies the referenced executable and dependencies. The fixture invokes that actual binary, rather than compiling a copy or maintaining a separate script-build target. The offline CI job runs its project command; the complete repository job also discovers it through the solution.
 
 [BindingIntegrityTests.cs](Envoy.ControlPlane.Upstream.Tests/BindingIntegrityTests.cs) also exercises the binding tool's checksum helper through the referenced production assembly. Four platform-representation cases verify the same independently calculated fingerprint with Windows/Unix separators and CRLF/LF contents, including paths whose native sort order differs. A content-change case verifies that source changes still produce a distinct, exact fingerprint. These tests run in the existing offline CI matrix.
 
@@ -77,3 +77,7 @@ The offline matrix runs 19 provenance/export cases and five binding-fingerprint 
 [Upstream verification](../.github/workflows/upstream-verification.yml) runs the same project command for pull requests, pushes to `main`, and manual runs. Its Linux/macOS/Windows matrix restores in locked mode, builds with Roslynator, runs the offline suite and uploads TRX results. GitHub Actions are pinned to commit SHAs. Platform execution results belong to the PR checks; the local result above covers macOS arm64.
 
 The separate [full-source provenance audit](../schemas/PROVENANCE.md) verifies all 523 real pinned schemas and compares rate-limit descriptors using the pinned protoc executable. It was rerun successfully after these tests were added. Fixture tests do not substitute for that evidence. The full protoc inspection remains macOS arm64 only until other compiler artifacts are explicitly pinned; no runtime-library or Envoy interoperability claim is made here.
+
+## Core and hosting package consumers
+
+The [executable probes](consumers/README.md) restore the freshly packed Core and ASP.NET packages into separate NuGet caches. They load the candidate assembly, use transitive Protocol contracts, verify exact dependency and shared-framework boundaries, and build an ASP.NET application host without opening a listener. `repository verify` stages their `.csproj.template` files into temporary projects; the templates do not join the source-build solution or require an unpublished package during bootstrap.

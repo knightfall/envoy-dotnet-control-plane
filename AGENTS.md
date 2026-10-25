@@ -8,6 +8,7 @@ Read [README.md](README.md) for the implementation status and [docs/plan/IMPLEME
 
 | Path | Purpose |
 |---|---|
+| `Envoy.ControlPlane.slnx` | All maintained library, tooling and test projects |
 | `src/` | Runtime libraries and package definitions |
 | `tests/` | Automated verification, fixtures and shared test support |
 | `tools/` | Project-based repository CLI and generation-dependent schema helper |
@@ -30,11 +31,11 @@ dotnet restore tests/Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstre
 dotnet test --project tests/Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj --configuration Release --no-restore
 ```
 
-Generate bindings and verify both project and package consumption with the following command. Replace `<source-cache>` with the chosen cache directory:
+Generate bindings, then build/test/pack the complete solution and verify package consumption with the following commands. Replace `<source-cache>` with the chosen cache directory:
 
 ```sh
-dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings verify --cache <source-cache>
-dotnet run --project tools/Envoy.ControlPlane.Tools -- validation verify
+dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache <source-cache>
+dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify
 ```
 
 Use [tests/README.md](tests/README.md) for additional test commands and [.github/workflows/upstream-verification.yml](.github/workflows/upstream-verification.yml) for CI entry points. Check declared tool/platform support before claiming a verification result. Generated inputs and code belong under `obj/`; package output belongs under `bin/`.
@@ -66,7 +67,7 @@ Use [tests/README.md](tests/README.md) for additional test commands and [.github
 - Assert meaningful acceptance, rejection and boundary outcomes. Keep expected fixtures independent of the implementation and preserve existing assertions during refactoring.
 - Prefer existing upstream schemas for descriptor/Any tests. Synthetic schemas are permitted in isolated source-tooling fixtures, not as replacement library contracts.
 - Verify clean NuGet consumption when bindings or packaging change. The consumer must use the newly built package and include all relevant test/support sources.
-- Keep every implementation and test source reachable through the documented build and CI entry points. Run focused checks and the required package proof; do not treat a zero-test run or an unrun check as success.
+- Register every maintained project in `Envoy.ControlPlane.slnx`. Keep executable package-consumer templates reachable through `repository verify`; historical provider probes remain excluded. Keep every implementation and test source reachable through the documented build and CI entry points. Run focused checks and the required package proof; do not treat a zero-test run or an unrun check as success.
 
 ## Collaboration and contribution
 

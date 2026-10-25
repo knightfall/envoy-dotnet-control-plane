@@ -2,10 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <Deterministic>true</Deterministic>
     <Version>0.1.0-t03</Version>
     <Description>Experimental optional source-built ProtoValidate evaluator for the pinned Envoy catalog.</Description>
     <Authors>knightfall; TELUS</Authors>
