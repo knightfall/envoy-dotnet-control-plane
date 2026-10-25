@@ -3,6 +3,8 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Channels;
 using Envoy.Config.Core.V3;
+using Envoy.ControlPlane.Streams;
+using Envoy.Service.Discovery.V3;
 using Xunit;
 using static Envoy.ControlPlane.Tests.Support.StreamFixtures;
 
@@ -21,18 +23,20 @@ internal static class SotwStreamCorpus
         await using var stream = new StreamHarness();
         var events = new ConcurrentQueue<string>();
         var requested = Channel.CreateUnbounded<bool>();
+        DiscoveryRequest? heldRequest = null;
+        var release = Signal();
         stream.Callbacks.Open = (_, _, type, _) => { events.Enqueue("open|" + type); return ValueTask.CompletedTask; };
-        stream.Callbacks.Request = (_, request, _) =>
+        stream.Callbacks.Request = async (_, request, token) =>
         {
             events.Enqueue($"request|{request.TypeUrl}|{request.Node.Id}|{request.VersionInfo}|{request.ResponseNonce}|{string.Join(',', request.ResourceNames)}|{(request.ErrorDetail is not null).ToString().ToLowerInvariant()}");
             Assert.True(requested.Writer.TryWrite(true));
-            return ValueTask.CompletedTask;
+            if (ReferenceEquals(request, heldRequest)) await release.Task.WaitAsync(token);
         };
-        stream.Watcher.Create = (request, subscription) =>
+        stream.Watcher.Create = (request, subscription, responses) =>
         {
             string returned = string.Join(',', subscription.ReturnedResources.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => pair.Key + "=" + pair.Value));
             events.Enqueue($"watch|{request.TypeUrl}|{request.VersionInfo}|{string.Join(',', request.ResourceNames)}|{returned}|{subscription.IsWildcard.ToString().ToLowerInvariant()}");
-            return new StreamWatch();
+            return new StreamWatch(responses);
         };
         stream.Callbacks.Response = (_, _, _, response, _) =>
         {
@@ -49,7 +53,10 @@ internal static class SotwStreamCorpus
             events.Enqueue($"send|{response.TypeUrl}|{response.VersionInfo}|{response.Nonce}");
             return ValueTask.CompletedTask;
         };
-        stream.Start(fixture["defaultType"]!.GetValue<string>());
+        stream.Start(fixture["defaultType"]!.GetValue<string>(), options: new SotwOptions
+        {
+            OrderedAds = fixture["ordered"]?.GetValue<bool>() == true,
+        });
         var watches = new List<StreamRegistration>();
         foreach (var step in fixture["steps"]!.AsArray())
         {
@@ -60,14 +67,21 @@ internal static class SotwStreamCorpus
                     request.VersionInfo = step["version"]?.GetValue<string>() ?? "";
                     if (step["node"] is { } node) request.Node = new Node { Id = node.GetValue<string>() };
                     if (step["nack"]?.GetValue<bool>() == true) request.ErrorDetail = new Google.Rpc.Status { Code = 3, Message = "rejected" };
+                    if (step["hold"]?.GetValue<bool>() == true) heldRequest = request;
                     stream.Input.Push(request);
                     await Wait(requested.Reader.ReadAsync().AsTask());
-                    if (step["stale"]?.GetValue<bool>() != true) watches.Add(await stream.NextWatch());
+                    if (step["stale"]?.GetValue<bool>() != true && step["hold"]?.GetValue<bool>() != true) watches.Add(await stream.NextWatch());
                     break;
                 case "respond":
+                case "queue":
                     var registration = watches[step["watch"]!.GetValue<int>()];
                     registration.Watch.Respond(Response(registration.Request, step["version"]!.GetValue<string>(), Strings(step["names"])));
-                    await stream.NextResponse();
+                    if (step["kind"]!.GetValue<string>() == "respond") await stream.NextResponse();
+                    break;
+                case "release":
+                    release.TrySetResult();
+                    if (step["stale"]?.GetValue<bool>() != true) watches.Add(await stream.NextWatch());
+                    for (int count = 0; count < step["sent"]!.GetValue<int>(); count++) await stream.NextResponse();
                     break;
                 case "end":
                     stream.Input.Complete(step["receiveError"]?.GetValue<bool>() == true ? new IOException("receive") : null);

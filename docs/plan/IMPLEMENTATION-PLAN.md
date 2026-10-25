@@ -209,6 +209,8 @@ Subtasks:
 
 ### T10 — Implement SotW ADS readiness and optional ordering
 
+**Status:** Implements channel-based SotW producer delivery, asynchronous snapshot publication and optional ordered ADS with independent cache readiness. See [T10 evidence](T10-ORDERED-ADS.md) for 21 new native cases, fourteen actual Go stream comparisons and verification boundaries.
+
 **Scope:** preview / R09. **Depends on:** T09. **Outputs:** ADS dispatch, ordered policy, custom type handling.
 
 Subtasks:

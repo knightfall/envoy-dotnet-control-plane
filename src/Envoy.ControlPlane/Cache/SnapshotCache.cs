@@ -1,3 +1,5 @@
+using System.Runtime.ExceptionServices;
+using System.Threading.Channels;
 using Envoy.Config.Core.V3;
 using Envoy.ControlPlane.Resources;
 using Envoy.Service.Discovery.V3;
@@ -8,6 +10,7 @@ namespace Envoy.ControlPlane.Cache;
 public sealed class SnapshotCache : IConfigWatcher
 {
     private readonly object gate = new();
+    private readonly SemaphoreSlim publication = new(1, 1);
     private readonly Dictionary<string, IResourceSnapshot> snapshots = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StatusInfo> status = new(StringComparer.Ordinal);
     private readonly bool ads;
@@ -30,33 +33,66 @@ public sealed class SnapshotCache : IConfigWatcher
     /// <param name="nodeId">The cache key for the snapshot.</param>
     /// <param name="snapshot">The replacement snapshot, retained without validation or cloning.</param>
     /// <param name="context">The publication context forwarded to delivered responses.</param>
-    public void SetSnapshot(string nodeId, IResourceSnapshot snapshot, ResponseContext context = default)
+    public async Task SetSnapshotAsync(string nodeId, IResourceSnapshot snapshot, ResponseContext context = default)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
-        lock (gate)
+        await publication.WaitAsync();
+        try
         {
-            snapshots[nodeId] = snapshot;
-            if (!status.TryGetValue(nodeId, out var info))
+            var deliveries = new List<Task<bool>>();
+            Exception? failure = null;
+            try
             {
-                return;
-            }
-            IEnumerable<PendingWatch> pending = info.Watches.Values;
-            if (ads)
-            {
-                pending = pending.OrderBy(watch => ResourceCatalog.GetResponseType(watch.Request.TypeUrl));
-            }
-            // Delivery removes registrations; materialize the iteration before completing any watch.
-            foreach (var watch in pending.ToArray())
-            {
-                if (snapshot.GetVersion(watch.Request.TypeUrl) == watch.Request.VersionInfo)
+                lock (gate)
                 {
-                    continue;
+                    snapshots[nodeId] = snapshot;
+                    if (status.TryGetValue(nodeId, out var info))
+                    {
+                        StartDeliveries(snapshot, info, context, deliveries);
+                    }
                 }
+            }
+            catch (Exception error) when (error is not OutOfMemoryException)
+            {
+                failure = error;
+            }
+            try
+            {
+                await Task.WhenAll(deliveries);
+            }
+            catch (Exception error) when (error is not OutOfMemoryException)
+            {
+                failure ??= error;
+            }
+            if (failure is not null)
+            {
+                ExceptionDispatchInfo.Capture(failure).Throw();
+            }
+        }
+        finally
+        {
+            publication.Release();
+        }
+    }
+
+    private void StartDeliveries(IResourceSnapshot snapshot, StatusInfo info, ResponseContext context,
+        List<Task<bool>> deliveries)
+    {
+        IEnumerable<PendingWatch> pending = info.Watches.Values;
+        if (ads)
+        {
+            pending = pending.OrderBy(watch => ResourceCatalog.GetResponseType(watch.Request.TypeUrl));
+        }
+        // Begin writes in publication order; await buffer space only after releasing cache synchronization.
+        foreach (var watch in pending.ToArray())
+        {
+            if (snapshot.GetVersion(watch.Request.TypeUrl) != watch.Request.VersionInfo)
+            {
                 var selection = SotwResponseSelection.Create(snapshot, watch.Request, watch.Subscription, ads, context);
                 if (selection.Response is { } response)
                 {
                     context.CancellationToken.ThrowIfCancellationRequested();
-                    watch.Completion.TrySetResult(response);
+                    deliveries.Add(watch.Registration.DeliverAsync(response, context.CancellationToken));
                 }
             }
         }
@@ -86,10 +122,11 @@ public sealed class SnapshotCache : IConfigWatcher
     }
 
     /// <inheritdoc/>
-    public IWatch<ISotwResponse> CreateWatch(DiscoveryRequest request, ISubscription subscription)
+    public IDisposable CreateWatch(DiscoveryRequest request, ISubscription subscription, ChannelWriter<ISotwResponse> responses)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(subscription);
+        ArgumentNullException.ThrowIfNull(responses);
         string nodeId = nodeHasher.Hash(request.Node);
         lock (gate)
         {
@@ -104,17 +141,17 @@ public sealed class SnapshotCache : IConfigWatcher
                 var selection = SotwResponseSelection.Create(snapshot, request, subscription, ads, default);
                 if (selection.Untracked)
                 {
-                    return new Watch<ISotwResponse>();
+                    return new SotwWatchRegistration(gate, responses, null);
                 }
                 if (selection.Response is { } response)
                 {
-                    var immediate = new Watch<ISotwResponse>();
-                    immediate.TrySetResult(response);
+                    var immediate = new SotwWatchRegistration(gate, responses, null);
+                    _ = immediate.DeliverAsync(response, default);
                     return immediate;
                 }
             }
             long watchId = ++nextWatchId;
-            var completion = new Watch<ISotwResponse>(() => RemoveWatch(nodeId, watchId));
+            var completion = new SotwWatchRegistration(gate, responses, () => RemoveWatch(nodeId, watchId));
             info.Watches.Add(watchId, new PendingWatch(request, subscription, completion));
             return completion;
         }
@@ -157,7 +194,7 @@ public sealed class SnapshotCache : IConfigWatcher
         }
     }
 
-    private sealed record PendingWatch(DiscoveryRequest Request, ISubscription Subscription, Watch<ISotwResponse> Completion);
+    private sealed record PendingWatch(DiscoveryRequest Request, ISubscription Subscription, SotwWatchRegistration Registration);
 
     private sealed class StatusInfo(object gate, Node? node) : IStatusInfo
     {

@@ -98,7 +98,8 @@ public interface IResourceSnapshot
 
 public interface IConfigWatcher
 {
-    IWatch<ISotwResponse> CreateWatch(DiscoveryRequest request, ISubscription subscription);
+    IDisposable CreateWatch(DiscoveryRequest request, ISubscription subscription,
+        ChannelWriter<ISotwResponse> responses);
     IWatch<IDeltaResponse> CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription);
 }
 
@@ -115,7 +116,9 @@ public interface IConfigFetcher
 
 `ResourceEntry` retains a resource message and optional TTL. `ResourceCatalog.GetName` derives the indexing name from the message; applications can implement `INamedResource` for custom naming. `ISubscription` describes the exact names, prefixes, wildcard state, and returned metadata needed by the cache. Its collections remain stable for the watch lifetime; a separate immutable-view framework is not required. The stream owns subscription updates; cancel or complete its current watch before mutating the `SotwSubscription`. A cache retains a stable view only for its watch lifetime. T08 copies read-only returned-version metadata into owned mutable bookkeeping; protobuf messages are not cloned by this operation. Response envelopes retain the originating request, context, version, returned metadata, and materialization behavior needed for upstream custom-cache parity. `ResponseContext` carries the creation cancellation token and optional caller state for callback correlation, adapting Go context without depending on ASP.NET or ambient state. Custom response interfaces preserve lazy materialization and failure propagation. Keep stream-specific nonce mutation away from data shared by multiple streams.
 
-`IWatch` exposes a one-shot completion task with idempotent synchronous disposal. It can already be completed when returned. Immediate response, pending response, cancellation and cache failure remain distinguishable. `Watch<T>` claims one outcome, releases its producer registration once and runs task continuations asynchronously. Consumers use a disposal scope around `Completion.WaitAsync(cancellationToken)`; canceling that wait alone does not dispose the registration. No channel wrapper or generalized watch framework is required. Cache completion must not invoke network I/O inside publication locks, and an immediate result must remain valid before the stream begins awaiting it.
+T10 makes SotW producer delivery channel-based: ordinary streams supply individual bounded channels, and ordered ADS supplies one shared bounded FIFO. The producer writes directly to its destination to establish publication order. A cancellation registration that owns pending asynchronous writes implements `IAsyncDisposable`; the stream awaits disposal before changing subscription state. Releasing one registration must not complete a shared writer. A two-argument extension retains await-one convenience through `IWatch<ISotwResponse>` over an individual channel. Its task completion can resume after enqueueing; it does not schedule stream responses. Delta retains its task-based contract until T14.
+
+`Watch<T>` remains a standalone one-shot primitive with asynchronous continuations and idempotent synchronous disposal. Consumers of the task adapter use a disposal scope around `Completion.WaitAsync(cancellationToken)`; canceling that wait alone does not dispose the registration. Cache delivery must not invoke network I/O inside publication locks, and an immediate result must remain valid before the stream begins reading it. These API choices prioritize behavioral parity using standard .NET coordination rather than translating Go's synchronization structure.
 
 Use `FetchResult` with `Response` and `NotModified` cases. Model unsupported fetch, missing classifier, missing snapshot, materialization failure, and callback rejection separately; preserve transport mappings rather than flattening every failure into `InvalidArgument`. Exceptions may expose library error types internally; host adapters own transport translation.
 
@@ -139,8 +142,8 @@ Publication algorithm:
 
 1. The application constructs a snapshot and keeps its messages stable while published.
 2. Under cache synchronization, replace the snapshot reference and evaluate eligible watches, matching Go's registration/publication behavior.
-3. Deliver one-shot results through tasks whose continuations run asynchronously, without running stream callbacks or awaiting network I/O under that synchronization.
-4. Return publication status without waiting for Envoy to receive, ACK, or apply the change.
+3. Begin channel writes in source resource-priority order when cache ADS mode is enabled. Release cache synchronization before awaiting buffer space. Serialize asynchronous publications so later publications cannot overtake an earlier blocked one.
+4. `SetSnapshotAsync` returns after eligible enqueue operations settle, without waiting for Envoy to receive, ACK, or apply the change. The snapshot can remain installed after publication cancellation, matching the source behavior.
 
 Watch registration and snapshot lookup occur under the same cache synchronization so an update between lookup and registration cannot be lost. Response eligibility includes snapshot version, resource selection, subscriptions, and ADS readiness. If no snapshot exists, register a pending watch. Preserve the source's special ADS coverage edge: when a non-wildcard request omits a name present in the snapshot, creation returns neither a response nor a registered watch. An extra requested name absent from the snapshot is allowed if all snapshot resources are covered. T07 represents the untracked case as a pending cancelable task; its Go comparison fixtures establish the direction of the check.
 

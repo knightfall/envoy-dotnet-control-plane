@@ -43,6 +43,7 @@ Use [tests/README.md](tests/README.md) for additional test commands and [.github
 ## Scope and compatibility
 
 - Match the selected upstream behavioral and protocol contract. Feature availability stops at the agreed parity scope; avoid speculative frameworks, policy layers and stronger guarantees.
+- Prioritize **behavioral parity through idiomatic C#**. Use judgment to choose .NET APIs, asynchronous coordination, cancellation and ownership that suit the runtime; do not mechanically translate Go's types, goroutines, blocking calls or lock structure. Reuse suitable .NET primitives and existing code. Demonstrate equivalent observable outcomes with focused tests and upstream comparisons, and document intentional differences that affect callers.
 - Generate contracts through **Buf CLI** with pinned official plugins. Preserve original upstream schemas and keep managed mode disabled unless a reviewed metadata change requires it.
 - Preserve protobuf full names, field numbers/types, service contracts and original validation options. Do not invent or rename contract schemas to bypass generation problems. Investigate upstream support before proposing a workaround; document and verify any necessary generated C# correction.
 - Keep one authoritative owner for each message and annotation definition. Google.Protobuf owns well-known types. Do not add overlapping binding assemblies.

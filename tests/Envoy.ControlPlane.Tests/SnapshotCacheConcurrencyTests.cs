@@ -20,7 +20,7 @@ public sealed class SnapshotCacheConcurrencyTests
         using var releaseLookup = new ManualResetEventSlim();
         var first = ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }]));
         var cache = new SnapshotCache();
-        cache.SetSnapshot("node", new ObservedSnapshot(first, () =>
+        await cache.SetSnapshotAsync("node", new ObservedSnapshot(first, () =>
         {
             lookupEntered.SetResult();
             releaseLookup.Wait(cancellationToken);
@@ -31,10 +31,10 @@ public sealed class SnapshotCacheConcurrencyTests
         try
         {
             await lookupEntered.Task.WaitAsync(TestTimeout, cancellationToken);
-            publication = Task.Run(() =>
+            publication = Task.Run(async () =>
             {
                 publicationStarted.SetResult();
-                cache.SetSnapshot("node", ResourceFixtures.Snapshot("v2", (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }])));
+                await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v2", (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }])));
             }, cancellationToken);
             await publicationStarted.Task.WaitAsync(TestTimeout, cancellationToken);
         }
@@ -65,7 +65,7 @@ public sealed class SnapshotCacheConcurrencyTests
             consumerEntered.SetResult();
             releaseConsumer.Wait(cancellationToken);
         }, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-        var publication = Task.Run(() => cache.SetSnapshot("node", ResourceFixtures.Snapshot("v1",
+        var publication = Task.Run(async () => await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v1",
             (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }]))), cancellationToken);
         try
         {
@@ -74,7 +74,7 @@ public sealed class SnapshotCacheConcurrencyTests
             Assert.False(consumer.IsCompleted);
             Assert.Equal(0, cache.GetStatusInfo("node")!.NumWatches);
             using var other = cache.CreateWatch(Request(ResourceTypeUrls.Listener, nodeId: "other"), Subscription(wildcard: true));
-            cache.SetSnapshot("other", ResourceFixtures.Snapshot("other/v1", (ResourceTypeUrls.Listener, [new Listener { Name = "other" }])));
+            await cache.SetSnapshotAsync("other", ResourceFixtures.Snapshot("other/v1", (ResourceTypeUrls.Listener, [new Listener { Name = "other" }])));
             Assert.Equal("other/v1", (await other.Completion.WaitAsync(TestTimeout, cancellationToken)).ResponseVersion);
             Assert.Equal(0, cache.GetStatusInfo("other")!.NumWatches);
         }

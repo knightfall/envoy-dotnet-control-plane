@@ -66,7 +66,7 @@ public sealed class SotwLifecycleTests
         stream.Callbacks.Close = (_, _) => { closes++; return ValueTask.CompletedTask; };
         if (operation == "open") stream.Callbacks.Open = (_, _, _, _) => ValueTask.FromException(failure);
         if (operation == "request") stream.Callbacks.Request = (_, _, _) => ValueTask.FromException(failure);
-        if (operation == "cache") stream.Watcher.Create = (_, _) => throw failure;
+        if (operation == "cache") stream.Watcher.Create = (_, _, _) => throw failure;
         if (operation == "response-callback") stream.Callbacks.Response = (_, _, _, _, _) => ValueTask.FromException(failure);
         if (operation == "send") stream.Sending = (_, _) => ValueTask.FromException(failure);
         stream.Start();
@@ -122,7 +122,7 @@ public sealed class SotwLifecycleTests
         var iterator = new InvalidOperationException("iterator disposal");
         var close = new InvalidOperationException("close");
         await using var stream = new StreamHarness(new StreamInput { DisposalFailure = iterator });
-        stream.Watcher.Create = (_, _) => new StreamWatch { DisposalFailure = release };
+        stream.Watcher.Create = (_, _, responses) => new StreamWatch(responses) { DisposalFailure = release };
         int closes = 0;
         stream.Callbacks.Request = (_, request, _) => request.TypeUrl == "reject" ? ValueTask.FromException(primary) : ValueTask.CompletedTask;
         stream.Callbacks.Close = (_, _) => { closes++; return ValueTask.FromException(close); };
@@ -250,9 +250,9 @@ public sealed class SotwLifecycleTests
     {
         await using var stream = new StreamHarness();
         var events = new List<string>();
-        stream.Watcher.Create = (request, _) =>
+        stream.Watcher.Create = (request, _, responses) =>
         {
-            var watch = new StreamWatch();
+            var watch = new StreamWatch(responses);
             if (request.TypeUrl == "type/A") watch.Respond(Response(request));
             return watch;
         };

@@ -23,8 +23,12 @@ Selected C# test scenarios are ports of the same source tests, retaining their c
 | `TestSendError` | `OperationFailure_PreservesOriginalAndCleansUp` — send case |
 | `TestCallbackError` | `OperationFailure_PreservesOriginalAndCleansUp` — open case |
 | `TestNilPropagationOverResponseChannelShouldCloseTheStream` | `MissingStreamValue_ReturnsUnavailable` — response case |
+| `TestAggregatedHandlers` | `SharedQueue_SendsProducerOrderAcrossTypes`; `ReadinessAndOrdering_AreIndependentOptions` |
+| `TestAggregatedHandlersDropStaleResponseAfterUnsubscribe` | `LateUnsubscribedResponse_IsFilteredAgainstReplacementSubscription` |
 
 The ports use Core's asynchronous input/writer API and xUnit. They replace Go's `testing.T`/testify calls with xUnit assertions, use explicit handoffs instead of timing assumptions, and add the .NET lifecycle observations documented in T09. Other cases in these files are repository-specific additions, not claims of verbatim upstream tests.
+
+T10's ordered loop follows `pkg/server/sotw/v3/ads.go` at the same revision (SHA-256 `eb07627abe1d271d36bf070bc08c6c1c039e022e3c2b166f19afcc85b01d01e3`), retaining its copyright/license notice. The adaptation uses standard .NET channels, asynchronous publication and owned asynchronous disposal instead of blocking writes under cache locks. Fourteen shared traces now include six ordered variants and explicitly gated producer-order/drain cases. `WithOrderedADS` runs the actual upstream ordered handler; the adapter does not reproduce its algorithm. Both named upstream ADS test functions were also run unchanged in the pinned source: two passed, zero failed/skipped; those reference-only results are distinct from C# comparison evidence.
 
 ## Remaining comparison code
 

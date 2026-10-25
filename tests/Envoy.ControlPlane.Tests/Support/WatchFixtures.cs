@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using Envoy.ControlPlane.Cache;
 using Envoy.Service.Discovery.V3;
 
@@ -35,11 +36,12 @@ internal sealed class ImmediateWatcher(ISotwResponse sotw, IDeltaResponse delta)
 {
     public ISubscription? LastSubscription { get; private set; }
     public object? LastRequest { get; private set; }
-    public IWatch<ISotwResponse> CreateWatch(DiscoveryRequest request, ISubscription subscription)
+    public IDisposable CreateWatch(DiscoveryRequest request, ISubscription subscription, ChannelWriter<ISotwResponse> responses)
     {
         LastRequest = request;
         LastSubscription = subscription;
         var watch = new Watch<ISotwResponse>();
+        if (!responses.TryWrite(sotw)) throw new InvalidOperationException("Fixture buffer unexpectedly full");
         watch.TrySetResult(sotw);
         return watch;
     }
@@ -56,6 +58,22 @@ internal sealed class ImmediateWatcher(ISotwResponse sotw, IDeltaResponse delta)
 
 internal sealed class RejectingWatcher(Exception failure) : IConfigWatcher
 {
-    public IWatch<ISotwResponse> CreateWatch(DiscoveryRequest request, ISubscription subscription) => throw failure;
+    public IDisposable CreateWatch(DiscoveryRequest request, ISubscription subscription, ChannelWriter<ISotwResponse> responses) => throw failure;
     public IWatch<IDeltaResponse> CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription) => throw failure;
+}
+
+internal sealed class InspectedResponse(ISotwResponse inner, TaskCompletionSource inspected) : ISotwResponse
+{
+    public Envoy.Service.Discovery.V3.DiscoveryRequest Request => inner.Request;
+    public string ResponseVersion => inner.ResponseVersion;
+    public ResponseContext Context => inner.Context;
+    public IReadOnlyDictionary<string, string> ReturnedResources
+    {
+        get
+        {
+            inspected.TrySetResult();
+            return inner.ReturnedResources;
+        }
+    }
+    public Envoy.Service.Discovery.V3.DiscoveryResponse GetDiscoveryResponse() => inner.GetDiscoveryResponse();
 }
