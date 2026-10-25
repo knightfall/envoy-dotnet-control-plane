@@ -58,7 +58,7 @@ The derived set fingerprint is `7403284aec07c54c08d450dbc5ccea77f9c713e88c971c22
 
 Protovalidate intentionally makes field-level `required` unconditional. Upstream confirmed this in [issue #228](https://github.com/bufbuild/protovalidate/issues/228#issuecomment-2254570306); the migration therefore needs to account for PGV's conditional member checks. We preserve the evaluator's ordinary required behavior.
 
-[OverlayTransform](../scripts/validation/OverlayTransform.cs) identifies original non-synthetic oneof members with PGV message/Any/duration/timestamp required rules. It clears the corresponding derived field-level requirement on **16 members**. C# generated oneof setters cannot select a null message, so this retains the relevant serialized/C# construction semantics. Content rules and whole-oneof requirements remain. Malformed Go-only objects such as a selected typed-nil oneof are not claimed to have an equivalent C# construction.
+[OverlayTransform](../tools/Envoy.ControlPlane.SchemaTools/OverlayTransform.cs) identifies original non-synthetic oneof members with PGV message/Any/duration/timestamp required rules. It clears the corresponding derived field-level requirement on **16 members**. C# generated oneof setters cannot select a null message, so this retains the relevant serialized/C# construction semantics. Content rules and whole-oneof requirements remain. Malformed Go-only objects such as a selected typed-nil oneof are not claimed to have an equivalent C# construction.
 
 For `FileAccessLog`, omitting its optional format is valid; choosing another format is valid; choosing an invalid `log_format` still fails nested validation. The corpus proves these cases alongside required-oneof and selected-zero cases. The transformation report lists every affected field. No handwritten replacement `.proto` contract is introduced.
 
@@ -89,13 +89,13 @@ Repeated local generation hit Buf's remote-service limit during the readability 
 Use SDK **10.0.400** and Go **1.26.4**, then run from the checkout root with an external source cache:
 
 ```sh
-dotnet run --no-cache --file scripts/Bindings.cs -- verify --cache <external-source-cache>
-dotnet run --no-cache --file scripts/Validation.cs -- verify
+dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings verify --cache <external-source-cache>
+dotnet run --project tools/Envoy.ControlPlane.Tools -- validation verify
 ```
 
 The first command generates and verifies locked contracts, packs Annotations and Protocol, and runs the Protocol project and fresh NuGet consumer. The second verifies materialized evaluator fingerprints, runs the source suite and Go oracle, packs the evaluator, and runs the same source tests against fresh NuGet packages. Generated code, retrieved source, descriptors and reports live under `obj/` or `bin/`.
 
-`ValidationInventory.cs` remains available to write the complete original rule inventory. Earlier published-provider probes remain research artifacts; they are not part of this maintained verification path. No published validator package is required to generate, build or consume these source-built packages.
+The schema helper's `inventory` command remains available to write the complete original rule inventory; see the [command map](../tools/README.md). Earlier published-provider probes remain research artifacts; they are not part of this maintained verification path. No published validator package is required to generate, build or consume these source-built packages.
 
 ## Decision boundary and remaining GV work
 

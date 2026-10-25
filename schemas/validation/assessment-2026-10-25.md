@@ -79,7 +79,7 @@ Buf initially rejects the output against the candidate's annotation schema:
 - Derived `HTTP_HEADER_NAME`/`HTTP_HEADER_VALUE` enum identifiers need the candidate schema's `KNOWN_REGEX_` prefix. The correction is confined to derived `buf.validate.field` options.
 - A whole derived field-option assignment for `required: true` conflicts with another option on the same wrapper field. Assigning the `required` subfield composes those options.
 
-[MigrationCorrections.cs](../../scripts/validation/MigrationCorrections.cs) contains those two bounded corrections. The resulting descriptor fingerprint is locked. After clearing only derived field/oneof options and their added import, **all 523 original file descriptors compare equal**, including original PGV values, message/field/service identity and other options. This proves metadata preservation, not equivalent execution of new rules.
+[MigrationCorrections.cs](../../tools/Envoy.ControlPlane.Tools/Validation/MigrationCorrections.cs) contains those two bounded corrections. The resulting descriptor fingerprint is locked. After clearing only derived field/oneof options and their added import, **all 523 original file descriptors compare equal**, including original PGV values, message/field/service identity and other options. This proves metadata preservation, not equivalent execution of new rules.
 
 The source prototype exposes the remaining distinction:
 

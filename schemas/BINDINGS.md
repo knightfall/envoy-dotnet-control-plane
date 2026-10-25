@@ -28,7 +28,7 @@ Inspected NuGet archive SHA-256 values:
 
 [buf.yaml](../buf.yaml) defines the module containing only the exported T01 inputs. [buf.gen.yaml](../buf.gen.yaml) runs the official `protocolbuffers/csharp:v35.1` and `grpc/csharp:v1.84.0` plugins, each at revision 1. Managed mode is disabled, so no schema options are overridden. Well-known schemas remain compilation inputs but are excluded from generation because Google.Protobuf already owns their CLR types.
 
-[bindings.lock.json](bindings.lock.json) pins Buf **1.75.0**, platform executable checksums, plugin versions/revisions, configuration hashes, the complete source descriptor-set hash, and the generated C# inventory hash. [Directory.Packages.props](../Directory.Packages.props) centrally manages every project and file-based app dependency. Project lock files record their resolved versions and content hashes. Grpc.Tools is not used for generation or referenced by the projects.
+[bindings.lock.json](bindings.lock.json) pins Buf **1.75.0**, platform executable checksums, plugin versions/revisions, configuration hashes, the complete source descriptor-set hash, and the generated C# inventory hash. [Directory.Packages.props](../Directory.Packages.props) centrally manages every project dependency. Project lock files record their resolved versions and content hashes. Grpc.Tools is not used for generation or referenced by the projects.
 
 The selected catalog contains **523 schemas**. Protocol owns **516** source descriptors and **540** generated C# files, including gRPC contracts. Google.Protobuf owns the other **7** well-known descriptors. No selected schema was dropped to make C# compilation pass. Existing legacy/contrib deferrals remain those declared by T01; this does not expand the library's runtime scope.
 
@@ -46,7 +46,7 @@ Official Buf generation reproduces three compilation failures in the unchanged u
 | JWT-claim `Descriptor` | Same collision (`CS0542`) | Same correction. |
 | ext-proc `BodyMutation` | `ClearBody()` method collides with `ClearBody` property (`CS0102`) | Rename only the clearing helper to `ClearBodyValue()`. |
 
-[PatchBindings.cs](../scripts/PatchBindings.cs) accepts only the exact locked input or corrected file fingerprints and checks replacement counts. Unexpected output fails before compilation. These corrections change C# members, while preserving protobuf full names, field names/numbers, JSON names, serialized descriptors and binary encodings. No source schema or serialized descriptor is patched.
+[PatchBindings.cs](../tools/Envoy.ControlPlane.Tools/Bindings/PatchBindings.cs) accepts only the exact locked input or corrected file fingerprints and checks replacement counts. Unexpected output fails before compilation. These corrections change C# members, while preserving protobuf full names, field names/numbers, JSON names, serialized descriptors and binary encodings. No source schema or serialized descriptor is patched.
 
 The ext-proc collision is documented in [protobuf issue #18063](https://github.com/protocolbuffers/protobuf/issues/18063); maintainers reported no accessor-renaming option. The [C# generator options](https://protobuf.dev/reference/csharp/csharp-generated/) do not supply a solution. The v36.1 generator source was also inspected: it still emits the static `Descriptor` property and per-field `Clear…` helpers. That source inspection is not a v36.1 execution result.
 
@@ -70,15 +70,15 @@ Ratelimit configuration uses the original API-root descriptor name `ratelimit/co
 Run from the target repository root, with a source cache outside both repositories:
 
 ```sh
-dotnet run --file scripts/Bindings.cs -- generate --cache ../upstream-sources
-dotnet run --file scripts/Bindings.cs -- verify --cache ../upstream-sources
+dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache ../upstream-sources
+dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings verify --cache ../upstream-sources
 ```
 
 `generate` verifies and exports the upstream inputs, downloads/checks the pinned Buf executable if needed, runs `buf build` and `buf generate`, applies the three locked C# corrections, and checks all generated output hashes. Official remote plugins require network access. An existing source cache is reused after checksum verification.
 
 `verify` additionally restores in locked mode, builds/packs Protocol, runs its binding tests, and copies those same tests into a temporary project that consumes only the newly built NuGet package. That consumer has a fresh package cache and no source/project reference. Its locked restore and all binding tests must pass. The temporary project is removed after its reports/lock are copied to `obj/upstream/`.
 
-Generated files, descriptor output and test reports are under `src/Envoy.ControlPlane.Protocol/obj/`; local packages are under that project's `bin/packages/`. Original license/notice texts from the verified archives are packaged under `licenses/<source-id>/`. [Upstream.cs](../scripts/Upstream.cs) and [Bindings.cs](../scripts/Bindings.cs) are file-based command entry points with focused `#:include` helpers. The [command map](../scripts/README.md) explains their organization. Typed option/descriptor assertions live in the test project, rather than a reflection-based inspection script.
+Generated files, descriptor output and test reports are under `src/Envoy.ControlPlane.Protocol/obj/`; local packages are under that project's `bin/packages/`. Original license/notice texts from the verified archives are packaged under `licenses/<source-id>/`. The main [CLI project](../tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj) routes `upstream` and `bindings` commands to focused implementation files. The generation-dependent schema helper builds only after bootstrap contracts exist. The [command map](../tools/README.md) explains their organization. Typed option/descriptor assertions live in the test project, rather than a reflection-based inspection script.
 
 ## Requirement coverage and observed evidence
 

@@ -100,7 +100,7 @@ Subtasks:
 
 ### T03 — Prove validation feasibility before binding freeze
 
-**Status:** Source implementation and bounded verification under local review. The user selected pinned ProtoValidate source with a separate annotation owner. [T03 evidence](../../schemas/VALIDATION.md) records 39 source fingerprints, explicit adaptations, 16 conditional-oneof metadata corrections, preserved original descriptors and 33 cases matching Go PGV. The native validation suite has 17 cases. G1 reviews the arrangement and package evidence; full T26/GV remains separate. Earlier published-provider probes are retained historical research; Celly cleanup is deferred.
+**Status:** Source implementation and bounded verification under local review. The user selected pinned ProtoValidate source with a separate annotation owner. [T03 evidence](../../schemas/VALIDATION.md) records 39 source fingerprints, explicit adaptations, 16 conditional-oneof metadata corrections, preserved original descriptors and 33 cases matching Go PGV. The native validation suite has 18 cases. G1 reviews the arrangement and package evidence; full T26/GV remains separate. Earlier published-provider probes are retained historical research; Celly cleanup is deferred.
 
 **Scope:** foundation / R23. **Depends on:** T02. **Outputs:** rule inventory, candidate/metadata assessment, bounded Go/.NET comparison results, provider decision, and ADR10 update. This task gates G1; full GV conformance does not.
 
@@ -124,7 +124,7 @@ Subtasks:
 
 - T04.1 Extend the SDK/package pins and xUnit/Microsoft Testing Platform setup established by T01 to the runtime projects; document their invocation modes.
 - T04.2 Create Protocol/Core/ASP.NET references and the separate validation-project layout selected by T03. Keep evaluator references in that optional project; root projects must not depend on it.
-- T04.3 Apply the repository's Roslynator code-quality policy to all runtime projects; add formatting, nullable policy, deterministic builds, package metadata/license notices, and a clean build/pack script. T01 already uses Roslynator in the C# file-based provenance app.
+- T04.3 Apply the repository's Roslynator code-quality policy to all runtime projects; add formatting, nullable policy, deterministic builds, package metadata/license notices, and a clean build/pack script. The repository CLI already uses Roslynator; its maintained commands are project-based under `tools/`.
 - T04.4 Establish fixture and evidence directories plus Linux/macOS/Windows build jobs; keep substantial workflow logic in scripts.
 
 **Acceptance:** A clean build and local package consumption succeed for selected targets. No implementation or test project is omitted from solution/CI discovery. Package graph matches ADR03/04; V37 has an initial smoke result.

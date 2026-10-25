@@ -4,6 +4,6 @@
 
 `Celly.Proof/`, `ProtoValidate.Proof/`, `Support/`, and `cases.json` preserve the earlier published-package assessment. They are historical research, excluded from the maintained build and CI entry points. Their recorded observations do not describe the selected source-built implementation. Celly cleanup remains deferred.
 
-The earlier orchestration helpers, `scripts/validation/ValidationAssessment.cs` and `ValidationMigration.cs`, are also retained historical source. Their original command names are no longer exposed by `scripts/Validation.cs`.
+The earlier orchestration helpers, `scripts/validation/ValidationAssessment.cs` and `ValidationMigration.cs`, are also retained historical source. Their original command names are not exposed by the maintained project-based CLI. See [the command map](../../tools/README.md).
 
 Use [the current validation tests](../Envoy.ControlPlane.Validation.Tests/) and [T03 evidence](../../schemas/VALIDATION.md) for supported commands, results and remaining acceptance gates.

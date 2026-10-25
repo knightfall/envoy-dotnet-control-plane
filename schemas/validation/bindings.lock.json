@@ -10,8 +10,8 @@
     "buf.annotations.gen.yaml": "9e6d47e1cde0a185ce1365194b3febeb92fda347fd465fd5b5fafba112a30079",
     "buf.validation.gen.yaml": "5971ad8829b48a31d25e677ca36ec1109daed0f1a8b72f81050862ae032fddcc",
     "schemas/validation/sources.lock.json": "21b1f9b13f8a14362f753b6665566667e39c481a12a9c1574e716f1e2bf922d0",
-    "scripts/validation/OverlayTransform.cs": "12f7db6c0b6d5526401aa5eba5726c32998637e25fc3c07b0f72ce78f515dcde",
-    "scripts/validation/MigrationCorrections.cs": "4e7ef6d4a487c37a51122628287053c76765e5afe5eef5fb30ba2ebad6440d5d"
+    "tools/Envoy.ControlPlane.SchemaTools/OverlayTransform.cs": "12f7db6c0b6d5526401aa5eba5726c32998637e25fc3c07b0f72ce78f515dcde",
+    "tools/Envoy.ControlPlane.Tools/Validation/MigrationCorrections.cs": "4e7ef6d4a487c37a51122628287053c76765e5afe5eef5fb30ba2ebad6440d5d"
   },
   "generatedCodeCorrections": [
     {

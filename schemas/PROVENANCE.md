@@ -6,7 +6,7 @@ Recorded 24 October 2026 for [T01 / issue #2](https://github.com/knightfall/envo
 
 - [upstream.lock.json](upstream.lock.json): immutable source commits, archive checksums, registry evidence and build-only patches, licenses/notices, all seven Go module manifests and replacements, inspection tools, and the catalog fingerprint.
 - [catalog.json](catalog.json): exact source path, import path, package, imports, SHA-256 and disposition for each inventoried schema.
-- [Upstream.cs](../scripts/Upstream.cs): a C# file-based app for source retrieval, catalog reconstruction and descriptor inspection.
+- [Upstream.cs](../tools/Envoy.ControlPlane.Tools/Upstream/Upstream.cs): the project-based CLI's source retrieval, catalog reconstruction and descriptor inspection command.
 - [License and notice inventory](NOTICES.md).
 - [Top-level baseline](../upstream-baseline.json).
 - [Automated CLI tests and requirement mapping](../tests/README.md), with [locked test dependencies](../tests/Envoy.ControlPlane.Upstream.Tests/packages.lock.json).
@@ -68,32 +68,32 @@ This resolves source provenance by matching definitions. The historical generati
 
 ## Retrieval and inspection
 
-Use the pinned [.NET SDK](../global.json), currently **10.0.400**. The app references **Google.Protobuf 3.35.1** with an exact `#:package` directive. Inspection verifies the loaded assembly hash against the locked NuGet package. These are provenance-tool dependencies, not the library's T02 provider decision. File-based apps and their package directives are documented in [Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps).
+Use the pinned [.NET SDK](../global.json), currently **10.0.400**. The CLI references **Google.Protobuf 3.35.1** through central package management and its dependency lock. Inspection verifies the loaded assembly hash against the locked NuGet package. These are provenance-tool dependencies, not the library's T02 provider decision. The main CLI can build without generated Protocol; the schema helper is a separate project.
 
-**Roslynator.Analyzers 5.0.1** is also pinned in the file-based app and source lock. The root [.editorconfig](../.editorconfig) promotes its enabled rules to warnings, and the app treats warnings as errors. Build analysis identified 21 diagnostics, which were addressed without suppressions: namespace placement, generated reusable regexes, braces and simpler conditionals. The final analyzer build completed without diagnostics. Roslynator is an analyzer-only development dependency; the package declares Apache-2.0 and no package dependencies. Its [configuration](https://josefpihrt.github.io/docs/roslynator/configuration/) is separate from binding-provider and validator decisions.
+**Roslynator.Analyzers 5.0.1** is also pinned for the CLI and in the source lock. The root [.editorconfig](../.editorconfig) promotes its enabled rules to warnings, and the app treats warnings as errors. Build analysis identified 21 diagnostics, which were addressed without suppressions: namespace placement, generated reusable regexes, braces and simpler conditionals. The final analyzer build completed without diagnostics. Roslynator is an analyzer-only development dependency; the package declares Apache-2.0 and no package dependencies. Its [configuration](https://josefpihrt.github.io/docs/roslynator/configuration/) is separate from binding-provider and validator decisions.
 
 Run from this repository's root. Choose an external cache, for example a sibling `upstream-sources/` folder. It contains checksummed archives and metadata, without nested Git repositories. Retrieval does not edit or run scripts from the Go checkout. Selected source files for compilation are materialized in a temporary inspection directory under that cache and removed afterward.
 
 ```sh
-dotnet build scripts/Upstream.cs
-dotnet run --file scripts/Upstream.cs -- sync --cache ../upstream-sources
-dotnet run --file scripts/Upstream.cs --no-restore -- sync --cache ../upstream-sources --offline
-dotnet run --file scripts/Upstream.cs -- inspect --cache ../upstream-sources
+dotnet build tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj
+dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream sync --cache ../upstream-sources
+dotnet run --project tools/Envoy.ControlPlane.Tools --no-restore -- upstream sync --cache ../upstream-sources --offline
+dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream inspect --cache ../upstream-sources
 ```
 
-`--offline` controls source/tool downloads. For an entirely offline run, first restore/build the file-based app and populate the artifact cache, then use `--no-build --no-restore` with `--offline`. Source synchronization uses framework archive/HTTP/JSON APIs and is portable; the currently locked **protoc inspection executable is macOS arm64 only**. Add an explicitly checksummed compiler artifact before claiming inspection support on another platform. T04 will establish the runtime package/CI toolchains separately.
+`--offline` controls source/tool downloads. For an entirely offline run, first restore/build the CLI project and populate the artifact cache, then use `--no-build --no-restore` with `--offline`. Source synchronization uses framework archive/HTTP/JSON APIs and is portable; the currently locked **protoc inspection executable is macOS arm64 only**. Add an explicitly checksummed compiler artifact before claiming inspection support on another platform. T04 will establish the runtime package/CI toolchains separately.
 
 Intentional input updates change the source lock first, then reconstruct the catalog:
 
 ```sh
-dotnet run --file scripts/Upstream.cs -- sync --cache ../upstream-sources --write-catalog
+dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream sync --cache ../upstream-sources --write-catalog
 ```
 
 Review the generated diff, update `catalogSha256` in the lock, and rerun `sync` and `inspect`. `--write-catalog` is an update operation, not a passing audit. No command updates a branch, tag or source pin automatically.
 
 ## Observed evidence and G0 acceptance
 
-The C# app was built with SDK 10.0.400 on macOS arm64, with Google.Protobuf 3.35.1. Commands used a temporary CLI home, NuGet package cache and source cache to keep generated artifacts outside this repository:
+The following historical commands used the file-based entry point before its project migration. Current commands are documented above. The C# app was built with SDK 10.0.400 on macOS arm64, with Google.Protobuf 3.35.1. Commands used a temporary CLI home, NuGet package cache and source cache to keep generated artifacts outside this repository:
 
 ```sh
 DOTNET_CLI_HOME=/private/tmp/envoy-dotnet-cli NUGET_PACKAGES=/private/tmp/envoy-dotnet-nuget dotnet build scripts/Upstream.cs --no-restore --nologo

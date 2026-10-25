@@ -12,7 +12,7 @@ internal static class BindingGeneration
         VerifyConfiguration(bindingLock);
 
         // Export validates T01 provenance before replacing its own build inputs.
-        await BuildProcess.RunAsync("dotnet", ["run", "--no-cache", "--file", "scripts/Upstream.cs", "--", "export", "--cache", sourceCache]);
+        Require(await Upstream.RunAsync(["export", "--cache", sourceCache]) == 0, "Upstream source export failed");
 
         string buf = await BufTool.GetExecutableAsync(sourceCache, bindingLock["buf"]!);
         await BuildProcess.RunAsync(buf, ["build", "--as-file-descriptor-set", "--exclude-source-info",
@@ -22,7 +22,7 @@ internal static class BindingGeneration
 
         await ValidationGeneration.PrepareAsync(sourceCache, buf);
         await BuildProcess.RunAsync(buf, ["generate", "--template", "buf.gen.yaml"]);
-        await BuildProcess.RunAsync("dotnet", ["run", "--no-cache", "--file", "scripts/PatchBindings.cs", "--", GeneratedDirectory]);
+        Require(PatchBindings.Run([GeneratedDirectory]) == 0, "Generated-code correction failed");
         VerifyGeneratedFiles(bindingLock);
         await ValidationGeneration.GenerateAsync(sourceCache, buf);
     }

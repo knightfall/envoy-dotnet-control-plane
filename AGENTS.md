@@ -10,7 +10,8 @@ Read [README.md](README.md) for the implementation status and [docs/plan/IMPLEME
 |---|---|
 | `src/` | Runtime libraries and package definitions |
 | `tests/` | Automated verification, fixtures and shared test support |
-| `scripts/` | C# command entry points and supporting tooling |
+| `tools/` | Project-based repository CLI and generation-dependent schema helper |
+| `scripts/` | Retained historical research helpers |
 | `schemas/` | Source/tool locks, catalog, annotation inventory and provenance |
 | `docs/` | Architecture, decisions, parity requirements and implementation plan |
 
@@ -18,7 +19,7 @@ Read [README.md](README.md) for the implementation status and [docs/plan/IMPLEME
 
 - Use the .NET SDK specified in `global.json`. Do not silently upgrade the SDK, target frameworks or dependencies to make a build pass.
 - Use the Go toolchain version recorded in the validation source lock for generation and comparison. Consumers of built packages do not need Go or Buf.
-- A fresh checkout does not contain generated bindings. Read [scripts/README.md](scripts/README.md) and generate them before building projects that reference Protocol.
+- A fresh checkout does not contain generated bindings. Read [tools/README.md](tools/README.md) and generate them before building projects that reference Protocol.
 - Source and tool retrieval uses the canonical **remote HTTPS URLs and immutable commits/checksums** recorded in [upstream-baseline.json](upstream-baseline.json), [schemas/upstream.lock.json](schemas/upstream.lock.json), [schemas/bindings.lock.json](schemas/bindings.lock.json), and [schemas/validation/sources.lock.json](schemas/validation/sources.lock.json). These manifests are the source of truth for upstream locations; do not require another checkout or assume a sibling directory exists.
 - Choose a writable source-cache directory outside the checkout. Do not depend on a previously populated cache or a globally installed Buf executable. The tooling retrieves and verifies its pinned artifacts. Initial dependency restore and remote-plugin generation require network access.
 
@@ -32,8 +33,8 @@ dotnet test --project tests/Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane
 Generate bindings and verify both project and package consumption with the following command. Replace `<source-cache>` with the chosen cache directory:
 
 ```sh
-dotnet run --no-cache --file scripts/Bindings.cs -- verify --cache <source-cache>
-dotnet run --no-cache --file scripts/Validation.cs -- verify
+dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings verify --cache <source-cache>
+dotnet run --project tools/Envoy.ControlPlane.Tools -- validation verify
 ```
 
 Use [tests/README.md](tests/README.md) for additional test commands and [.github/workflows/upstream-verification.yml](.github/workflows/upstream-verification.yml) for CI entry points. Check declared tool/platform support before claiming a verification result. Generated inputs and code belong under `obj/`; package output belongs under `bin/`.
@@ -52,7 +53,7 @@ Use [tests/README.md](tests/README.md) for additional test commands and [.github
 
 - Use descriptive names, ordinary control flow and one clear responsibility per method or type. Expand dense expressions; avoid single-letter helper names and multiple operations on one line.
 - Keep command entry points short and show workflow phases in execution order. Put implementation in focused files and folders rather than hiding unrelated responsibilities in a large class.
-- Use C# file-based apps for script entry points, with explicit `#:include` directives for supporting source. Use normal projects for runtime libraries and tests. Update include lists and build inputs when helpers move.
+- Use the project-based CLI under `tools/` for maintained repository commands. Keep the main CLI independent of generated Protocol so it builds from a fresh checkout; build the schema helper after bootstrap generation. Use ordinary project references for build dependencies and focused source links only where clean package-consumer tests require them.
 - Group tests by behavior. Keep shared fixtures, contract data and descriptor-inspection helpers separate from test orchestration.
 - Prefer typed protobuf APIs. Use reflection only where generated identity or contract inspection requires it, and keep that inspection focused.
 - Explain constraints and decisions in comments. Avoid obvious narration, unnecessary wrappers and generic abstractions for small workflows.
@@ -60,7 +61,7 @@ Use [tests/README.md](tests/README.md) for additional test commands and [.github
 
 ## Dependencies and tests
 
-- Use **central package management** in `Directory.Packages.props`. Do not put versions on project `PackageReference` items or file-based `#:package` directives. Keep project dependency lock files current and verify with locked restore. Materialized third-party evaluator source is fingerprinted and retains upstream style; Roslynator checks authored code and tests, and compiler warnings remain errors everywhere.
+- Use **central package management** in `Directory.Packages.props`. Do not put versions on project `PackageReference` items. Keep project dependency lock files current and verify with locked restore. Materialized third-party evaluator source is fingerprinted and retains upstream style; Roslynator checks authored code and tests, and compiler warnings remain errors everywhere.
 - Follow declared project targets, using `net10.0` by default. Broaden support only for a concrete consumer requirement backed by a consumption proof.
 - Assert meaningful acceptance, rejection and boundary outcomes. Keep expected fixtures independent of the implementation and preserve existing assertions during refactoring.
 - Prefer existing upstream schemas for descriptor/Any tests. Synthetic schemas are permitted in isolated source-tooling fixtures, not as replacement library contracts.
