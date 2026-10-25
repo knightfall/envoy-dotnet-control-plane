@@ -194,6 +194,8 @@ Subtasks:
 
 ### T09 — Implement the SotW stream engine and callbacks
 
+**Status:** Source investigation completed; C# implementation and stream comparison tests remain pending. [T09 investigation](T09-SOTW-STREAM-INVESTIGATION.md) records callback/nonce order, the fixed failure/cleanup direction, existing upstream test results and why no separate xDS protocol library is needed.
+
 **Scope:** preview / R08, R10. **Depends on:** T07, T08. **Outputs:** transport-independent SotW session loop and callback contracts.
 
 Subtasks:
@@ -203,7 +205,7 @@ Subtasks:
 - T09.3 Implement request/open rejection and one .NET exception/cleanup mapping; preserve close notification on rejected open. Add no configurable hook policies or callback middleware.
 - T09.4 Add per-stream tests for version changes, NACK/no rollback, later node replacement, immediate cache response, and blocked writer behavior.
 
-**Acceptance:** V10–V12/V15/V28/V29 pass. Exactly one writer acts on each stream. Request callbacks still see stale requests at the source-equivalent point. No new automatic NACK rollback or retry policy appears.
+**Acceptance:** Core portions of V10–V12/V15/V29 pass. Exactly one writer acts on each stream. Request callbacks still see stale requests at the source-equivalent point. No new automatic NACK rollback or retry policy appears. V28's actual HTTP/2 service calls require T11/T12/T22; T09 prepares core outcomes for the adapters without claiming network acceptance.
 
 ### T10 — Implement SotW ADS readiness and optional ordering
 
