@@ -75,6 +75,8 @@ dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release -- r
 
 Solution build completed with **0 warnings and 0 errors**. All five candidate packages and five symbol packages passed content inspection. Separate Core and ASP.NET executable consumers passed dependency/framework checks; Core also constructed and checked a snapshot, while ASP.NET built/disposed its host without listening. The full Core test suite ran from the candidate package with no source project reference and a fresh NuGet cache.
 
+A fresh Git clone of implementation commit `50295db2b1a71c69415919b0e8cdd0f469af4c9e`, initially without generated files, also passed binding generation and the complete repository command. It regenerated the unchanged 540 Protocol files, preserved 523 original descriptors and the existing 16 conditional-oneof corrections, then passed the same 92 solution cases, Go comparisons and fresh package consumers. The checkout remained clean. Source retrieval used an external verified artifact cache; package-consumer caches were empty.
+
 The Linux/macOS/Windows workflow runs the same generation and repository verification entry points. Remote CI results belong to the implementing PR and are distinct from these local observations. Candidate packaging does not publish to NuGet.org.
 
 ## Limits
