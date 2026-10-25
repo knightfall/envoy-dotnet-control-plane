@@ -1,5 +1,7 @@
 # Independent resource/snapshot comparison
 
+See [upstream test reuse](UPSTREAM-TESTS.md) for directly imported code, attributed fixture/scenario adaptations and why source retrieval uses the existing pinned Go module.
+
 `GoOracle/` uses the upstream cache at commit `67c5345367582741334e34ffc66a561b0ce32946`. Its root and Envoy modules are pinned to pseudo-versions ending in `67c534536758`; `ResourceVerification` rejects replacements or revisions that differ from the repository baseline. `go.sum` records dependencies. Use the Go toolchain selected by the repository source lock.
 
 The Core suite reads `tests/Envoy.ControlPlane.Tests/Fixtures/snapshot-cases.json`. These 19 fixtures declare names, versions and consistency outcomes. It exports original protobuf wire payloads, optional TTL nanoseconds and the observed .NET outcomes to its output directory. The Go executable reconstructs the messages and invokes `NewSnapshotWithTTLs`, `Consistent`, resource access and explicit version-map construction. Differences fail the command. The report must contain every declared fixture exactly once.

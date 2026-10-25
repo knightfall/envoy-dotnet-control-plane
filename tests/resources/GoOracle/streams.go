@@ -16,7 +16,6 @@ import (
 	cache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
 	sotw "github.com/envoyproxy/go-control-plane/pkg/server/sotw/v3"
 	"google.golang.org/genproto/googleapis/rpc/status"
-	"google.golang.org/grpc"
 )
 
 type streamStep struct {
@@ -52,40 +51,12 @@ type streamRegistration struct {
 }
 
 type streamTrace struct {
-	grpc.ServerStream
-	ctx           context.Context
-	input         chan streamInput
+	*mockStream
 	requested     chan bool
 	created       chan *streamRegistration
-	sent          chan bool
 	registrations []*streamRegistration
 	observation   streamObservation
 	callbackNonce string
-}
-
-type streamInput struct {
-	request *discovery.DiscoveryRequest
-	err     error
-}
-
-func (s *streamTrace) Context() context.Context { return s.ctx }
-
-func (s *streamTrace) Recv() (*discovery.DiscoveryRequest, error) {
-	select {
-	case item, ok := <-s.input:
-		if !ok {
-			return nil, io.EOF
-		}
-		return item.request, item.err
-	case <-s.ctx.Done():
-		return nil, s.ctx.Err()
-	}
-}
-
-func (s *streamTrace) Send(response *discovery.DiscoveryResponse) error {
-	s.observation.Events = append(s.observation.Events, fmt.Sprintf("send|%s|%s|%s", response.TypeUrl, response.VersionInfo, response.Nonce))
-	s.sent <- true
-	return nil
 }
 
 func (s *streamTrace) OnStreamOpen(_ context.Context, _ int64, typeURL string) error {
@@ -173,8 +144,10 @@ func runStreams(args []string) error {
 func executeStream(fixture streamCase) (streamObservation, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	trace := &streamTrace{ctx: ctx, input: make(chan streamInput), requested: make(chan bool, 1),
-		created: make(chan *streamRegistration, 1), sent: make(chan bool, 1), callbackNonce: fixture.CallbackNonce}
+	trace := &streamTrace{requested: make(chan bool, 1), created: make(chan *streamRegistration, 1), callbackNonce: fixture.CallbackNonce}
+	trace.mockStream = makeMockStream(ctx, func(response *discovery.DiscoveryResponse) {
+		trace.observation.Events = append(trace.observation.Events, fmt.Sprintf("send|%s|%s|%s", response.TypeUrl, response.VersionInfo, response.Nonce))
+	})
 	done := make(chan error, 1)
 	go func() { done <- sotw.NewServer(ctx, trace, trace).StreamHandler(trace, fixture.DefaultType) }()
 	for _, step := range fixture.Steps {
@@ -188,7 +161,7 @@ func executeStream(fixture streamCase) (streamObservation, error) {
 				request.ErrorDetail = &status.Status{Code: 3, Message: "rejected"}
 			}
 			select {
-			case trace.input <- streamInput{request: request}:
+			case trace.recv <- streamInput{request: request}:
 			case <-ctx.Done():
 				return streamObservation{}, ctx.Err()
 			}
@@ -217,12 +190,12 @@ func executeStream(fixture streamCase) (streamObservation, error) {
 		case "end":
 			if step.ReceiveError {
 				select {
-				case trace.input <- streamInput{err: io.ErrUnexpectedEOF}:
+				case trace.recv <- streamInput{err: io.ErrUnexpectedEOF}:
 				case <-ctx.Done():
 					return streamObservation{}, ctx.Err()
 				}
 			} else {
-				close(trace.input)
+				close(trace.recv)
 			}
 			err, timeout := nextStreamEvent(ctx, done)
 			if timeout != nil {
