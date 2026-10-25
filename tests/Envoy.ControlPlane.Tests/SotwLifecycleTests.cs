@@ -242,4 +242,38 @@ public sealed class SotwLifecycleTests
         await stream.Finish();
         Assert.All(stream.Watcher.Registrations, registration => Assert.Equal(1, registration.Watch.Disposals));
     }
+
+    [Theory]
+    [InlineData("type/A")]
+    [InlineData("type/B")]
+    public async Task BufferedRequests_DoNotStarveAlreadyCompletedResponse(string bufferedType)
+    {
+        await using var stream = new StreamHarness();
+        var events = new List<string>();
+        stream.Watcher.Create = (request, _) =>
+        {
+            var watch = new StreamWatch();
+            if (request.TypeUrl == "type/A") watch.Respond(Response(request));
+            return watch;
+        };
+        stream.Callbacks.Request = (_, request, _) => { events.Add("request:" + request.VersionInfo); return ValueTask.CompletedTask; };
+        stream.Sending = (_, _) => { events.Add("send"); return ValueTask.CompletedTask; };
+        stream.Input.Push(Request());
+        var second = Request(type: bufferedType);
+        second.VersionInfo = "second";
+        stream.Input.Push(second);
+        var third = Request(type: bufferedType);
+        third.VersionInfo = "third";
+        stream.Input.Push(third);
+        stream.Input.Complete();
+        stream.Start(typeUrl: "");
+        await Wait(stream.Running);
+        Assert.True(stream.Sent.Reader.TryRead(out var response));
+        Assert.Equal("1", response.Nonce);
+        Assert.Equal("type/A", response.TypeUrl);
+        Assert.False(stream.Sent.Reader.TryRead(out _));
+        Assert.Equal(3, events.Count(value => value.StartsWith("request:", StringComparison.Ordinal)));
+        Assert.True(events.IndexOf("send") < events.IndexOf("request:third"));
+        Assert.All(stream.Watcher.Registrations, registration => Assert.Equal(1, registration.Watch.Disposals));
+    }
 }

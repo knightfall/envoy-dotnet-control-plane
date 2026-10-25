@@ -14,6 +14,7 @@ internal sealed class SotwSession(IConfigWatcher cache, ISotwCallbacks? callback
     private IAsyncEnumerator<DiscoveryRequest>? input;
     private Task<bool>? receive;
     private long nonce;
+    private int nextSelection;
 
     internal async Task RunAsync(IAsyncEnumerable<DiscoveryRequest> requests,
         Func<DiscoveryResponse, CancellationToken, ValueTask> send, string typeUrl, ResponseContext context)
@@ -59,7 +60,8 @@ internal sealed class SotwSession(IConfigWatcher cache, ISotwCallbacks? callback
                     candidates.Add(watch.Pending);
                 }
             }
-            Task ready = await Task.WhenAny(candidates);
+            await Task.WhenAny(candidates);
+            Task ready = SelectReady(candidates);
             if (ready == canceled)
             {
                 return;
@@ -92,6 +94,21 @@ internal sealed class SotwSession(IConfigWatcher cache, ISotwCallbacks? callback
                 await SendAsync(response, send, cancellationToken);
             }
         }
+    }
+
+    private Task SelectReady(IReadOnlyList<Task> candidates)
+    {
+        // Resume after the previous selection so buffered input cannot starve ready watches.
+        for (int offset = 0; offset < candidates.Count; offset++)
+        {
+            int index = (nextSelection + offset) % candidates.Count;
+            if (candidates[index].IsCompleted)
+            {
+                nextSelection = (index + 1) % candidates.Count;
+                return candidates[index];
+            }
+        }
+        throw new InvalidOperationException("No completed stream operation after wake-up");
     }
 
     private async ValueTask ProcessRequestAsync(DiscoveryRequest request, string typeUrl, CancellationToken cancellationToken)

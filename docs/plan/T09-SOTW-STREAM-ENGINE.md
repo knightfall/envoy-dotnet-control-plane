@@ -6,7 +6,7 @@ Implements [issue #10](https://github.com/knightfall/envoy-dotnet-control-plane/
 
 `SotwServer.StreamAsync` accepts one asynchronous request input, an awaited send delegate, an implied type URL and `ResponseContext`. An empty type URL selects ordinary unordered ADS. The caller owns the cache. Each call owns one private session and its request enumerator, linked cancellation and per-type watches.
 
-The loop holds at most one next receive while processing, and awaits every callback/send directly. Per-type records retain subscription state and the current watch nonce. Replacing a watch cancels it before changing the subscription and starts the replacement with an empty nonce. A consumed completion is removed from selection so an immediate or filtered result cannot be selected twice. Simultaneously ready events have no promised cross-type ordering.
+The loop holds at most one next receive while processing, and awaits every callback/send directly. Per-type records retain subscription state and the current watch nonce. Replacing a watch cancels it before changing the subscription and starts the replacement with an empty nonce. A consumed completion is removed from selection so an immediate or filtered result cannot be selected twice. Ready operations are selected from a rotating position so buffered input cannot indefinitely starve ready responses. Simultaneously ready events have no promised resource-type priority.
 
 Normalization carries an omitted Node, captures an explicitly supplied Node and fills only an absent per-type URL. Missing ADS URLs fail before the request callback. Callbacks can change the effective request. Stale requests remain callback-visible and can change the carried Node, but do not replace a watch. NACKs preserve request versions and do not roll back snapshots.
 
@@ -29,7 +29,7 @@ Cleanup cancels and observes the owned receive, attempts every current watch rel
 | Metadata filtering before materialization | `UnsubscribedResponse_IsConsumedWithoutMaterializingOrSending` |
 | Stable shared response ownership | `SharedResponse_ClonesEnvelopeAndPreservesPayloadAndUnknownFieldsAcrossStreams` |
 | NACK/no rollback and callback cache reentry | `Nack_RedeliversCurrentSnapshotWithoutRollbackAndCallbacksCanPublish` |
-| Serial sends and one held receive | `BlockedWriter_HoldsOneReceiveAndSerializesOtherTypeResponse` |
+| Serial sends, one held receive and buffered-input progress | `BlockedWriter_HoldsOneReceiveAndSerializesOtherTypeResponse`; `BufferedRequests_DoNotStarveAlreadyCompletedResponse` |
 | EOF/receive failure/call and host cancellation | `InputTermination_ReleasesWatchesAndClosesOnce` |
 | Open/request/cache/watch/materialization/hook/send failures | `OperationFailure_PreservesOriginalAndCleansUp`; `OperationCancellation_IsPreservedEvenAfterCallCancellation` |
 | Protocol/custom-response invariant failures | `MissingStreamValue_ReturnsUnavailable`; `MalformedCustomResponse_FailsWithoutSendingAndReleasesWatch` |
@@ -42,7 +42,7 @@ The checked-in `sotw-stream-cases.json` declares expected observations independe
 
 ## Observed evidence and limits
 
-Local macOS arm64 checks use .NET SDK 10.0.400, native xUnit/MTP and Go 1.26.4. Complete `repository verify` passed: 171 solution cases, zero failed/skipped; all five package/symbol pairs; fresh Protocol (12), Validation (18) and Core (116) test consumers plus executable Core/ASP.NET package consumers; zero build warnings/errors with Roslynator. Six actual Go stream comparisons and the existing validation/snapshot/cache/subscription corpora matched. Remote CI results belong to the implementing PR. A static source/test pairing helper was unavailable because its Python parser dependency was absent; no static-pairing or coverage claim is made.
+Local macOS arm64 checks use .NET SDK 10.0.400, native xUnit/MTP and Go 1.26.4. Complete `repository verify` passed: 173 solution cases, zero failed/skipped; all five package/symbol pairs; fresh Protocol (12), Validation (18) and Core (118) test consumers plus executable Core/ASP.NET package consumers; zero build warnings/errors with Roslynator. Six actual Go stream comparisons and the existing validation/snapshot/cache/subscription corpora matched. Both buffered-input regression cases failed against the original selector and pass with ready-operation rotation. Remote CI results for the final head belong to the implementing PR. A static source/test pairing helper was unavailable because its Python parser dependency was absent; no static-pairing or coverage claim is made.
 
 The comparison reuses upstream `PassthroughResponse`, generated messages and the real SotW handler. It adapts the upstream `mockStream` fixture with its original license header. Selected C# scenarios port the upstream response, stale-nonce, missing-type, shutdown, cancellation, send-error, callback-error and nil-response tests. [Test reuse and attribution](../../tests/resources/UPSTREAM-TESTS.md) records the source revision/hash, retained license, mapping and modifications. Remaining code bridges the two languages and records observations or exercises .NET-specific ownership/cleanup; no separate test framework or substitute protocol implementation is added.
 
