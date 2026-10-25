@@ -19,14 +19,16 @@ internal static class RepositoryVerification
             await BuildProcess.RunAsync("dotnet", ["test", "--solution", Solution, "--configuration", "Release", "--no-build", "--no-restore",
                 "--results-directory", Path.GetFullPath(BindingPaths.InputsDirectory + "/results/repository"), "--report-xunit-trx"]);
             int cases = await ValidationVerification.CompareWithGoAsync();
+            await ResourceVerification.CompareWithGoAsync();
             await BuildProcess.RunAsync("dotnet", ["pack", Solution, "--configuration", "Release", "--no-build", "--no-restore",
                 "--output", BindingPaths.PackageDirectory]);
             PackageContentsVerification.Verify();
             await PackageVerification.VerifyCleanConsumerAsync();
             await PackageVerification.VerifyCleanConsumerAsync(ValidationPaths.TestsProject, "validation-consumer");
+            await PackageVerification.VerifyCleanConsumerAsync("tests/Envoy.ControlPlane.Tests/Envoy.ControlPlane.Tests.csproj", "core-consumer");
             await RootConsumerVerification.RunAsync("Core");
             await RootConsumerVerification.RunAsync("AspNetCore");
-            Console.WriteLine($"Repository build, tests, packages and consumers passed; {cases} Go PGV cases matched. Runtime features and full GV remain separate tasks.");
+            Console.WriteLine($"Repository build, tests, packages and consumers passed; {cases} Go PGV cases and the snapshot corpus matched. Streaming/cache features and full GV remain separate tasks.");
             return 0;
         }
         catch (Exception error) when (error is not OutOfMemoryException)

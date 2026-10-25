@@ -82,7 +82,7 @@ T02 preserves original upstream validation annotations and required option defin
 
 ## 4. Proposed contracts
 
-Names and signatures below describe responsibilities, rather than a frozen API. Freeze public contracts after G1. Actual generated service signatures come from the selected bindings.
+The resource snapshot contract below is implemented by T05; the other contracts remain responsibility sketches for later tasks. See [T05 evidence](../plan/T05-RESOURCES-AND-SNAPSHOTS.md) for the implemented surface. Actual generated service signatures come from the selected bindings.
 
 ```csharp
 public interface INodeHasher { string Hash(Node? node); }
@@ -90,8 +90,10 @@ public interface INodeHasher { string Hash(Node? node); }
 public interface IResourceSnapshot
 {
     string GetVersion(string typeUrl);
-    IReadOnlyDictionary<string, ResourceEntry> GetResources(string typeUrl);
-    IReadOnlyDictionary<string, string> GetResourceVersions(string typeUrl);
+    IReadOnlyDictionary<string, ResourceEntry>? GetResourcesAndTtl(string typeUrl);
+    IReadOnlyDictionary<string, IMessage?>? GetResources(string typeUrl);
+    void ConstructVersionMap();
+    IReadOnlyDictionary<string, string>? GetVersionMap(string typeUrl);
 }
 
 public interface IConfigWatcher
@@ -111,7 +113,7 @@ public interface IConfigFetcher
 }
 ```
 
-`ResourceEntry` holds a name, resource message, and optional TTL. `SubscriptionView` describes the exact names, prefixes, wildcard state, and returned metadata needed by the cache. These signatures are responsibility sketches; a separate immutable-view framework is not required. The stream owns subscription updates; a cache retains a stable view only for its watch lifetime. Response envelopes retain the originating request, context, version, returned metadata, and materialization behavior needed for upstream custom-cache parity. Keep stream-specific nonce mutation away from data shared by multiple streams.
+`ResourceEntry` retains a resource message and optional TTL. `ResourceCatalog.GetName` derives the indexing name from the message; applications can implement `INamedResource` for custom naming. `SubscriptionView` describes the exact names, prefixes, wildcard state, and returned metadata needed by the cache. These signatures are responsibility sketches; a separate immutable-view framework is not required. The stream owns subscription updates; a cache retains a stable view only for its watch lifetime. Response envelopes retain the originating request, context, version, returned metadata, and materialization behavior needed for upstream custom-cache parity. Keep stream-specific nonce mutation away from data shared by multiple streams.
 
 `IWatch` sketches a one-shot asynchronous result with idempotent cancellation/disposal. It can already be completed when returned. Immediate response, pending response, cancellation, and cache failure remain distinguishable. Choose a task or channel representation during the SotW slice; do not require both wrappers or a generalized watch framework. Cache completion must not invoke network I/O inside publication locks, and an immediate result must remain valid before the stream begins awaiting it.
 
@@ -125,7 +127,7 @@ Follow Go's stable-resource convention: callers must not mutate a message while 
 
 Preserve upstream lazy materialization/version computation where used. Do not cache a stream nonce in shared serialized data. Per-type snapshot versions are caller-supplied opaque strings. LinearCache maintains its own version counter with an optional instance prefix. Default Go resource hashes use SHA256 over deterministic protobuf bytes; cross-language equality is unproven. Test semantic equality and version relationships and report literal-hash limitations. Do not introduce a public pluggable version-strategy API without an upstream equivalent or a separately approved need.
 
-`Snapshot.Consistent` remains opt-in and checks the source's EDS/RDS reference-set conditions. A partial snapshot can be valid for a consumer. `SetSnapshot` does not automatically call consistency or a validator. Reference extraction, semantic protobuf validation, xDS ACK/NACK, and Envoy runtime acceptance are separate checks.
+`Snapshot.EnsureConsistent()` remains opt-in and checks the source's EDS/RDS reference-set conditions. A partial snapshot can be valid for a consumer. `SetSnapshot` does not automatically call consistency or a validator. Reference extraction, semantic protobuf validation, xDS ACK/NACK, and Envoy runtime acceptance are separate checks.
 
 ## 6. Cache algorithms
 

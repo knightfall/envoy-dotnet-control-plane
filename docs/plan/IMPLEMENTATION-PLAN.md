@@ -1,6 +1,6 @@
 # Implementation plan: tasks and subtasks
 
-Reviewed **25 October 2026**. T01/T02 merged in PRs #33/#34, with [provenance evidence](../../schemas/PROVENANCE.md) and [binding evidence](../../schemas/BINDINGS.md). T03 has a user-selected source arrangement and [bounded local feasibility evidence](../../schemas/VALIDATION.md), merged in PR #35 for the bounded binding decision. T01 brought the test framework/runner and tooling CI forward from T04; T04 now establishes the [build/package foundation](T04-BUILD-FOUNDATION.md); runtime behavior remains **planned**. T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. No runtime implementation result is claimed. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
+Reviewed **25 October 2026**. T01/T02 merged in PRs #33/#34, with [provenance evidence](../../schemas/PROVENANCE.md) and [binding evidence](../../schemas/BINDINGS.md). T03 has a user-selected source arrangement and [bounded local feasibility evidence](../../schemas/VALIDATION.md), merged in PR #35 for the bounded binding decision. T01 brought the test framework/runner and tooling CI forward from T04; T04 merged in PR #38 with the [build/package foundation](T04-BUILD-FOUNDATION.md). T05 implements [resource/snapshot primitives](T05-RESOURCES-AND-SNAPSHOTS.md); caches and streaming behavior remain **planned**. T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. T05 evidence covers resource primitives and snapshot behavior; it does not establish an operational control-plane server. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
 
 ## Execution rules
 
@@ -118,7 +118,7 @@ Subtasks:
 
 ### T04 — Establish repository and build structure
 
-**Status:** Implemented build/package foundation with local solution, package-content, and four fresh-consumer proofs. See [T04 evidence](T04-BUILD-FOUNDATION.md). Core and hosting projects establish dependencies only; their runtime behavior remains in T05 and later tasks.
+**Status:** Merged in PR #38 after Linux/macOS/Windows build, test, package and consumer checks passed. See [T04 evidence](T04-BUILD-FOUNDATION.md). Resource behavior begins in T05; hosting adapters remain later work.
 
 **Scope:** preview / R25. **Depends on:** T02, T03. **Outputs:** solution, root Protocol/Core/ASP.NET projects, optional validation-project layout, pinned SDK/build settings, test layout, scripts, and initial CI.
 
@@ -132,6 +132,8 @@ Subtasks:
 **Acceptance:** A clean build and local package consumption succeed for selected targets. No implementation or test project is omitted from solution/CI discovery. Package graph matches ADR03/04; V37 has an initial smoke result.
 
 ### T05 — Implement resource entries, snapshots, and descriptor helpers
+
+**Status:** Implemented with 38 Core tests, 19 pinned Go snapshot comparisons and fresh package consumption. See [T05 evidence](T05-RESOURCES-AND-SNAPSHOTS.md) for exact scope and verification limits.
 
 **Scope:** preview, Delta primitives for 1.0 / R03, R04. **Depends on:** T04. **Outputs:** Core `Resources/`, snapshot model, descriptor handling, upstream-equivalent version behavior.
 

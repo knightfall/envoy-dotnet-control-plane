@@ -8,6 +8,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Envoy.ControlPlane.Protocol.Tests/Envoy.ControlPlane.Protocol.Tests.csproj" />
+    <Project Path="tests/Envoy.ControlPlane.Tests/Envoy.ControlPlane.Tests.csproj" />
     <Project Path="tests/Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj" />
     <Project Path="tests/Envoy.ControlPlane.Validation.Tests/Envoy.ControlPlane.Validation.Tests.csproj" />
   </Folder>

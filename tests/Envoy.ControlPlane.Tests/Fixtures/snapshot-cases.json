@@ -1,0 +1,635 @@
+[
+  {
+    "id": "empty",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [],
+    "names": {}
+  },
+  {
+    "id": "explicit-empty",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment",
+        "entries": []
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment": []
+    }
+  },
+  {
+    "id": "partial-static-cluster",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+        "entries": [
+          {
+            "message": {
+              "name": "static",
+              "type": "STATIC"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.cluster.v3.Cluster": [
+        "static"
+      ]
+    }
+  },
+  {
+    "id": "invalid-proto-not-validated",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+        "entries": [
+          {
+            "message": {
+              "type": "STATIC"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.cluster.v3.Cluster": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "eds-valid",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+        "entries": [
+          {
+            "message": {
+              "name": "backend",
+              "type": "EDS"
+            }
+          }
+        ]
+      },
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment",
+        "entries": [
+          {
+            "message": {
+              "clusterName": "backend"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.cluster.v3.Cluster": [
+        "backend"
+      ],
+      "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment": [
+        "backend"
+      ]
+    }
+  },
+  {
+    "id": "eds-service-override",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+        "entries": [
+          {
+            "message": {
+              "name": "backend",
+              "type": "EDS",
+              "edsClusterConfig": {
+                "serviceName": "service"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment",
+        "entries": [
+          {
+            "message": {
+              "clusterName": "service"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.cluster.v3.Cluster": [
+        "backend"
+      ],
+      "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment": [
+        "service"
+      ]
+    }
+  },
+  {
+    "id": "eds-missing",
+    "version": "opaque/v9",
+    "consistent": false,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+        "entries": [
+          {
+            "message": {
+              "name": "backend",
+              "type": "EDS"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.cluster.v3.Cluster": [
+        "backend"
+      ]
+    }
+  },
+  {
+    "id": "eds-wrong-name",
+    "version": "opaque/v9",
+    "consistent": false,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+        "entries": [
+          {
+            "message": {
+              "name": "backend",
+              "type": "EDS"
+            }
+          }
+        ]
+      },
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment",
+        "entries": [
+          {
+            "message": {
+              "clusterName": "wrong"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.cluster.v3.Cluster": [
+        "backend"
+      ],
+      "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment": [
+        "wrong"
+      ]
+    }
+  },
+  {
+    "id": "eds-extra",
+    "version": "opaque/v9",
+    "consistent": false,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+        "entries": [
+          {
+            "message": {
+              "name": "backend",
+              "type": "EDS"
+            }
+          }
+        ]
+      },
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment",
+        "entries": [
+          {
+            "message": {
+              "clusterName": "backend"
+            }
+          },
+          {
+            "message": {
+              "clusterName": "extra"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.cluster.v3.Cluster": [
+        "backend"
+      ],
+      "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment": [
+        "backend",
+        "extra"
+      ]
+    }
+  },
+  {
+    "id": "endpoint-only",
+    "version": "opaque/v9",
+    "consistent": false,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment",
+        "entries": [
+          {
+            "message": {
+              "clusterName": "backend"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment": [
+        "backend"
+      ]
+    }
+  },
+  {
+    "id": "rds-valid",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+        "entries": [
+          {
+            "message": {
+              "name": "listener",
+              "filterChains": [
+                {
+                  "filters": [
+                    {
+                      "name": "envoy.filters.network.http_connection_manager",
+                      "typedConfig": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                        "rds": {
+                          "routeConfigName": "route"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+        "entries": [
+          {
+            "message": {
+              "name": "route"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.listener.v3.Listener": [
+        "listener"
+      ],
+      "type.googleapis.com/envoy.config.route.v3.RouteConfiguration": [
+        "route"
+      ]
+    }
+  },
+  {
+    "id": "rds-missing",
+    "version": "opaque/v9",
+    "consistent": false,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+        "entries": [
+          {
+            "message": {
+              "name": "listener",
+              "filterChains": [
+                {
+                  "filters": [
+                    {
+                      "name": "envoy.filters.network.http_connection_manager",
+                      "typedConfig": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                        "rds": {
+                          "routeConfigName": "route"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.listener.v3.Listener": [
+        "listener"
+      ]
+    }
+  },
+  {
+    "id": "rds-default-chain",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+        "entries": [
+          {
+            "message": {
+              "name": "listener",
+              "defaultFilterChain": {
+                "filters": [
+                  {
+                    "name": "envoy.filters.network.http_connection_manager",
+                    "typedConfig": {
+                      "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                      "rds": {
+                        "routeConfigName": "default"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+        "entries": [
+          {
+            "message": {
+              "name": "default"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.listener.v3.Listener": [
+        "listener"
+      ],
+      "type.googleapis.com/envoy.config.route.v3.RouteConfiguration": [
+        "default"
+      ]
+    }
+  },
+  {
+    "id": "rds-standalone-chain",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.listener.v3.FilterChain",
+        "entries": [
+          {
+            "message": {
+              "name": "chain",
+              "filters": [
+                {
+                  "name": "envoy.filters.network.http_connection_manager",
+                  "typedConfig": {
+                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                    "rds": {
+                      "routeConfigName": "standalone"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+        "entries": [
+          {
+            "message": {
+              "name": "standalone"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.listener.v3.FilterChain": [
+        "chain"
+      ],
+      "type.googleapis.com/envoy.config.route.v3.RouteConfiguration": [
+        "standalone"
+      ]
+    }
+  },
+  {
+    "id": "scoped-route",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.route.v3.ScopedRouteConfiguration",
+        "entries": [
+          {
+            "message": {
+              "name": "scope",
+              "routeConfigurationName": "route"
+            }
+          }
+        ]
+      },
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+        "entries": [
+          {
+            "message": {
+              "name": "route"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.route.v3.ScopedRouteConfiguration": [
+        "scope"
+      ],
+      "type.googleapis.com/envoy.config.route.v3.RouteConfiguration": [
+        "route"
+      ]
+    }
+  },
+  {
+    "id": "scoped-empty-name",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.route.v3.ScopedRouteConfiguration",
+        "entries": [
+          {
+            "message": {
+              "name": "scope"
+            }
+          }
+        ]
+      },
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+        "entries": [
+          {
+            "message": {}
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.route.v3.ScopedRouteConfiguration": [
+        "scope"
+      ],
+      "type.googleapis.com/envoy.config.route.v3.RouteConfiguration": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "scoped-inline-list",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+        "entries": [
+          {
+            "message": {
+              "name": "listener",
+              "filterChains": [
+                {
+                  "filters": [
+                    {
+                      "name": "envoy.filters.network.http_connection_manager",
+                      "typedConfig": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                        "scopedRoutes": {
+                          "scopedRouteConfigurationsList": {
+                            "scopedRouteConfigurations": [
+                              {
+                                "name": "scope",
+                                "routeConfigurationName": "route"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.route.v3.RouteConfiguration",
+        "entries": [
+          {
+            "message": {
+              "name": "route"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.listener.v3.Listener": [
+        "listener"
+      ],
+      "type.googleapis.com/envoy.config.route.v3.RouteConfiguration": [
+        "route"
+      ]
+    }
+  },
+  {
+    "id": "duplicate-name",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+        "entries": [
+          {
+            "message": {
+              "name": "same",
+              "type": "STATIC"
+            }
+          },
+          {
+            "message": {
+              "name": "same",
+              "type": "STATIC",
+              "altStatName": "replacement"
+            }
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.cluster.v3.Cluster": [
+        "same"
+      ]
+    }
+  },
+  {
+    "id": "ttls-retained",
+    "version": "opaque/v9",
+    "consistent": true,
+    "groups": [
+      {
+        "typeUrl": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
+        "entries": [
+          {
+            "message": {
+              "name": "zero",
+              "type": "STATIC"
+            },
+            "ttlNanoseconds": 0
+          },
+          {
+            "message": {
+              "name": "duration",
+              "type": "STATIC"
+            },
+            "ttlNanoseconds": 2500000000
+          }
+        ]
+      }
+    ],
+    "names": {
+      "type.googleapis.com/envoy.config.cluster.v3.Cluster": [
+        "duration",
+        "zero"
+      ]
+    }
+  }
+]
