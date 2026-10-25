@@ -97,3 +97,11 @@ Concurrency tests use explicit gates and bounded failure waits. They observe a p
 ## SotW subscription transitions
 
 [T08 evidence](../docs/plan/T08-SOTW-SUBSCRIPTIONS.md) adds 12 native cases, bringing Core to 81 and the solution to 135. Its checked-in 14-trace corpus verifies every wildcard, exact-name, prefix and returned-version observation against declared expectations, then exports the traces to the actual pinned Go subscription/options implementation. Native tests additionally exercise the response-name predicate, read-only metadata ownership and real SnapshotCache unsubscribe/re-subscribe with no version change. The package-only Core consumer runs the complete expanded suite. These are processing-loop-owned state tests; no race or timing framework is added, and stream-loop suppression remains T09/T10 evidence.
+
+## gRPC/Kestrel transport probe
+
+[Transport validation](../docs/plan/GRPC-KESTREL-VALIDATION.md) compares real loopback HTTP/2 calls using the existing generated ADS/EDS contracts against grpc-go. The non-packable `Envoy.ControlPlane.TransportProbe` is a server executable, separate from the four MTP suites. Its CLI check names and assertions are listed in the report. Linux executes 46 functional checks and 90 measured trials; macOS executes 30 checks and 60 trials. These counts do not change the solution's unit-test count.
+
+The maintained commands are `transport verify` and `transport benchmark` through the repository CLI. Go source is under `resources/GoOracle/transport/` and uses the existing module lock. Linux CI is a dedicated workflow; existing solution verification builds the host on all configured platforms. Actual xDS protocol behavior, service inventory and released-Envoy acceptance remain separate work.
+
+`TransportSummaryTests.AllocationRegression_ExcludesEveryGroupForAffectedRuntimeAndRetainsOtherRuntime` verifies that a regressing allocation checkpoint excludes the entire affected runtime series while preserving valid Go results and raw null/checkpoint data. This adds one offline reporting case: 25 offline CLI tests and 136 solution cases in total.

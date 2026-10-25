@@ -1,6 +1,12 @@
 # T09 — SotW stream investigation
 
-Investigated 25 October 2026 on T08 commit `95ca449a46963edebcda81d6101db1e6f16a84c3`. Behavior reference: `67c5345367582741334e34ffc66a561b0ce32946`. This records findings and implementation direction for [issue #10](https://github.com/knightfall/envoy-dotnet-control-plane/issues/10). **The C# stream engine and its comparison tests are not implemented yet.**
+Investigated 25 October 2026 on T08 commit `95ca449a46963edebcda81d6101db1e6f16a84c3`. Behavior reference: `67c5345367582741334e34ffc66a561b0ce32946`. Investigation complete; the transport decision below was accepted on 25 October 2026. This records findings and implementation direction for [issue #10](https://github.com/knightfall/envoy-dotnet-control-plane/issues/10). **The C# stream engine and its comparison tests are not implemented yet.**
+
+## Accepted transport decision
+
+Use gRPC for ASP.NET Core with Kestrel when T11 adds the hosting adapters. [PR #45](https://github.com/knightfall/envoy-dotnet-control-plane/pull/45) merged the reproducible transport probe; its [final Linux run](https://github.com/knightfall/envoy-dotnet-control-plane/actions/runs/40179401045) passed 46 functional checks and completed 90 trials at `6bcdf28ef3da5d833cc489364b4556f0b5001308`. The [transport report](GRPC-KESTREL-VALIDATION.md) records the controls and configuration differences.
+
+The user accepted the measured TLS throughput/CPU penalty for now and requested continuation with the waiting implementation. Performance tuning and the unresolved allocation-counter investigation do not block T09. This acceptance does not assert performance equivalence, validate the unreliable .NET allocation series or waive functional parity. Continue with the transport-independent SotW engine, then T10 ADS behavior and T11 adapters.
 
 ## Do we need a C# xDS implementation?
 
