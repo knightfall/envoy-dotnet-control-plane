@@ -1,0 +1,71 @@
+name: gRPC transport validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/transport-performance.yml
+      - Directory.Packages.props
+      - global.json
+      - schemas/bindings.lock.json
+      - tests/Envoy.ControlPlane.TransportProbe/**
+      - tests/resources/GoOracle/**
+      - tools/Envoy.ControlPlane.Tools/Transport/**
+      - tools/Envoy.ControlPlane.Tools/Bindings/BuildProcess.cs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: transport-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  GOWORK: "off"
+
+jobs:
+  transport:
+    name: Linux gRPC behavior and performance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            tools/Envoy.ControlPlane.Tools/packages.lock.json
+            tests/Envoy.ControlPlane.TransportProbe/packages.lock.json
+            src/Envoy.ControlPlane.Protocol/packages.lock.json
+            src/Envoy.ControlPlane.Validation.Annotations/packages.lock.json
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: tests/resources/GoOracle/go.sum
+      - name: Restore pinned repository tooling
+        run: dotnet restore tools/Envoy.ControlPlane.Tools --locked-mode
+      - name: Generate verified discovery contracts through Buf
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- bindings generate --cache ../upstream-sources
+      - name: Compare functional behavior and measure both transports
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- transport benchmark
+      - name: Add comparison to job summary
+        if: always()
+        shell: bash
+        run: |
+          report=src/Envoy.ControlPlane.Protocol/obj/upstream/results/transport/summary.md
+          if [ -f "$report" ]; then
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload functional checks, raw trials and environment
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: grpc-transport-linux-${{ github.event.pull_request.head.sha || github.sha }}
+          path: src/Envoy.ControlPlane.Protocol/obj/upstream/results/transport/
+          if-no-files-found: warn
+          retention-days: 14

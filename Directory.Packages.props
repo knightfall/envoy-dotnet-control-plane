@@ -5,6 +5,7 @@
   <ItemGroup>
     <PackageVersion Include="Google.Protobuf" Version="3.35.1" />
     <PackageVersion Include="Grpc.Core.Api" Version="2.84.0" />
+    <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.84.0" />
     <PackageVersion Include="Envoy.ControlPlane.Protocol" Version="0.1.0-t03" />
     <PackageVersion Include="Envoy.ControlPlane.Validation.Annotations" Version="0.1.0-t03" />
     <PackageVersion Include="Envoy.ControlPlane.Validation" Version="0.1.0-t03" />

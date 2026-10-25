@@ -111,3 +111,9 @@ dotnet test --project tests/Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane
 The Go oracle matched **33/33** declared cases. Generation preserved **523** original descriptors, the **16** conditional-oneof corrections, and the existing **540 Protocol / 1 annotation** source fingerprints. Only the configuration-lock paths for moved helpers changed; their content hashes did not. The separate `upstream inspect --offline` audit compiled all 523 schemas and matched both rate-limit descriptors. The schema helper's `inventory` command reported the same 1,244 annotated fields across 523 schemas.
 
 The existing assertions and suite sizes were preserved. Linux/macOS/Windows CI is configured to use the project commands; remote CI for this migration has not run before publication. These results preserve the bounded T03 proof and do not establish full T26/GV conformance or live Envoy interoperability.
+
+## Transport validation
+
+After binding generation, run `dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release -- transport verify` for functional checks or `transport benchmark` for those checks plus matched performance trials. Linux tests plaintext, TLS 1.2 and TLS 1.3; macOS tests plaintext and TLS 1.2. The commands use the non-packable transport host and a common Go driver from the pinned resource oracle module. They do not run the xDS engine.
+
+The [transport report](../docs/plan/GRPC-KESTREL-VALIDATION.md) describes workload controls and limitations. Reports, raw checks/trials and server logs are written under Protocol's `obj/upstream/results/transport/`. Test keys stay in a temporary directory and are removed. The [Linux workflow](../.github/workflows/transport-performance.yml) publishes evidence and gates functional failures without imposing performance thresholds.
