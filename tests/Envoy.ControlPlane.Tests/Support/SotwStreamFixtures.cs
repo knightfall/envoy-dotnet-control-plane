@@ -77,6 +77,7 @@ internal sealed class StreamWatch(ChannelWriter<ISotwResponse> responses) : IWat
     internal int Disposals { get; private set; }
     internal Exception? DisposalFailure { get; init; }
     public Task<ISotwResponse> Completion => completion.Task;
+    internal void CompleteResponses() => Assert.True(responses.TryComplete());
     internal void Respond(ISotwResponse response)
     {
         Assert.True(responses.TryWrite(response));

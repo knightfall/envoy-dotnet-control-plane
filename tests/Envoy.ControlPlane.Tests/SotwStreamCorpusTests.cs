@@ -11,8 +11,8 @@ public sealed class SotwStreamCorpusTests
     public async Task SourceTraces_MatchDeclaredCallbacksWatchesAndSends()
     {
         var fixtures = SotwStreamCorpus.ReadFixtures();
-        Assert.Equal(14, fixtures.Count);
-        Assert.Equal(14, fixtures.Select(row => row!["id"]!.GetValue<string>()).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(16, fixtures.Count);
+        Assert.Equal(16, fixtures.Select(row => row!["id"]!.GetValue<string>()).Distinct(StringComparer.Ordinal).Count());
         var results = new JsonArray();
         foreach (var fixture in fixtures)
         {

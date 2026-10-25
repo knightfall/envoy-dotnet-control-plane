@@ -1,6 +1,6 @@
 # Detailed architecture
 
-Reviewed **24 October 2026**. Status: proposed runtime design, with no runtime implementation results. [T01 source provenance](../../schemas/PROVENANCE.md) has implementation evidence. This document uses the Go behavior pin and the separate Envoy schema pin in [upstream-baseline.json](../../upstream-baseline.json). Requirements, task IDs, and verification IDs are defined in [traceability](../plan/TRACEABILITY.md) and the [implementation plan](../plan/IMPLEMENTATION-PLAN.md).
+Reviewed **26 October 2026**. Status: runtime design with implemented resource/cache/SotW sections; [T10 evidence](../plan/T10-ORDERED-ADS.md) records current verification, while later features remain proposals. [T01 source provenance](../../schemas/PROVENANCE.md) records the source baseline. This document uses the Go behavior pin and the separate Envoy schema pin in [upstream-baseline.json](../../upstream-baseline.json). Requirements, task IDs, and verification IDs are defined in [traceability](../plan/TRACEABILITY.md) and the [implementation plan](../plan/IMPLEMENTATION-PLAN.md).
 
 ## 1. Purpose and compatibility contract
 

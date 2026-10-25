@@ -17,6 +17,8 @@ import (
 	"github.com/envoyproxy/go-control-plane/pkg/server/config"
 	sotw "github.com/envoyproxy/go-control-plane/pkg/server/sotw/v3"
 	"google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 )
 
 type streamStep struct {
@@ -37,6 +39,7 @@ type streamStep struct {
 type streamObservation struct {
 	Events    []string `json:"events"`
 	Disposals []int    `json:"disposals"`
+	Error     string   `json:"error,omitempty"`
 }
 
 type streamCase struct {
@@ -125,8 +128,8 @@ func runStreams(args []string) error {
 	if err := json.Unmarshal(input, &cases); err != nil {
 		return err
 	}
-	if len(cases) != 14 {
-		return fmt.Errorf("expected fourteen declared stream traces, got %d", len(cases))
+	if len(cases) != 16 {
+		return fmt.Errorf("expected sixteen declared stream traces, got %d", len(cases))
 	}
 	seen := map[string]bool{}
 	for index := range cases {
@@ -223,6 +226,16 @@ func executeStream(fixture streamCase) (streamObservation, error) {
 					return streamObservation{}, err
 				}
 			}
+		case "close-responses":
+			close(trace.registrations[step.Watch].responses)
+			err, timeout := nextStreamEvent(ctx, done)
+			if timeout != nil {
+				return streamObservation{}, timeout
+			}
+			if grpcstatus.Code(err) != codes.Unavailable {
+				return streamObservation{}, fmt.Errorf("expected Unavailable after response channel closure, got %v", err)
+			}
+			trace.observation.Error = "Unavailable"
 		case "end":
 			if step.ReceiveError {
 				select {

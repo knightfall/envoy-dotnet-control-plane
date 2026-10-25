@@ -110,7 +110,6 @@ internal sealed partial class SotwSession(IConfigWatcher cache, ISotwCallbacks? 
             {
                 var watch = pendingWatches[selected - 2];
                 Task<bool> pending = watch.Pending!;
-                watch.Pending = null;
                 if (pending.IsCanceled)
                 {
                     throw new SotwProtocolException(SotwProtocolError.Unavailable, "resource watch failed");
@@ -124,6 +123,7 @@ internal sealed partial class SotwSession(IConfigWatcher cache, ISotwCallbacks? 
                     throw new SotwProtocolException(SotwProtocolError.Unavailable, "empty resource response");
                 }
                 await SendAsync(response, send, cancellationToken);
+                watch.Pending = watch.Responses.Reader.WaitToReadAsync(cancellationToken).AsTask();
             }
         }
     }

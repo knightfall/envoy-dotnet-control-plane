@@ -58,6 +58,7 @@ internal static class SotwStreamCorpus
             OrderedAds = fixture["ordered"]?.GetValue<bool>() == true,
         });
         var watches = new List<StreamRegistration>();
+        string? terminalError = null;
         foreach (var step in fixture["steps"]!.AsArray())
         {
             switch (step!["kind"]!.GetValue<string>())
@@ -83,6 +84,11 @@ internal static class SotwStreamCorpus
                     if (step["stale"]?.GetValue<bool>() != true) watches.Add(await stream.NextWatch());
                     for (int count = 0; count < step["sent"]!.GetValue<int>(); count++) await stream.NextResponse();
                     break;
+                case "close-responses":
+                    watches[step["watch"]!.GetValue<int>()].Watch.CompleteResponses();
+                    var failure = await Assert.ThrowsAsync<SotwProtocolException>(() => Wait(stream.Running));
+                    terminalError = failure.Error.ToString();
+                    break;
                 case "end":
                     stream.Input.Complete(step["receiveError"]?.GetValue<bool>() == true ? new IOException("receive") : null);
                     await Wait(stream.Running);
@@ -91,11 +97,13 @@ internal static class SotwStreamCorpus
                     throw new InvalidOperationException("Unknown stream corpus step");
             }
         }
-        return JsonSerializer.SerializeToNode(new
+        var observed = JsonSerializer.SerializeToNode(new
         {
             events = events.ToArray(),
             disposals = watches.Select(registration => registration.Watch.Disposals).ToArray(),
         })!.AsObject();
+        if (terminalError is not null) observed["error"] = terminalError;
+        return observed;
     }
 
     private static string[] Strings(JsonNode? values) => values?.AsArray().Select(value => value!.GetValue<string>()).ToArray() ?? [];

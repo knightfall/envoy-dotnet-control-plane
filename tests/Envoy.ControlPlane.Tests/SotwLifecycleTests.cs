@@ -23,6 +23,39 @@ namespace Envoy.ControlPlane.Tests;
 public sealed class SotwLifecycleTests
 {
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ResponseThenChannelClosure_ObservesTerminalSignalWithoutAnotherRequest(bool ordered, bool faulted)
+    {
+        await using var stream = new StreamHarness();
+        var failure = new IOException("response channel");
+        stream.Watcher.Create = (request, _, responses) =>
+        {
+            var watch = new StreamWatch(responses);
+            watch.Respond(Response(request));
+            Assert.True(responses.TryComplete(faulted ? failure : null));
+            return watch;
+        };
+        stream.Start(typeUrl: ordered ? "" : "type/A", options: new SotwOptions { OrderedAds = ordered });
+        stream.Input.Push(Request());
+        var watch = await stream.NextWatch();
+        Assert.Equal("1", (await stream.NextResponse()).Nonce);
+        if (faulted)
+        {
+            Assert.Same(failure, await Assert.ThrowsAsync<IOException>(() => Wait(stream.Running)));
+        }
+        else
+        {
+            var protocol = await Assert.ThrowsAsync<SotwProtocolException>(() => Wait(stream.Running));
+            Assert.Equal(SotwProtocolError.Unavailable, protocol.Error);
+        }
+        Assert.Equal(1, watch.Watch.Disposals);
+        Assert.Equal(1, stream.Input.Disposals);
+    }
+
+    [Theory]
     [InlineData("eof")]
     [InlineData("receive-error")]
     [InlineData("call-cancel")]

@@ -58,9 +58,9 @@ See [architecture](ARCHITECTURE.md), [validation](VALIDATION.md), and [implement
 
 ## ADR06 — Asynchronous watches and stream ownership
 
-**Reason:** Go already provides a small processing loop with per-type watch records. Preserve that structure using ordinary .NET asynchronous I/O. Cache result delivery must remain separate from network writes; per-stream ownership serializes nonce/subscription state and sends.
+**Reason:** A small processing loop with per-type watch records keeps nonce/subscription state easy to reason about. Choose ordinary .NET asynchronous APIs to preserve the observable behavior; matching Go implementation structure is not a requirement. Cache result delivery must remain separate from network writes; per-stream ownership serializes nonce/subscription state and sends.
 
-**Implementation choice:** Select a task or channel watch representation during the SotW slice. A dedicated writer service, generalized dispatcher, mandatory bounded mailbox, configurable quotas, and mandatory generation identifiers are not requirements. Add an internal identity check only where an actual queued-completion race requires it. Preserve source-equivalent draining and backpressure.
+**Implementation choice:** T10 selects standard .NET channels for SotW producer delivery, with individual ordinary destinations and one shared ordered ADS FIFO. A task convenience helper serves await-one callers. Async snapshot publication waits for capacity outside cache synchronization, and asynchronous disposal settles owned writes before subscription mutation. A dedicated writer service, generalized dispatcher, mandatory bounded mailbox, configurable quotas, and mandatory generation identifiers are not requirements. Add an internal identity check only where an actual queued-completion race requires it. Preserve source-equivalent draining and backpressure.
 
 **Consequence:** Immediate completion, cancellation races, blocked writers, and callback reentry are required cases. Async response/close callback faults have an explicitly documented .NET policy because the source hooks do not return errors.
 

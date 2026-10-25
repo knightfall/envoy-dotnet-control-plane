@@ -727,5 +727,79 @@
         1
       ]
     }
+  },
+  {
+    "id": "response-then-channel-closure",
+    "defaultType": "",
+    "ordered": false,
+    "steps": [
+      {
+        "kind": "request",
+        "type": "custom/A"
+      },
+      {
+        "kind": "respond",
+        "watch": 0,
+        "version": "v1",
+        "names": [
+          "a"
+        ]
+      },
+      {
+        "kind": "close-responses",
+        "watch": 0
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "request|custom/A|||||false",
+        "watch|custom/A||||true",
+        "response|custom/A|v1|1",
+        "send|custom/A|v1|1",
+        "close|"
+      ],
+      "disposals": [
+        1
+      ],
+      "error": "Unavailable"
+    }
+  },
+  {
+    "id": "ordered-response-then-channel-closure",
+    "defaultType": "",
+    "ordered": true,
+    "steps": [
+      {
+        "kind": "request",
+        "type": "custom/A"
+      },
+      {
+        "kind": "respond",
+        "watch": 0,
+        "version": "v1",
+        "names": [
+          "a"
+        ]
+      },
+      {
+        "kind": "close-responses",
+        "watch": 0
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "request|custom/A|||||false",
+        "watch|custom/A||||true",
+        "response|custom/A|v1|1",
+        "send|custom/A|v1|1",
+        "close|"
+      ],
+      "disposals": [
+        1
+      ],
+      "error": "Unavailable"
+    }
   }
 ]
