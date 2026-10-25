@@ -6,7 +6,7 @@ internal static class Program
     {
         if (args.Length == 0 || args is ["--help"])
         {
-            Console.WriteLine("Commands: upstream <sync|inspect|export>, bindings <generate|verify>, validation verify, repository verify, transport <verify|benchmark>, patch <output-directory> [binding-lock]");
+            Console.WriteLine("Commands: upstream <sync|inspect|export>, bindings <generate|verify>, validation verify, repository verify, transport <verify|benchmark>, envoy verify, patch <output-directory> [binding-lock]");
             return 0;
         }
 
@@ -22,6 +22,8 @@ internal static class Program
                 return await RepositoryVerification.RunAsync(args[1..]);
             case "transport":
                 return await TransportVerification.RunAsync(args[1..]);
+            case "envoy":
+                return await EnvoyVerification.RunAsync(args[1..]);
             case "patch":
                 return PatchBindings.Run(args[1..]);
             default:

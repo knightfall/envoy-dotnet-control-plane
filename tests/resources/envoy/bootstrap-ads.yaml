@@ -1,0 +1,41 @@
+# Copyright 2018 Envoyproxy Authors. Licensed under the Apache License, Version 2.0.
+# Adapted from sample/bootstrap-ads.yaml at 67c5345367582741334e34ffc66a561b0ce32946.
+# Changes: substituted isolated loopback ports/node and omitted the unused ALS cluster.
+# Original license: ../licenses/go-control-plane/LICENSE. See ../UPSTREAM-TESTS.md.
+admin:
+  access_log_path: /dev/null
+  address:
+    socket_address:
+      address: 127.0.0.1
+      port_value: @ADMIN_PORT@
+dynamic_resources:
+  ads_config:
+    api_type: GRPC
+    transport_api_version: V3
+    grpc_services:
+    - envoy_grpc:
+        cluster_name: xds_cluster
+    set_node_on_first_message_only: true
+  cds_config:
+    resource_api_version: V3
+    ads: {}
+  lds_config:
+    resource_api_version: V3
+    ads: {}
+node:
+  cluster: preview
+  id: node
+static_resources:
+  clusters:
+  - connect_timeout: 1s
+    load_assignment:
+      cluster_name: xds_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: @MANAGEMENT_PORT@
+    http2_protocol_options: {}
+    name: xds_cluster

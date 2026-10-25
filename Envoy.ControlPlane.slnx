@@ -11,6 +11,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Envoy.ControlPlane.AspNetCore.Tests/Envoy.ControlPlane.AspNetCore.Tests.csproj" />
+    <Project Path="tests/Envoy.ControlPlane.EnvoyProbe/Envoy.ControlPlane.EnvoyProbe.csproj" />
     <Project Path="tests/Envoy.ControlPlane.Protocol.Tests/Envoy.ControlPlane.Protocol.Tests.csproj" />
     <Project Path="tests/Envoy.ControlPlane.Tests/Envoy.ControlPlane.Tests.csproj" />
     <Project Path="tests/Envoy.ControlPlane.TransportProbe/Envoy.ControlPlane.TransportProbe.csproj" />

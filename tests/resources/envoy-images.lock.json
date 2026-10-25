@@ -1,0 +1,18 @@
+{
+  "version": "1.40.1",
+  "release": "https://github.com/envoyproxy/envoy/releases/tag/v1.40.1",
+  "sourceCommit": "86af01fdec40c31d025c495a4aa303c4126b2fd0",
+  "envoyIndex": "envoyproxy/envoy@sha256:713bb146f1a7c97ebc70e13d259f77ff36f2c5d00f3145677816af5af9bd1530",
+  "sdkVersion": "10.0.400",
+  "sdkIndex": "mcr.microsoft.com/dotnet/sdk@sha256:4beef5b8919dcaa2dc924233bd069257e883cc7a061e09088a97d152d6a48510",
+  "platforms": {
+    "linux/amd64": {
+      "envoyImage": "envoyproxy/envoy@sha256:7b088327f38b3d5d2dac1855b2722ab398dbfe32d38929b4a9599d740d746d8b",
+      "sdkImage": "mcr.microsoft.com/dotnet/sdk@sha256:1aabdb4843de1c426d3676bf1220bc040e540f82a765320b3eb2c693e8d0a7dd"
+    },
+    "linux/arm64": {
+      "envoyImage": "envoyproxy/envoy@sha256:a62e7a0d52fb00f708bffeb9be373af0b1858bcede67575edcfe4a1bbffe5384",
+      "sdkImage": "mcr.microsoft.com/dotnet/sdk@sha256:299c82e09d90ddef2e7cd660e12ea3c1863a7227e8cf26e686b6021912ac4f3f"
+    }
+  }
+}
