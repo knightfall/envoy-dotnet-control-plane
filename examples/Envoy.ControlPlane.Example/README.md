@@ -6,10 +6,14 @@ From the repository root, after generating bindings:
 dotnet run --project examples/Envoy.ControlPlane.Example
 ```
 
-The host listens on loopback port 18000 with cleartext HTTP/2. Use node ID `node` and request EDS resource `service`, or request that endpoint type through ADS. The application initially publishes `127.0.0.1:8080`. Change `BackendPort` in `appsettings.json` while it runs; the normal configuration reload and application-owned polling source publish a replacement snapshot with a new opaque version. Existing requests receive it through the same Core engine. `NodeId` selects the application cache key at startup.
+The management host listens on loopback port 18000 with cleartext HTTP/2. Use node ID `node`. Its snapshot supplies listener `listener`, route configuration `routes`, EDS cluster `service` and endpoint assignment `service`. The listener contains a typed HTTP connection manager and router; HCM and EDS configuration use ADS/V3 sources. Request those resources through ADS or their individual SotW services.
+
+The initial backend is `127.0.0.1:8080`; the listener resource describes `127.0.0.1:10000`. `ListenerPort` configures that Envoy resource, rather than a socket opened by this application. Change `BackendPort` or `ListenerPort` in `appsettings.json`; normal configuration reload and the application-owned polling source publish stable replacement messages with a new opaque version. `NodeId` selects the cache key at startup.
+
+`ExampleResources` constructs the four-family graph with existing generated messages, `Any.Pack`, canonical preview filter labels and an explicit `EnsureConsistent` check. This application check does not enable semantic validation in the cache.
 
 `BackendPublisher` is an ordinary `BackgroundService` with its own `PeriodicTimer` and shutdown token. It constructs stable replacement protobuf messages and awaits `SetSnapshotAsync`; it does not mutate previously published data. Its local revision counter demonstrates opaque versions rather than a persistence/recovery scheme. The timer is an application update source, separate from the library's deferred TTL/heartbeat work.
 
 The application uses ordinary `ILogger` logging. For an authenticated host, configure an application authentication provider and protect the returned endpoint group with `RequireAuthorization`, as shown in the hosting package readme. Existing callbacks can apply node/claim checks. The library does not supply credentials, an authentication provider or an authorization policy.
 
-This is an endpoint-discovery example. It does not bootstrap a complete Envoy listener/cluster/route graph; released-Envoy traffic and reconnect acceptance remain T12/T22/T23 work.
+The example constructs a complete HTTP resource graph. A released Envoy bootstrap, accepted configuration, real backend traffic and reconnect proof remain T12/T22/T23 work; helper and gRPC checks alone do not establish those results.

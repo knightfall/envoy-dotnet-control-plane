@@ -50,6 +50,8 @@ func main() {
 		err = runSubscriptions(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "stream" {
 		err = runStreams(os.Args[2:])
+	} else if len(os.Args) > 1 && os.Args[1] == "helpers" {
+		err = runHelpers(os.Args[2:])
 	} else {
 		err = run()
 	}
@@ -101,22 +103,22 @@ func run() error {
 	return nil
 }
 
-func compare(fixture snapshotCase) (result, error) {
+func decodeResourceGroups(wireGroups []wireGroup) (map[string][]types.ResourceWithTTL, error) {
 	groups := make(map[string][]types.ResourceWithTTL)
-	for _, group := range fixture.Groups {
+	for _, group := range wireGroups {
 		entries := make([]types.ResourceWithTTL, 0, len(group.Entries))
 		for _, entry := range group.Entries {
 			messageType, err := protoregistry.GlobalTypes.FindMessageByURL(group.TypeURL)
 			if err != nil {
-				return result{}, err
+				return nil, err
 			}
 			message := messageType.New().Interface()
 			bytes, err := base64.StdEncoding.DecodeString(entry.Data)
 			if err != nil {
-				return result{}, err
+				return nil, err
 			}
 			if err := proto.Unmarshal(bytes, message); err != nil {
-				return result{}, err
+				return nil, err
 			}
 			resource := types.ResourceWithTTL{Resource: message}
 			if entry.TtlNanoseconds != nil {
@@ -126,6 +128,14 @@ func compare(fixture snapshotCase) (result, error) {
 			entries = append(entries, resource)
 		}
 		groups[group.TypeURL] = entries
+	}
+	return groups, nil
+}
+
+func compare(fixture snapshotCase) (result, error) {
+	groups, err := decodeResourceGroups(fixture.Groups)
+	if err != nil {
+		return result{}, err
 	}
 	snapshot, err := cache.NewSnapshotWithTTLs(fixture.Version, groups)
 	if err != nil {
