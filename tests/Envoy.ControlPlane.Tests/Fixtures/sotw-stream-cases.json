@@ -801,5 +801,143 @@
       ],
       "error": "Unavailable"
     }
+  },
+  {
+    "id": "open-rejected",
+    "defaultType": "",
+    "ordered": false,
+    "rejectOpen": true,
+    "steps": [
+      {
+        "kind": "error"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "close|"
+      ],
+      "disposals": [],
+      "error": "InvalidArgument"
+    }
+  },
+  {
+    "id": "request-rejected",
+    "defaultType": "",
+    "ordered": false,
+    "steps": [
+      {
+        "kind": "request",
+        "type": "custom/A",
+        "node": "first"
+      },
+      {
+        "kind": "request-error",
+        "type": "reject",
+        "node": "later",
+        "reject": true
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "request|custom/A|first||||false",
+        "watch|custom/A||||true",
+        "request|reject|later||||false",
+        "close|later"
+      ],
+      "disposals": [
+        1
+      ],
+      "error": "InvalidArgument"
+    }
+  },
+  {
+    "id": "ads-missing-type",
+    "defaultType": "",
+    "ordered": false,
+    "steps": [
+      {
+        "kind": "request-error",
+        "node": "client"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "close|client"
+      ],
+      "disposals": [],
+      "error": "InvalidArgument"
+    }
+  },
+  {
+    "id": "ordered-open-rejected",
+    "defaultType": "",
+    "ordered": true,
+    "rejectOpen": true,
+    "steps": [
+      {
+        "kind": "error"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "close|"
+      ],
+      "disposals": [],
+      "error": "InvalidArgument"
+    }
+  },
+  {
+    "id": "ordered-request-rejected",
+    "defaultType": "",
+    "ordered": true,
+    "steps": [
+      {
+        "kind": "request",
+        "type": "custom/A",
+        "node": "first"
+      },
+      {
+        "kind": "request-error",
+        "type": "reject",
+        "node": "later",
+        "reject": true
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "request|custom/A|first||||false",
+        "watch|custom/A||||true",
+        "request|reject|later||||false",
+        "close|later"
+      ],
+      "disposals": [
+        1
+      ],
+      "error": "InvalidArgument"
+    }
+  },
+  {
+    "id": "ordered-ads-missing-type",
+    "defaultType": "",
+    "ordered": true,
+    "steps": [
+      {
+        "kind": "request-error",
+        "node": "client"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "close|client"
+      ],
+      "disposals": [],
+      "error": "InvalidArgument"
+    }
   }
 ]

@@ -959,5 +959,64 @@
         }
       }
     ]
+  },
+  {
+    "id": "retained-response-after-replacement",
+    "typeUrl": "type.googleapis.com/envoy.config.listener.v3.Listener",
+    "ads": false,
+    "initial": {
+      "version": "v1",
+      "names": [
+        "a"
+      ],
+      "omitGroup": false
+    },
+    "requestVersion": "",
+    "names": [],
+    "wildcard": true,
+    "known": {},
+    "prefixes": [],
+    "events": [
+      {
+        "kind": "publish",
+        "snapshot": {
+          "version": "v2",
+          "names": [
+            "b"
+          ],
+          "omitGroup": false
+        }
+      }
+    ],
+    "expected": [
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v1",
+        "response": {
+          "version": "v1",
+          "names": [
+            "a"
+          ],
+          "returned": {
+            "a": "v1"
+          }
+        }
+      },
+      {
+        "state": "response",
+        "pendingWatchCount": 0,
+        "snapshotVersion": "v2",
+        "response": {
+          "version": "v1",
+          "names": [
+            "a"
+          ],
+          "returned": {
+            "a": "v1"
+          }
+        }
+      }
+    ]
   }
 ]

@@ -11,9 +11,9 @@ public sealed class SnapshotCacheCorpusTests
     public async Task SourceDerivedEventTraces_MatchDeclaredOutcomes()
     {
         var fixtures = SnapshotCacheCorpus.ReadFixtures();
-        Assert.Equal(22, fixtures.Count);
+        Assert.Equal(23, fixtures.Count);
         var results = await Task.WhenAll(fixtures.Select(fixture => SnapshotCacheCorpus.EvaluateAsync(fixture!)));
-        Assert.Equal(22, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(23, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
         for (int index = 0; index < results.Length; index++)
         {
             var expected = fixtures[index]!["expected"];

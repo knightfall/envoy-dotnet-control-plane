@@ -84,8 +84,8 @@ func runCache(args []string) error {
 	if err := json.Unmarshal(input, &cases); err != nil {
 		return err
 	}
-	if len(cases) != 22 {
-		return fmt.Errorf("expected 22 cache traces, got %d", len(cases))
+	if len(cases) != 23 {
+		return fmt.Errorf("expected 23 cache traces, got %d", len(cases))
 	}
 	seen := make(map[string]bool)
 	results := make([]cacheCaseResult, 0, len(cases))
@@ -172,21 +172,25 @@ func compareCache(fixture cacheCase) ([]cacheObservation, error) {
 		defer cancel()
 	}
 	canceled := false
-	var delivered *cacheResponseObservation
+	var retained cache.Response
 	observe := func() cacheObservation {
 		select {
 		case response := <-responses:
+			retained = response
+		default:
+		}
+		var delivered *cacheResponseObservation
+		if retained != nil {
 			names := make([]string, 0)
-			for _, entry := range response.(*cache.RawResponse).GetRawResources() {
+			for _, entry := range retained.(*cache.RawResponse).GetRawResources() {
 				names = append(names, cache.GetResourceName(entry.Resource))
 			}
 			sort.Strings(names)
 			returned := make(map[string]string)
-			for name, version := range response.GetReturnedResources() {
+			for name, version := range retained.GetReturnedResources() {
 				returned[name] = version
 			}
-			delivered = &cacheResponseObservation{Version: response.GetResponseVersion(), Names: names, Returned: returned}
-		default:
+			delivered = &cacheResponseObservation{Version: retained.GetResponseVersion(), Names: names, Returned: returned}
 		}
 		row := cacheObservation{State: "pending", Response: delivered}
 		if delivered != nil {
