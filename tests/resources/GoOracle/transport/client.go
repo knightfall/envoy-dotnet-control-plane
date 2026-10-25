@@ -306,6 +306,7 @@ func measure(address, admin, certificateDirectory string, size, workers int, sep
 	}
 	after := readStats(admin)
 	require(after.Active == 0, "measurement leaked stream")
+	require(after.AllocatedBytes >= before.AllocatedBytes && after.CPUSeconds >= before.CPUSeconds, "process counters decreased")
 	sort.Slice(samples, func(i, j int) bool { return samples[i] < samples[j] })
 	percentile := func(p float64) float64 { return float64(samples[int(float64(len(samples)-1)*p)]) / 1000 }
 	seconds := ended.Sub(started).Seconds()

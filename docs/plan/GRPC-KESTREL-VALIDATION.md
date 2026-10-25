@@ -38,7 +38,7 @@ Both servers implement the same generated ADS duplex and EDS unary contracts. On
 | `SlowReaderOtherStreamProgress` | An unread 5 MiB burst has an outstanding write; another stream on that connection completes; canceling the burst releases its handler. Identical buffering/timing is not asserted. |
 | `MutualTlsAdmission` | Valid identity succeeds; absent identity returns `Unavailable`; a subsequent valid call proves continued availability. |
 
-Linux executes **46 named checks** across two servers and plaintext/TLS 1.2/TLS 1.3 modes. macOS executes **30** across plaintext/TLS 1.2. These are transport executions outside the MTP test count, not independent xDS scenarios. The CLI verifies membership, uniqueness and positive results. The maintained macOS `transport verify` run passed all 30 checks with matched TLS 1.2; Linux execution remains pending at publication.
+Linux executes **46 named checks** across two servers and plaintext/TLS 1.2/TLS 1.3 modes. macOS executes **30** across plaintext/TLS 1.2. These are transport executions outside the MTP test count, not independent xDS scenarios. The CLI verifies membership, uniqueness and positive results. The maintained macOS `transport verify` run passed all 30 checks with matched TLS 1.2. The [first Linux run](https://github.com/knightfall/envoy-dotnet-control-plane/actions/runs/40176744124), at `420c86da86d1cb58f67e3bb7e127b6052baecfac`, passed all 46 and completed all 90 trials.
 
 ## Defaults and configuration differences
 
@@ -71,7 +71,7 @@ TLS/mTLS, interceptors and ASP.NET authentication are available. Compression is 
 
 Each mode runs three alternating server trials for every workload. Each worker warms a persistent stream with 100 exchanges, then measures a common two-second interval. Payloads are identical, compression is off, and one Go client handles both servers. Both runtimes receive a processor-count hint capped at four; no affinity/quota is applied. .NET uses server GC. Startup, handshakes and warm-up are excluded.
 
-Latency samples every tenth exchange. Summary rows show median results and the throughput range; raw trials retain counts, elapsed time, p50/p95/p99, server CPU and runtime allocation counters. Linux records **90 trials**, macOS **60**. This is network workload measurement, not a BenchmarkDotNet microbenchmark.
+Latency samples every tenth exchange. Summary rows show median results and the throughput range; raw trials retain counts, elapsed time, p50/p95/p99, server CPU and runtime allocation counters. Allocation checkpoints use Go `runtime.MemStats.TotalAlloc` and .NET `GC.GetTotalAllocatedBytes(precise: true)` outside the timed interval; decreasing counters fail the probe. Every invocation replaces its owned report directory to prevent stale evidence. Linux records **90 trials**, macOS **60**. This is network workload measurement, not a BenchmarkDotNet microbenchmark.
 
 TLS 1.2 uses `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`; Linux additionally measures TLS 1.3 with `TLS_AES_128_GCM_SHA256`. Functional checks assert the actual negotiated version/cipher before measurements. Both servers use the same private CA and ECDSA identities.
 
@@ -80,6 +80,8 @@ The initial task-scoped macOS experiment passed 30 checks and recorded 60 defaul
 These short loopback trials are diagnostic. Allocation counters have different runtime accounting boundaries and exclude native allocations. Process CPU includes background/runtime work and call cleanup. The driver shares the host; tail samples are limited; there is no controlled offered-load/queue-depth model. Retained heap, idle-connection memory, connection capacity, handshake cost, WAN behavior and production p99/SLOs are not measured. Cache/materialization/callback costs are absent.
 
 ## Decision and remaining proof
+
+The first controlled Linux run used Ubuntu 24.04.5 x64, .NET 10.0.13, Go 1.26.4 and four logical processors. Kestrel's plaintext throughput ranged from roughly 5% below to 13% above grpc-go across the measured cases. Matched TLS 1.3 throughput was roughly 11–30% lower, with higher measured server CPU. These are workload-specific observations, not statistical equivalence or a deployment capacity guarantee. The initial Linux run still used .NET's approximate allocation checkpoint, which reported zero in some large-message trials; its allocation values are excluded from conclusions. The precise-counter follow-up must be read from its own run evidence.
 
 The stack provides the required transport primitives; no custom HTTP/2 or gRPC implementation is justified. Use the narrow server package, preserve the generated buffer-based marshaller, await one send path and forward cancellation. Avoid adding a full-message `ToByteArray` copy or an unbounded producer queue in adapters.
 

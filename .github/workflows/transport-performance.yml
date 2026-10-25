@@ -6,11 +6,15 @@ on:
     paths:
       - .github/workflows/transport-performance.yml
       - Directory.Packages.props
+      - Directory.Build.props
+      - Envoy.ControlPlane.slnx
       - global.json
       - schemas/bindings.lock.json
+      - src/Envoy.ControlPlane.Protocol/**
       - tests/Envoy.ControlPlane.TransportProbe/**
       - tests/resources/GoOracle/**
       - tools/Envoy.ControlPlane.Tools/Transport/**
+      - tools/Envoy.ControlPlane.Tools/Program.cs
       - tools/Envoy.ControlPlane.Tools/Bindings/BuildProcess.cs
 
 permissions:

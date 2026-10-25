@@ -31,6 +31,10 @@ internal static class TransportVerification
     private static async Task RunProbeAsync(bool benchmark)
     {
         string output = Path.GetFullPath(BindingPaths.InputsDirectory + "/results/transport");
+        if (Directory.Exists(output))
+        {
+            Directory.Delete(output, recursive: true);
+        }
         Directory.CreateDirectory(output);
         string scratch = Path.Combine(Path.GetTempPath(), "envoy-transport-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(scratch);

@@ -58,7 +58,7 @@ app.MapGet("/stats", (ProbeState state) =>
     using var process = Process.GetCurrentProcess();
     return new
     {
-        allocatedBytes = GC.GetTotalAllocatedBytes(),
+        allocatedBytes = GC.GetTotalAllocatedBytes(precise: true),
         cpuSeconds = process.TotalProcessorTime.TotalSeconds,
         gcCollections = GC.CollectionCount(0) + GC.CollectionCount(1) + GC.CollectionCount(2),
         active = Volatile.Read(ref state.Active),
