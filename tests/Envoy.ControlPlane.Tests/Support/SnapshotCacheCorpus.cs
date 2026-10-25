@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading.Channels;
 using Envoy.Config.Cluster.V3;
 using Envoy.Config.Listener.V3;
 using Envoy.Config.Route.V3;
@@ -20,7 +21,7 @@ internal static class SnapshotCacheCorpus
         return JsonNode.Parse(stream)!.AsArray();
     }
 
-    internal static CacheCaseResult Evaluate(JsonNode fixture)
+    internal static async Task<CacheCaseResult> EvaluateAsync(JsonNode fixture)
     {
         string typeUrl = fixture["typeUrl"]!.GetValue<string>();
         bool ads = fixture["ads"]!.GetValue<bool>();
@@ -28,15 +29,17 @@ internal static class SnapshotCacheCorpus
         var initial = ReadSnapshot(fixture["initial"], typeUrl);
         if (initial is not null)
         {
-            cache.SetSnapshot("node", BuildSnapshot(initial, typeUrl));
+            await cache.SetSnapshotAsync("node", BuildSnapshot(initial, typeUrl));
         }
         string requestVersion = fixture["requestVersion"]!.GetValue<string>();
         string[] names = Strings(fixture["names"]!);
         string[] prefixes = Strings(fixture["prefixes"]!);
         bool wildcard = fixture["wildcard"]!.GetValue<bool>();
         var known = fixture["known"]!.AsObject().ToDictionary(pair => pair.Key, pair => pair.Value!.GetValue<string>(), StringComparer.Ordinal);
-        using var watch = cache.CreateWatch(Request(typeUrl, requestVersion, "node", names), Subscription(names, wildcard, known, prefixes));
-        var observed = new List<CacheObservation> { Observe(cache, watch, typeUrl) };
+        var responses = Channel.CreateBounded<ISotwResponse>(1);
+        using var watch = cache.CreateWatch(Request(typeUrl, requestVersion, "node", names), Subscription(names, wildcard, known, prefixes), responses.Writer);
+        bool canceled = false;
+        var observed = new List<CacheObservation> { Observe(cache, responses.Reader, canceled, typeUrl) };
         var events = new List<WireCacheEvent>();
         foreach (var step in fixture["events"]!.AsArray())
         {
@@ -46,10 +49,11 @@ internal static class SnapshotCacheCorpus
             switch (kind)
             {
                 case "publish":
-                    cache.SetSnapshot("node", BuildSnapshot(snapshot!, typeUrl));
+                    await cache.SetSnapshotAsync("node", BuildSnapshot(snapshot!, typeUrl));
                     break;
                 case "cancel":
                     watch.Dispose();
+                    canceled = true;
                     break;
                 case "clear":
                     cache.ClearSnapshot("node");
@@ -57,7 +61,7 @@ internal static class SnapshotCacheCorpus
                 default:
                     throw new InvalidOperationException("Unknown cache fixture event: " + kind);
             }
-            observed.Add(Observe(cache, watch, typeUrl));
+            observed.Add(Observe(cache, responses.Reader, canceled, typeUrl));
         }
         return new CacheCaseResult(fixture["id"]!.GetValue<string>(), typeUrl, ads, initial, requestVersion, names, wildcard, known, prefixes,
             events.ToArray(), observed.ToArray());
@@ -91,7 +95,7 @@ internal static class SnapshotCacheCorpus
         _ => throw new InvalidOperationException("Unsupported cache fixture family: " + typeUrl),
     };
 
-    private static CacheObservation Observe(SnapshotCache cache, IWatch<ISotwResponse> watch, string typeUrl)
+    private static CacheObservation Observe(SnapshotCache cache, ChannelReader<ISotwResponse> responses, bool canceled, string typeUrl)
     {
         string? snapshotVersion;
         try
@@ -102,16 +106,11 @@ internal static class SnapshotCacheCorpus
         {
             snapshotVersion = null;
         }
-        if (watch.Completion.IsFaulted)
-        {
-            watch.Completion.GetAwaiter().GetResult();
-        }
         CacheResponseObservation? response = null;
-        string state = watch.Completion.IsCanceled ? "canceled" : "pending";
-        if (watch.Completion.IsCompletedSuccessfully)
+        string state = canceled ? "canceled" : "pending";
+        if (responses.TryPeek(out var delivered))
         {
             state = "response";
-            var delivered = watch.Completion.GetAwaiter().GetResult();
             var parser = Message(typeUrl, "").Descriptor.Parser;
             string[] names = delivered.GetDiscoveryResponse().Resources.Select(payload => ResourceCatalog.GetName(parser.ParseFrom(payload.Value)))
                 .Order(StringComparer.Ordinal).ToArray();

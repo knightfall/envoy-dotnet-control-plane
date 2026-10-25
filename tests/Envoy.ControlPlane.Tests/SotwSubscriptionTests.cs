@@ -79,7 +79,7 @@ public sealed class SotwSubscriptionTests
     public async Task UnsubscribeAndResubscribe_ReturnsResourceWithoutSnapshotVersionChange()
     {
         var cache = new SnapshotCache();
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Route, [new RouteConfiguration { Name = "a" }])));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Route, [new RouteConfiguration { Name = "a" }])));
         var subscription = new SotwSubscription(["a"]);
         using var first = cache.CreateWatch(Request(ResourceTypeUrls.Route), subscription);
         Assert.True(first.Completion.IsCompletedSuccessfully);

@@ -31,7 +31,7 @@ internal static class RepositoryVerification
             await PackageVerification.VerifyCleanConsumerAsync("tests/Envoy.ControlPlane.Tests/Envoy.ControlPlane.Tests.csproj", "core-consumer");
             await RootConsumerVerification.RunAsync("Core");
             await RootConsumerVerification.RunAsync("AspNetCore");
-            Console.WriteLine($"Repository build, tests, packages and consumers passed; {cases} Go PGV cases and the snapshot/cache/subscription/stream corpora matched. Ordered ADS, network adapters, Delta delivery and full GV remain separate tasks.");
+            Console.WriteLine($"Repository build, tests, packages and consumers passed; {cases} Go PGV cases and the snapshot/cache/subscription/stream corpora matched. Network adapters, Delta delivery and full GV remain separate tasks.");
             return 0;
         }
         catch (Exception error) when (error is not OutOfMemoryException)

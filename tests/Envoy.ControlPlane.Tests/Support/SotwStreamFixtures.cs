@@ -71,15 +71,28 @@ internal sealed class StreamInput : IAsyncEnumerable<DiscoveryRequest>, IAsyncEn
     }
 }
 
-internal sealed class StreamWatch : IWatch<ISotwResponse>
+internal sealed class StreamWatch(ChannelWriter<ISotwResponse> responses) : IWatch<ISotwResponse>
 {
     private readonly TaskCompletionSource<ISotwResponse> completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal int Disposals { get; private set; }
     internal Exception? DisposalFailure { get; init; }
     public Task<ISotwResponse> Completion => completion.Task;
-    internal void Respond(ISotwResponse response) => Assert.True(completion.TrySetResult(response));
-    internal void Fail(Exception failure) => Assert.True(completion.TrySetException(failure));
-    internal void Cancel() => Assert.True(completion.TrySetCanceled());
+    internal void CompleteResponses() => Assert.True(responses.TryComplete());
+    internal void Respond(ISotwResponse response)
+    {
+        Assert.True(responses.TryWrite(response));
+        Assert.True(completion.TrySetResult(response));
+    }
+    internal void Fail(Exception failure)
+    {
+        Assert.True(responses.TryComplete(failure));
+        Assert.True(completion.TrySetException(failure));
+    }
+    internal void Cancel()
+    {
+        Assert.True(responses.TryComplete(new OperationCanceledException("watch canceled")));
+        Assert.True(completion.TrySetCanceled());
+    }
     public void Dispose()
     {
         Disposals++;
@@ -97,10 +110,10 @@ internal sealed class StreamWatcher : IConfigWatcher
 {
     internal Channel<StreamRegistration> Created { get; } = Channel.CreateUnbounded<StreamRegistration>();
     internal ConcurrentQueue<StreamRegistration> Registrations { get; } = new();
-    internal Func<DiscoveryRequest, ISubscription, StreamWatch>? Create { get; set; }
-    public IWatch<ISotwResponse> CreateWatch(DiscoveryRequest request, ISubscription subscription)
+    internal Func<DiscoveryRequest, ISubscription, ChannelWriter<ISotwResponse>, StreamWatch>? Create { get; set; }
+    public IDisposable CreateWatch(DiscoveryRequest request, ISubscription subscription, ChannelWriter<ISotwResponse> responses)
     {
-        var watch = Create?.Invoke(request, subscription) ?? new StreamWatch();
+        var watch = Create?.Invoke(request, subscription, responses) ?? new StreamWatch(responses);
         var registration = new StreamRegistration(request, subscription, watch);
         Registrations.Enqueue(registration);
         Assert.True(Created.Writer.TryWrite(registration));

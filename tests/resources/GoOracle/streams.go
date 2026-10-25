@@ -14,8 +14,11 @@ import (
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	cache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/server/config"
 	sotw "github.com/envoyproxy/go-control-plane/pkg/server/sotw/v3"
 	"google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 )
 
 type streamStep struct {
@@ -29,17 +32,21 @@ type streamStep struct {
 	Stale        bool     `json:"stale"`
 	Watch        int      `json:"watch"`
 	ReceiveError bool     `json:"receiveError"`
+	Hold         bool     `json:"hold"`
+	Sent         int      `json:"sent"`
 }
 
 type streamObservation struct {
 	Events    []string `json:"events"`
 	Disposals []int    `json:"disposals"`
+	Error     string   `json:"error,omitempty"`
 }
 
 type streamCase struct {
 	ID            string            `json:"id"`
 	DefaultType   string            `json:"defaultType"`
 	CallbackNonce string            `json:"callbackNonce"`
+	Ordered       bool              `json:"ordered"`
 	Steps         []streamStep      `json:"steps"`
 	Observed      streamObservation `json:"observed"`
 }
@@ -57,6 +64,8 @@ type streamTrace struct {
 	registrations []*streamRegistration
 	observation   streamObservation
 	callbackNonce string
+	heldRequest   *discovery.DiscoveryRequest
+	release       chan struct{}
 }
 
 func (s *streamTrace) OnStreamOpen(_ context.Context, _ int64, typeURL string) error {
@@ -72,6 +81,13 @@ func (s *streamTrace) OnStreamRequest(_ int64, request *discovery.DiscoveryReque
 	s.observation.Events = append(s.observation.Events, fmt.Sprintf("request|%s|%s|%s|%s|%s|%t", request.TypeUrl, request.Node.GetId(),
 		request.VersionInfo, request.ResponseNonce, strings.Join(request.ResourceNames, ","), request.ErrorDetail != nil))
 	s.requested <- true
+	if request == s.heldRequest {
+		select {
+		case <-s.release:
+		case <-s.ctx.Done():
+			return s.ctx.Err()
+		}
+	}
 	return nil
 }
 
@@ -112,8 +128,8 @@ func runStreams(args []string) error {
 	if err := json.Unmarshal(input, &cases); err != nil {
 		return err
 	}
-	if len(cases) != 6 {
-		return fmt.Errorf("expected six declared stream traces, got %d", len(cases))
+	if len(cases) != 16 {
+		return fmt.Errorf("expected sixteen declared stream traces, got %d", len(cases))
 	}
 	seen := map[string]bool{}
 	for index := range cases {
@@ -144,12 +160,18 @@ func runStreams(args []string) error {
 func executeStream(fixture streamCase) (streamObservation, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	trace := &streamTrace{requested: make(chan bool, 1), created: make(chan *streamRegistration, 1), callbackNonce: fixture.CallbackNonce}
+	trace := &streamTrace{requested: make(chan bool, 1), created: make(chan *streamRegistration, 1), callbackNonce: fixture.CallbackNonce, release: make(chan struct{})}
 	trace.mockStream = makeMockStream(ctx, func(response *discovery.DiscoveryResponse) {
 		trace.observation.Events = append(trace.observation.Events, fmt.Sprintf("send|%s|%s|%s", response.TypeUrl, response.VersionInfo, response.Nonce))
 	})
 	done := make(chan error, 1)
-	go func() { done <- sotw.NewServer(ctx, trace, trace).StreamHandler(trace, fixture.DefaultType) }()
+	go func() {
+		var options []config.XDSOption
+		if fixture.Ordered {
+			options = append(options, sotw.WithOrderedADS())
+		}
+		done <- sotw.NewServer(ctx, trace, trace, options...).StreamHandler(trace, fixture.DefaultType)
+	}()
 	for _, step := range fixture.Steps {
 		switch step.Kind {
 		case "request":
@@ -160,6 +182,9 @@ func executeStream(fixture streamCase) (streamObservation, error) {
 			if step.Nack {
 				request.ErrorDetail = &status.Status{Code: 3, Message: "rejected"}
 			}
+			if step.Hold {
+				trace.heldRequest = request
+			}
 			select {
 			case trace.recv <- streamInput{request: request}:
 			case <-ctx.Done():
@@ -168,12 +193,12 @@ func executeStream(fixture streamCase) (streamObservation, error) {
 			if _, err := nextStreamEvent(ctx, trace.requested); err != nil {
 				return streamObservation{}, err
 			}
-			if !step.Stale {
+			if !step.Stale && !step.Hold {
 				if _, err := nextStreamEvent(ctx, trace.created); err != nil {
 					return streamObservation{}, err
 				}
 			}
-		case "respond":
+		case "respond", "queue":
 			registration := trace.registrations[step.Watch]
 			returned := map[string]string{}
 			for _, name := range step.Names {
@@ -184,9 +209,33 @@ func executeStream(fixture streamCase) (streamObservation, error) {
 				DiscoveryResponse: &discovery.DiscoveryResponse{TypeUrl: registration.request.TypeUrl, VersionInfo: step.Version},
 				ReturnedResources: returned,
 			}
-			if _, err := nextStreamEvent(ctx, trace.sent); err != nil {
-				return streamObservation{}, err
+			if step.Kind == "respond" {
+				if _, err := nextStreamEvent(ctx, trace.sent); err != nil {
+					return streamObservation{}, err
+				}
 			}
+		case "release":
+			close(trace.release)
+			if !step.Stale {
+				if _, err := nextStreamEvent(ctx, trace.created); err != nil {
+					return streamObservation{}, err
+				}
+			}
+			for count := 0; count < step.Sent; count++ {
+				if _, err := nextStreamEvent(ctx, trace.sent); err != nil {
+					return streamObservation{}, err
+				}
+			}
+		case "close-responses":
+			close(trace.registrations[step.Watch].responses)
+			err, timeout := nextStreamEvent(ctx, done)
+			if timeout != nil {
+				return streamObservation{}, timeout
+			}
+			if grpcstatus.Code(err) != codes.Unavailable {
+				return streamObservation{}, fmt.Errorf("expected Unavailable after response channel closure, got %v", err)
+			}
+			trace.observation.Error = "Unavailable"
 		case "end":
 			if step.ReceiveError {
 				select {

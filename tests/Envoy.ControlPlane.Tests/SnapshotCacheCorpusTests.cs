@@ -8,11 +8,11 @@ namespace Envoy.ControlPlane.Tests;
 public sealed class SnapshotCacheCorpusTests
 {
     [Fact]
-    public void SourceDerivedEventTraces_MatchDeclaredOutcomes()
+    public async Task SourceDerivedEventTraces_MatchDeclaredOutcomes()
     {
         var fixtures = SnapshotCacheCorpus.ReadFixtures();
         Assert.Equal(22, fixtures.Count);
-        var results = fixtures.Select(fixture => SnapshotCacheCorpus.Evaluate(fixture!)).ToArray();
+        var results = await Task.WhenAll(fixtures.Select(fixture => SnapshotCacheCorpus.EvaluateAsync(fixture!)));
         Assert.Equal(22, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
         for (int index = 0; index < results.Length; index++)
         {

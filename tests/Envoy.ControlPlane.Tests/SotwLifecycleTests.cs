@@ -23,6 +23,39 @@ namespace Envoy.ControlPlane.Tests;
 public sealed class SotwLifecycleTests
 {
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ResponseThenChannelClosure_ObservesTerminalSignalWithoutAnotherRequest(bool ordered, bool faulted)
+    {
+        await using var stream = new StreamHarness();
+        var failure = new IOException("response channel");
+        stream.Watcher.Create = (request, _, responses) =>
+        {
+            var watch = new StreamWatch(responses);
+            watch.Respond(Response(request));
+            Assert.True(responses.TryComplete(faulted ? failure : null));
+            return watch;
+        };
+        stream.Start(typeUrl: ordered ? "" : "type/A", options: new SotwOptions { OrderedAds = ordered });
+        stream.Input.Push(Request());
+        var watch = await stream.NextWatch();
+        Assert.Equal("1", (await stream.NextResponse()).Nonce);
+        if (faulted)
+        {
+            Assert.Same(failure, await Assert.ThrowsAsync<IOException>(() => Wait(stream.Running)));
+        }
+        else
+        {
+            var protocol = await Assert.ThrowsAsync<SotwProtocolException>(() => Wait(stream.Running));
+            Assert.Equal(SotwProtocolError.Unavailable, protocol.Error);
+        }
+        Assert.Equal(1, watch.Watch.Disposals);
+        Assert.Equal(1, stream.Input.Disposals);
+    }
+
+    [Theory]
     [InlineData("eof")]
     [InlineData("receive-error")]
     [InlineData("call-cancel")]
@@ -66,7 +99,7 @@ public sealed class SotwLifecycleTests
         stream.Callbacks.Close = (_, _) => { closes++; return ValueTask.CompletedTask; };
         if (operation == "open") stream.Callbacks.Open = (_, _, _, _) => ValueTask.FromException(failure);
         if (operation == "request") stream.Callbacks.Request = (_, _, _) => ValueTask.FromException(failure);
-        if (operation == "cache") stream.Watcher.Create = (_, _) => throw failure;
+        if (operation == "cache") stream.Watcher.Create = (_, _, _) => throw failure;
         if (operation == "response-callback") stream.Callbacks.Response = (_, _, _, _, _) => ValueTask.FromException(failure);
         if (operation == "send") stream.Sending = (_, _) => ValueTask.FromException(failure);
         stream.Start();
@@ -122,7 +155,7 @@ public sealed class SotwLifecycleTests
         var iterator = new InvalidOperationException("iterator disposal");
         var close = new InvalidOperationException("close");
         await using var stream = new StreamHarness(new StreamInput { DisposalFailure = iterator });
-        stream.Watcher.Create = (_, _) => new StreamWatch { DisposalFailure = release };
+        stream.Watcher.Create = (_, _, responses) => new StreamWatch(responses) { DisposalFailure = release };
         int closes = 0;
         stream.Callbacks.Request = (_, request, _) => request.TypeUrl == "reject" ? ValueTask.FromException(primary) : ValueTask.CompletedTask;
         stream.Callbacks.Close = (_, _) => { closes++; return ValueTask.FromException(close); };
@@ -250,9 +283,9 @@ public sealed class SotwLifecycleTests
     {
         await using var stream = new StreamHarness();
         var events = new List<string>();
-        stream.Watcher.Create = (request, _) =>
+        stream.Watcher.Create = (request, _, responses) =>
         {
-            var watch = new StreamWatch();
+            var watch = new StreamWatch(responses);
             if (request.TypeUrl == "type/A") watch.Respond(Response(request));
             return watch;
         };

@@ -1,8 +1,11 @@
 namespace Envoy.ControlPlane.Streams;
 
-/// <summary>Source-equivalent legacy wildcard settings for SotW subscriptions.</summary>
+/// <summary>Delivery ordering and source-equivalent legacy wildcard settings for SotW.</summary>
 public sealed class SotwOptions
 {
+    /// <summary>Gets whether ADS uses ordered response delivery and drains on watch replacement.</summary>
+    public bool OrderedAds { get; init; }
+
     /// <summary>Gets whether legacy empty-request wildcard behavior is disabled for every type.</summary>
     public bool DisableLegacyWildcard { get; init; }
 

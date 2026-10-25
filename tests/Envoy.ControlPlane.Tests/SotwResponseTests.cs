@@ -18,9 +18,9 @@ public sealed class SotwResponseTests
         var origin = new object();
         using var publication = new CancellationTokenSource();
         TestSotwResponse? response = null;
-        stream.Watcher.Create = (request, _) =>
+        stream.Watcher.Create = (request, _, responses) =>
         {
-            var watch = new StreamWatch();
+            var watch = new StreamWatch(responses);
             response = Response(request, names: ["a"], context: new ResponseContext(publication.Token, origin));
             watch.Respond(response);
             return watch;
@@ -110,7 +110,7 @@ public sealed class SotwResponseTests
     {
         var cache = new SnapshotCache();
         var snapshot = ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Cluster, [ResourceFixtures.EdsCluster("a")]));
-        cache.SetSnapshot("client", snapshot);
+        await cache.SetSnapshotAsync("client", snapshot);
         await using var stream = new StreamHarness();
         int nacks = 0;
         stream.Callbacks.Request = (_, request, _) =>
@@ -123,7 +123,7 @@ public sealed class SotwResponseTests
             return ValueTask.CompletedTask;
         };
         stream.Callbacks.Response = async (_, _, _, _, token) =>
-            await Task.Run(() => cache.SetSnapshot("client", snapshot), token);
+            await Task.Run(async () => await cache.SetSnapshotAsync("client", snapshot), token);
         stream.Start(ResourceTypeUrls.Cluster, cache);
         var first = Request(type: "", names: ["a"]);
         first.Node = new Node { Id = "client" };
@@ -141,19 +141,4 @@ public sealed class SotwResponseTests
         Assert.Equal(0, cache.GetStatusInfo("client")!.NumWatches);
     }
 
-    private sealed class InspectedResponse(ISotwResponse inner, TaskCompletionSource inspected) : ISotwResponse
-    {
-        public Envoy.Service.Discovery.V3.DiscoveryRequest Request => inner.Request;
-        public string ResponseVersion => inner.ResponseVersion;
-        public ResponseContext Context => inner.Context;
-        public IReadOnlyDictionary<string, string> ReturnedResources
-        {
-            get
-            {
-                inspected.TrySetResult();
-                return inner.ReturnedResources;
-            }
-        }
-        public Envoy.Service.Discovery.V3.DiscoveryResponse GetDiscoveryResponse() => inner.GetDiscoveryResponse();
-    }
 }

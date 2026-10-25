@@ -19,7 +19,7 @@ public sealed class SnapshotResponseTests
         var message = new CountingResource("listener");
         var request = Request(ResourceTypeUrls.Listener);
         using var watch = cache.CreateWatch(request, Subscription(wildcard: true));
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("opaque", (ResourceTypeUrls.Listener, [message])));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("opaque", (ResourceTypeUrls.Listener, [message])));
         var response = await watch.Completion;
         Assert.Equal(0, message.Writes);
         Assert.Same(request, response.Request);
@@ -49,7 +49,7 @@ public sealed class SnapshotResponseTests
             [ResourceTypeUrls.Listener] = [new(message, ttlSeconds is { } seconds ? TimeSpan.FromSeconds(seconds) : null)],
         });
         var cache = new SnapshotCache();
-        cache.SetSnapshot("node", snapshot);
+        await cache.SetSnapshotAsync("node", snapshot);
         using var watch = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
         var response = await watch.Completion;
         var payload = Assert.Single(response.GetDiscoveryResponse().Resources);
@@ -70,10 +70,10 @@ public sealed class SnapshotResponseTests
     public async Task ReplacementPublication_DoesNotChangePreviouslyDeliveredResources()
     {
         var cache = new SnapshotCache();
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [new Listener { Name = "listener", StatPrefix = "old" }])));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [new Listener { Name = "listener", StatPrefix = "old" }])));
         using var first = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
         var retained = await first.Completion;
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("v2", (ResourceTypeUrls.Listener, [new Listener { Name = "listener", StatPrefix = "new" }])));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v2", (ResourceTypeUrls.Listener, [new Listener { Name = "listener", StatPrefix = "new" }])));
         using var second = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
         var replacement = await second.Completion;
         Assert.Equal("old", Assert.Single(retained.GetDiscoveryResponse().Resources).Unpack<Listener>().StatPrefix);
@@ -88,7 +88,7 @@ public sealed class SnapshotResponseTests
         var failure = new InvalidOperationException("cannot serialize resource");
         var resource = new ThrowingResource(failure);
         var cache = new SnapshotCache();
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [resource])));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [resource])));
         using var watch = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
         var response = await watch.Completion;
         Assert.Equal(0, resource.Attempts);

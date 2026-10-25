@@ -4,7 +4,7 @@ using Envoy.Service.Discovery.V3;
 
 namespace Envoy.ControlPlane.Streams;
 
-/// <summary>Processes ordinary SotW streams with one receive operation and one serial send path.</summary>
+/// <summary>Processes per-type and ADS SotW streams with one receive operation and one serial send path.</summary>
 public sealed class SotwServer
 {
     private readonly IConfigWatcher cache;
@@ -16,7 +16,7 @@ public sealed class SotwServer
     /// <summary>Creates a server using a caller-owned cache and optional hooks, options and host shutdown.</summary>
     /// <param name="cache">The application-owned configuration watcher.</param>
     /// <param name="callbacks">Optional serial lifecycle hooks.</param>
-    /// <param name="options">Source-equivalent subscription options.</param>
+    /// <param name="options">Delivery ordering and source-equivalent subscription options.</param>
     /// <param name="shutdown">Cancellation shared by all server streams.</param>
     public SotwServer(IConfigWatcher cache, ISotwCallbacks? callbacks = null, SotwOptions? options = null,
         CancellationToken shutdown = default)
@@ -28,7 +28,7 @@ public sealed class SotwServer
         this.shutdown = shutdown;
     }
 
-    /// <summary>Runs a stream; an empty type URL selects unordered ADS. Inputs and hooks must honor cancellation.</summary>
+    /// <summary>Runs a stream; an empty type URL selects ADS with the configured ordering. Inputs and hooks must honor cancellation.</summary>
     /// <param name="requests">The single-reader input, disposed when the stream ends.</param>
     /// <param name="send">The awaited, serial response writer.</param>
     /// <param name="typeUrl">The implied resource type, or an empty string for ADS.</param>

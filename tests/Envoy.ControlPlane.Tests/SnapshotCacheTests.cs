@@ -27,7 +27,7 @@ public sealed class SnapshotCacheTests
         using var cancellation = new CancellationTokenSource();
         var state = new object();
         var context = new ResponseContext(cancellation.Token, state);
-        cache.SetSnapshot("node", snapshot, context);
+        await cache.SetSnapshotAsync("node", snapshot, context);
         var response = await watch.Completion;
         Assert.Same(request, response.Request);
         Assert.Equal("opaque/v2", response.ResponseVersion);
@@ -35,7 +35,7 @@ public sealed class SnapshotCacheTests
         Assert.Equal("opaque/v2", response.ReturnedResources["listener"]);
         Assert.Equal(0, status.NumWatches);
         Assert.Same(snapshot, cache.GetSnapshot("node"));
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("later"));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("later"));
         Assert.Same(response, await watch.Completion);
         Assert.Equal("opaque/v2", response.GetDiscoveryResponse().VersionInfo);
     }
@@ -44,7 +44,7 @@ public sealed class SnapshotCacheTests
     public async Task ImmediateAndSameVersionPending_UseReturnedResourceMetadata()
     {
         var cache = new SnapshotCache();
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }])));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }])));
         Assert.Empty(cache.GetStatusKeys());
         using var immediate = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
         Assert.True(immediate.Completion.IsCompletedSuccessfully);
@@ -55,21 +55,22 @@ public sealed class SnapshotCacheTests
             Subscription(wildcard: true, returned: first.ReturnedResources));
         Assert.False(pending.Completion.IsCompleted);
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }])));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }])));
         Assert.False(pending.Completion.IsCompleted);
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("v2", (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }])));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v2", (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }])));
         Assert.Equal("v2", (await pending.Completion).ResponseVersion);
         Assert.Equal(0, cache.GetStatusInfo("node")!.NumWatches);
     }
 
     [Fact]
-    public void Cancellation_ReleasesRegistrationAndRetainsNodeStatus()
+    public async Task Cancellation_ReleasesRegistrationAndRetainsNodeStatus()
     {
         var cache = new SnapshotCache();
         using var watch = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
         var status = cache.GetStatusInfo("node")!;
         watch.Dispose();
         watch.Dispose();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => watch.Completion);
         Assert.True(watch.Completion.IsCanceled);
         Assert.Equal(0, status.NumWatches);
         Assert.Equal(new[] { "node" }, cache.GetStatusKeys());
@@ -78,10 +79,10 @@ public sealed class SnapshotCacheTests
     }
 
     [Fact]
-    public void Clear_RemovesIndexedStateWithoutCompletingOldWatchOrCancelingNewOne()
+    public async Task Clear_RemovesIndexedStateWithoutCompletingOldWatchOrCancelingNewOne()
     {
         var cache = new SnapshotCache();
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("v1"));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v1"));
         using var old = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
         var previous = cache.GetStatusInfo("node")!;
         Assert.Equal(1, previous.NumWatches);
@@ -94,6 +95,7 @@ public sealed class SnapshotCacheTests
         Assert.Equal(1, previous.NumWatches);
         using var current = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
         old.Dispose();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => old.Completion);
         Assert.True(old.Completion.IsCanceled);
         Assert.False(current.Completion.IsCompleted);
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
@@ -148,7 +150,7 @@ public sealed class SnapshotCacheTests
         var snapshot = ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Cluster, [invalid]));
         Assert.Throws<InvalidOperationException>(snapshot.EnsureConsistent);
         var cache = new SnapshotCache();
-        cache.SetSnapshot("node", snapshot);
+        await cache.SetSnapshotAsync("node", snapshot);
         using var watch = cache.CreateWatch(Request(ResourceTypeUrls.Cluster), Subscription(wildcard: true));
         var response = await watch.Completion;
         Assert.Same(snapshot, cache.GetSnapshot("node"));
@@ -164,7 +166,7 @@ public sealed class SnapshotCacheTests
         var message = new Listener { Name = "custom" };
         var snapshot = new SingleResourceSnapshot(typeUrl, new ResourceEntry(message));
         var cache = new SnapshotCache();
-        cache.SetSnapshot("node", snapshot);
+        await cache.SetSnapshotAsync("node", snapshot);
         using var watch = cache.CreateWatch(Request(typeUrl), Subscription(wildcard: true));
         var response = await watch.Completion;
         Assert.Same(snapshot, cache.GetSnapshot("node"));
@@ -176,11 +178,11 @@ public sealed class SnapshotCacheTests
     }
 
     [Fact]
-    public void CustomSnapshotFailure_IsSynchronousDuringCreationAndLeavesStatus()
+    public async Task CustomSnapshotFailure_IsSynchronousDuringCreationAndLeavesStatus()
     {
         var failure = new InvalidOperationException("snapshot read failed");
         var cache = new SnapshotCache();
-        cache.SetSnapshot("node", new ObservedSnapshot(ResourceFixtures.Snapshot("v1"), () => throw failure));
+        await cache.SetSnapshotAsync("node", new ObservedSnapshot(ResourceFixtures.Snapshot("v1"), () => throw failure));
         Assert.Same(failure, Assert.Throws<InvalidOperationException>(() =>
             cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true))));
         Assert.Equal(0, cache.GetStatusInfo("node")!.NumWatches);
@@ -194,11 +196,11 @@ public sealed class SnapshotCacheTests
         using var watch = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
         var failure = new InvalidOperationException("snapshot read failed");
         var broken = new ObservedSnapshot(ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [])), () => throw failure);
-        Assert.Same(failure, Assert.Throws<InvalidOperationException>(() => cache.SetSnapshot("node", broken)));
+        Assert.Same(failure, await Assert.ThrowsAsync<InvalidOperationException>(() => cache.SetSnapshotAsync("node", broken)));
         Assert.Same(broken, cache.GetSnapshot("node"));
         Assert.False(watch.Completion.IsCompleted);
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
-        cache.SetSnapshot("node", ResourceFixtures.Snapshot("v2", (ResourceTypeUrls.Listener, [new Listener { Name = "retry" }])));
+        await cache.SetSnapshotAsync("node", ResourceFixtures.Snapshot("v2", (ResourceTypeUrls.Listener, [new Listener { Name = "retry" }])));
         Assert.Equal("v2", (await watch.Completion).ResponseVersion);
         Assert.Equal(0, cache.GetStatusInfo("node")!.NumWatches);
     }
@@ -211,12 +213,12 @@ public sealed class SnapshotCacheTests
         var snapshot = ResourceFixtures.Snapshot("v1", (ResourceTypeUrls.Listener, [new Listener { Name = "listener" }]));
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
-        var error = Assert.Throws<OperationCanceledException>(() => cache.SetSnapshot("node", snapshot, new ResponseContext(cancellation.Token)));
+        var error = await Assert.ThrowsAsync<OperationCanceledException>(() => cache.SetSnapshotAsync("node", snapshot, new ResponseContext(cancellation.Token)));
         Assert.Equal(cancellation.Token, error.CancellationToken);
         Assert.Same(snapshot, cache.GetSnapshot("node"));
         Assert.False(watch.Completion.IsCompleted);
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
-        cache.SetSnapshot("node", snapshot);
+        await cache.SetSnapshotAsync("node", snapshot);
         Assert.Equal("v1", (await watch.Completion).ResponseVersion);
         Assert.Equal(0, cache.GetStatusInfo("node")!.NumWatches);
     }
