@@ -12,6 +12,7 @@ on:
       - schemas/bindings.lock.json
       - src/Envoy.ControlPlane.Protocol/**
       - tests/Envoy.ControlPlane.TransportProbe/**
+      - tests/Envoy.ControlPlane.Upstream.Tests/TransportSummaryTests.cs
       - tests/resources/GoOracle/**
       - tools/Envoy.ControlPlane.Tools/Transport/**
       - tools/Envoy.ControlPlane.Tools/Program.cs

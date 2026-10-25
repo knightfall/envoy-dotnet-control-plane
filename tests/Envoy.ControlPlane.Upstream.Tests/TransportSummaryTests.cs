@@ -25,10 +25,11 @@ public sealed class TransportSummaryTests
 
         string report = TransportSummary.Format(environment, [], measurements);
 
-        string[] dotnetRows = report.Split('\n').Where(line => line.Contains("| dotnet |", StringComparison.Ordinal)).ToArray();
+        string[] reportLines = report.ReplaceLineEndings("\n").Split('\n');
+        string[] dotnetRows = reportLines.Where(line => line.Contains("| dotnet |", StringComparison.Ordinal)).ToArray();
         Assert.Equal(2, dotnetRows.Length);
         Assert.All(dotnetRows, row => Assert.EndsWith("| unavailable |", row));
-        Assert.Contains("| 512 |", report.Split('\n').Single(line => line.Contains("| go |", StringComparison.Ordinal)));
+        Assert.Contains("| 512 |", reportLines.Single(line => line.Contains("| go |", StringComparison.Ordinal)));
         Assert.Contains("Allocation readings decreased for: .NET 10.0.13", report);
         Assert.Contains("not a zero-allocation result", report);
         Assert.Null(measurements[4]!["allocatedBytesPerResponse"]);
@@ -57,7 +58,7 @@ public sealed class TransportSummaryTests
                 ["allocationCounterValid"] = valid,
                 ["allocatedBytesPerResponse"] = valid ? (double)allocation : null,
                 ["allocatedBytesBefore"] = 3000,
-                ["allocatedBytesAfter"] = valid ? 4000 : 2000,
+                ["allocatedBytesAfter"] = valid ? 3000 + (100 * allocation) : 2000,
             });
         }
     }
