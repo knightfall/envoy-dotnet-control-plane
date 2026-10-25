@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json.Nodes;
 
@@ -9,7 +10,7 @@ internal static class TransportSummary
     {
         var text = new StringBuilder("# gRPC/Kestrel transport probe\n\n");
         text.AppendLine($"Revision: `{environment["revision"]}`. OS: {environment["os"]}; architecture: {environment["architecture"]}.")
-            .AppendLine($"Runtime processor hint: {environment["runtimeProcessorHint"]}; host logical processors: {environment["hostProcessors"]}. No CPU affinity or quota is applied.\n")
+            .AppendLine($"Working tree dirty: {environment["workingTreeDirty"]}. Runtime processor hint: {environment["runtimeProcessorHint"]}; host logical processors: {environment["hostProcessors"]}. No CPU affinity or quota is applied.\n")
             .AppendLine("| Transport | Mode | Functional checks passed |")
             .AppendLine("|---|---|---:|");
         foreach (var group in checks.OfType<JsonObject>().GroupBy(row => (Server: Value<string>(row, "server"), Mode: Value<string>(row, "mode"))))
@@ -18,6 +19,8 @@ internal static class TransportSummary
         }
         if (measurements.Count > 0)
         {
+            var invalidAllocationRuntimes = measurements.OfType<JsonObject>()
+                .Where(row => !Value<bool>(row, "allocationCounterValid")).Select(row => Value<string>(row, "runtime")).ToHashSet(StringComparer.Ordinal);
             text.AppendLine("\nThree alternating two-second trials per row, after 100 warm-up exchanges per stream. One reused stream per worker; uncompressed responses. TLS handshakes and warm-up are excluded. Latency is sampled every tenth exchange.\n")
                 .AppendLine("| Mode | Transport | Payload bytes | Streams / connections | Responses/s median [min, max] | p95 µs median | Server CPU µs/response | Runtime allocated B/response |")
                 .AppendLine("|---|---|---:|---:|---:|---:|---:|---:|");
@@ -28,8 +31,14 @@ internal static class TransportSummary
                 var throughput = group.Select(row => Value<double>(row, "responsesPerSecond")).Order().ToArray();
                 double latency = Median(group.Select(row => Value<double>(row, "p95us")));
                 double cpu = Median(group.Select(row => Value<double>(row, "serverCpuSeconds") * 1e6 / Value<int>(row, "operations")));
-                double allocation = Median(group.Select(row => Value<double>(row, "allocatedBytesPerResponse")));
-                text.AppendLine(FormattableString.Invariant($"| {group.Key.Mode} | {group.Key.Server} | {group.Key.Size} | {group.Key.Streams} / {group.Key.Connections} | {throughput[1]:F0} [{throughput[0]:F0}, {throughput[2]:F0}] | {latency:F1} | {cpu:F1} | {allocation:F0} |"));
+                string allocation = invalidAllocationRuntimes.Contains(Value<string>(group.First(), "runtime"))
+                    ? "unavailable"
+                    : Median(group.Select(row => Value<double>(row, "allocatedBytesPerResponse"))).ToString("F0", CultureInfo.InvariantCulture);
+                text.AppendLine(FormattableString.Invariant($"| {group.Key.Mode} | {group.Key.Server} | {group.Key.Size} | {group.Key.Streams} / {group.Key.Connections} | {throughput[1]:F0} [{throughput[0]:F0}, {throughput[2]:F0}] | {latency:F1} | {cpu:F1} | {allocation} |"));
+            }
+            if (invalidAllocationRuntimes.Count > 0)
+            {
+                text.AppendLine("\nAllocation readings decreased for: " + string.Join(", ", invalidAllocationRuntimes) + ". All allocation comparisons for those runtimes are unavailable; raw before/after checkpoints remain in measurements.json. This is an instrumentation limitation, not a zero-allocation result.");
             }
         }
         text.AppendLine("\nThese are same-run loopback diagnostics, not production capacity, an SLO, a retained-memory measurement or full xDS parity. Runtime allocation counters have different accounting boundaries and exclude native allocations. Process CPU includes runtime/background work. No performance threshold gates this job. Raw checks, trials, runtime settings and logs accompany this summary.");

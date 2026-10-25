@@ -67,9 +67,11 @@ internal static class TransportVerification
         string certificates = Path.Combine(scratch, "certificates");
         await BuildProcess.RunAsync(probe, ["certificates", certificates], environment: environment);
         string revision = (await BuildProcess.RunAsync("git", ["rev-parse", "HEAD"])).Trim();
+        string changes = await BuildProcess.RunAsync("git", ["status", "--porcelain"]);
         var details = new JsonObject
         {
             ["revision"] = revision,
+            ["workingTreeDirty"] = changes.Length > 0,
             ["os"] = RuntimeInformation.OSDescription,
             ["architecture"] = RuntimeInformation.OSArchitecture.ToString(),
             ["runtime"] = RuntimeInformation.FrameworkDescription,

@@ -307,8 +307,12 @@ func measure(address, admin, certificateDirectory string, size, workers int, sep
 	}
 	after := readStats(admin)
 	require(after.Active == 0, "measurement leaked stream")
-	require(after.AllocatedBytes >= before.AllocatedBytes, fmt.Sprintf("allocation counter decreased: before=%+v after=%+v", before, after))
 	require(after.CPUSeconds >= before.CPUSeconds, fmt.Sprintf("CPU counter decreased: before=%+v after=%+v", before, after))
+	allocationValid := after.AllocatedBytes >= before.AllocatedBytes
+	var allocation any
+	if allocationValid {
+		allocation = float64(after.AllocatedBytes-before.AllocatedBytes) / float64(count)
+	}
 	sort.Slice(samples, func(i, j int) bool { return samples[i] < samples[j] })
 	percentile := func(p float64) float64 { return float64(samples[int(float64(len(samples)-1)*p)]) / 1000 }
 	seconds := ended.Sub(started).Seconds()
@@ -318,5 +322,6 @@ func measure(address, admin, certificateDirectory string, size, workers int, sep
 	}
 	emit(map[string]any{"size": size, "streams": workers, "connections": connections, "operations": count, "seconds": seconds, "responsesPerSecond": float64(count) / seconds,
 		"payloadMiBPerSecond": float64(count*size) / 1048576 / seconds, "p50us": percentile(.5), "p95us": percentile(.95), "p99us": percentile(.99), "latencySamples": len(samples),
-		"serverCpuSeconds": after.CPUSeconds - before.CPUSeconds, "allocatedBytesPerResponse": float64(after.AllocatedBytes-before.AllocatedBytes) / float64(count), "runtime": after.Runtime, "processors": after.Processors})
+		"serverCpuSeconds": after.CPUSeconds - before.CPUSeconds, "allocatedBytesPerResponse": allocation, "allocationCounterValid": allocationValid,
+		"allocatedBytesBefore": before.AllocatedBytes, "allocatedBytesAfter": after.AllocatedBytes, "runtime": after.Runtime, "processors": after.Processors})
 }
