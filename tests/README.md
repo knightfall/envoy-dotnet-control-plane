@@ -115,3 +115,7 @@ The repository CLI runs the Go stream comparison as part of `repository verify` 
 ## ASP.NET Core hosting
 
 [T11 evidence](../docs/plan/T11-ASP-NET-HOST.md) maps 23 tests in `Envoy.ControlPlane.AspNetCore.Tests` to nine real HTTP/2 generated clients, ACK/update/NACK, registered options, advertised/deferred endpoint inventory, status mapping, ordinary host authentication/authorization, call cancellation and host shutdown. The solution includes this project and the runnable example, bringing discovery to 222 cases. `repository verify` runs all 23 hosting tests again in a fresh package-only consumer and checks the updated hosting package graph. Tests use ephemeral Kestrel listeners; they do not substitute direct adapter calls for transport evidence.
+
+## Preview resource helpers
+
+[T20 preview evidence](../docs/plan/T20-PREVIEW-HELPERS.md) maps three Core cases and two HTTP/2 ADS cases to the sample graph, stable replacements, helper/Any outcomes and both stream ordering modes. Core has 147 cases, Hosting has 25 and the solution has 227. The eight declared helper cases and the exported sample graph run through the actual pinned Go helpers in `repository verify`; the existing snapshot decoder is shared rather than duplicated. Focused source links make the exact sample graph available in both fresh package test consumers. Released-Envoy proof remains separate.

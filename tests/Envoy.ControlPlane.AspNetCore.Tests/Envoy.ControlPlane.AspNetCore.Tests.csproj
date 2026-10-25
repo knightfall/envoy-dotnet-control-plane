@@ -16,5 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/Envoy.ControlPlane.AspNetCore/Envoy.ControlPlane.AspNetCore.csproj" />
+    <Compile Include="../../examples/Envoy.ControlPlane.Example/ExampleResources.cs" Link="Support/ExampleResources.cs" />
   </ItemGroup>
 </Project>

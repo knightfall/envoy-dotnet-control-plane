@@ -1,0 +1,84 @@
+[
+  {
+    "id": "rds-despite-different-label",
+    "filterName": "application-label",
+    "typeUrl": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+    "message": {
+      "statPrefix": "preview",
+      "rds": {
+        "routeConfigName": "routes"
+      }
+    },
+    "expected": {
+      "isHcm": true,
+      "routeName": "routes"
+    }
+  },
+  {
+    "id": "custom-type-url-prefix",
+    "filterName": "custom-label",
+    "typeUrl": "https://schemas.example.test/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+    "message": {
+      "rds": {
+        "routeConfigName": "custom-route"
+      }
+    },
+    "expected": {
+      "isHcm": true,
+      "routeName": "custom-route"
+    }
+  },
+  {
+    "id": "empty-hcm-defaults",
+    "typeUrl": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+    "value": "",
+    "expected": {
+      "isHcm": true,
+      "routeName": null
+    }
+  },
+  {
+    "id": "unknown-custom-type",
+    "filterName": "envoy.filters.network.http_connection_manager",
+    "typeUrl": "type.example.test/application.CustomFilter",
+    "value": "",
+    "expected": {
+      "isHcm": false,
+      "routeName": null
+    }
+  },
+  {
+    "id": "unrelated-router-type",
+    "typeUrl": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router",
+    "value": "",
+    "expected": {
+      "isHcm": false,
+      "routeName": null
+    }
+  },
+  {
+    "id": "malformed-hcm",
+    "typeUrl": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+    "value": "/w==",
+    "expected": {
+      "isHcm": false,
+      "routeName": null
+    }
+  },
+  {
+    "id": "missing-typed-config",
+    "filterName": "envoy.filters.network.http_connection_manager",
+    "expected": {
+      "isHcm": false,
+      "routeName": null
+    }
+  },
+  {
+    "id": "null-filter",
+    "nullFilter": true,
+    "expected": {
+      "isHcm": false,
+      "routeName": null
+    }
+  }
+]

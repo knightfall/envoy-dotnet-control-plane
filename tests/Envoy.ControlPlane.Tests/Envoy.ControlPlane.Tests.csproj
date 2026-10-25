@@ -16,5 +16,7 @@
     <EmbeddedResource Include="Fixtures/sotw-stream-cases.json" LogicalName="Envoy.ControlPlane.Tests.StreamCases.json" />
     <EmbeddedResource Include="Fixtures/cache-cases.json" LogicalName="Envoy.ControlPlane.Tests.CacheCases.json" />
     <EmbeddedResource Include="Fixtures/snapshot-cases.json" LogicalName="Envoy.ControlPlane.Tests.SnapshotCases.json" />
+    <EmbeddedResource Include="Fixtures/preview-helper-cases.json" LogicalName="Envoy.ControlPlane.Tests.PreviewHelperCases.json" />
+    <Compile Include="../../examples/Envoy.ControlPlane.Example/ExampleResources.cs" Link="Support/ExampleResources.cs" />
   </ItemGroup>
 </Project>

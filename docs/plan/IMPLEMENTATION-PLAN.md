@@ -339,6 +339,8 @@ Subtasks:
 
 ### T20 — Complete resource, conversion, and well-known helpers
 
+**Preview status:** Implements the narrow label surface, reuses existing name/type/reference helpers and builds the complete HTTP sample graph. Five added native cases and a shared Go helper comparison cover the preview subset; see [evidence and source mapping](T20-PREVIEW-HELPERS.md). Message/Struct conversion and the remaining 1.0 inventory remain separate.
+
 **Scope:** preview resource subset; 1.0 complete / R20. **Depends on:** T05. **Outputs:** helper APIs and source-to-.NET symbol mapping.
 
 Subtasks:

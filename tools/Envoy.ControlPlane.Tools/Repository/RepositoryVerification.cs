@@ -20,6 +20,7 @@ internal static class RepositoryVerification
                 "--results-directory", Path.GetFullPath(BindingPaths.InputsDirectory + "/results/repository"), "--report-xunit-trx"]);
             int cases = await ValidationVerification.CompareWithGoAsync();
             await ResourceVerification.CompareWithGoAsync();
+            await PreviewHelperVerification.CompareWithGoAsync();
             await SnapshotCacheVerification.CompareWithGoAsync();
             await SotwSubscriptionVerification.CompareWithGoAsync();
             await SotwStreamVerification.CompareWithGoAsync();

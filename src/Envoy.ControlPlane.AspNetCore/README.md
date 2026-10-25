@@ -44,4 +44,4 @@ The transport forwards the framework asynchronous request reader and serial writ
 
 `ILogger` records stream open/close and protocol status at debug level, without resource payloads. Configure logging providers and gRPC logging through the host. Protocol/Core keep their existing dependency boundary, and no optional validation/CEL dependency is introduced.
 
-The repository's `examples/Envoy.ControlPlane.Example` shows a configuration-driven endpoint update source. `docs/plan/T11-ASP-NET-HOST.md` records actual HTTP/2 tests and package-consumer evidence. These checks do not establish released-Envoy interoperability, full xDS parity or new performance measurements.
+The repository's `examples/Envoy.ControlPlane.Example` shows a configuration-driven HTTP graph update source with listener/HCM/router/route/cluster/endpoint resources. `docs/plan/T11-ASP-NET-HOST.md` records actual HTTP/2 tests and package-consumer evidence. These checks do not establish released-Envoy interoperability, full xDS parity or new performance measurements.
