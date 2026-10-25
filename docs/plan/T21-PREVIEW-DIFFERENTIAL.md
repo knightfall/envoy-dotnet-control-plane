@@ -1,0 +1,46 @@
+# T21 — Preview differential harness
+
+Implements the preview subset of [issue #14](https://github.com/knightfall/envoy-dotnet-control-plane/issues/14). Existing snapshot, cache, subscription and stream drivers are retained. Go imports the actual implementations at behavior revision `67c5345367582741334e34ffc66a561b0ce32946`; the schema source remains `82a4424f760b6ba3ffc9f2911389d061656f35c8`. The verifier checks both module revisions and rejects replacements before execution. [Attribution](../../tests/resources/UPSTREAM-TESTS.md) and the original Apache-2.0 license remain in place.
+
+## Execution and observations
+
+Run `dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify` after binding generation. Native tests first assert independently declared fixture outcomes and export their inputs and observations. Go plays the same actions against the pinned implementation. Snapshot/cache/subscription comparisons retain exact names, caller versions, returned metadata, readiness and status counts. The cache corpus now re-observes the actual retained Go response after replacement, rather than preserving only an earlier copy of its observation.
+
+The stream driver writes its own actual callbacks, requests, watches, response callbacks, sends, errors and disposals to `obj/upstream/results/streams/go-results.json`. `SotwTraceComparer` compares that report with the native observations. Both report inventories must match the fixtures exactly. Event order remains intact; explicit gates make queue/drain scenarios deterministic without imposing an order on simultaneously ready ordinary watches.
+
+`comparison.json` beside the Go report records the behavior/schema pins, matched IDs, comparison policy and injected-mismatch rejection. Native raw reports remain in the Core test output. Existing CI uploads the result directory on Linux, macOS and Windows. Consumers require neither Go nor the harness.
+
+## Nonce relationships
+
+Generated response nonces use a bidirectional mapping created in event order, reset per stream and shared across resource types. Sends and subsequent requests must reuse that mapping. Distinct Go nonces cannot map to one .NET nonce, and the reverse holds too. Empty values remain empty. Previously unseen stale-request and callback-override tokens remain literal and reserve their identity, preventing later generated nonces from silently aliasing them. An assigned nonce and a deliberately changed wire nonce remain distinct observations.
+
+Caller versions are prescribed fixture inputs and compare exactly, including NACK prior-version and returned-resource relationships. Names, type URLs, nodes, wildcard flags, errors and disposal counts also remain exact. Resource-hash text equality is not claimed; existing tests verify lazy maps and runtime-specific serialization/hash invariants. Protocol events are never sorted or independently renamed in ways that erase associations.
+
+The CLI changes a stale request in an actual exported trace to use the current response nonce and requires comparison failure. Offline comparer tests independently rename generated tokens and inject broken associations, cross-type nonce reuse, callback/wire changes, advanced NACK versions, lost NACK flags, reordered callbacks, wrong errors and missing cleanup.
+
+## Requirement coverage
+
+The preview portions of V05–V15 use the combined evidence below. Native ownership, cancellation and clock details are distinguished from differential source results.
+
+| Requirement | Exact test and Go fixture evidence |
+|---|---|
+| V05: stable replacement and retained response | `SnapshotTests.Messages_AreRetained_AndReplacementSnapshotIsIndependent`; `SnapshotCacheCorpusTests.SourceDerivedEventTraces_MatchDeclaredOutcomes` / `retained-response-after-replacement` re-observes the retained response in both drivers. |
+| V06: versions and lazy hashes | `SnapshotTests.ResourceGroups_RetainIndependentOpaqueVersions`, `VersionMap_IsExplicitAndCached`, `VersionMap_SamePayload_IgnoresCallerVersionAndTtl`; `ResourceSerializationTests.UnknownFields_AffectVersionAndSurviveSerialization`; 19 Go snapshot comparisons check prescribed versions and lazy map/hash shape. Literal hash equality is excluded. |
+| V07: partial graphs and explicit consistency | `SnapshotCorpusTests.Corpus_SourceDerivedFixtures_MatchDeclaredOutcomes` / 19 fixtures including `eds-missing`, `eds-extra`, `rds-missing`; native `SnapshotCacheTests.Publication_DoesNotValidateOrCheckConsistency` checks publication policy. |
+| V08: watch lifecycle | `SnapshotCacheCorpusTests.SourceDerivedEventTraces_MatchDeclaredOutcomes` / 23 fixtures including `missing-then-publication`, `same-version-known-pending`, `cancel-before-publication`, `clear-leaves-old-watch-untracked`; native `SnapshotCacheConcurrencyTests.RegistrationAndPublication_RetainReplacementWhenLookupIsInProgress` checks gated interleaving. |
+| V09: readiness versus ordering | Cache fixtures `ads-incomplete-coverage-untracked`, `ads-active-watch-survives-incomplete-snapshot`, `ads-wildcard-bypasses-coverage`; native `SotwOrderedAdsTests.ReadinessAndOrdering_AreIndependentOptions` checks all four combinations. |
+| V10: resource selection and metadata | Cache fixtures `same-version-listener-full-state`, `same-version-route-new-only`, `cluster-deletion-empty-full-state`, `snapshot-path-does-not-expand-prefixes`; stream fixtures exercise custom producer types. |
+| V11: subscriptions | `SotwSubscriptionTests.SourceDerivedTransitions_MatchEveryDeclaredState` / 14 fixtures including `legacy-empty-stops-after-explicit`, `prefix-duplicates-and-literal-stars`, `global-deactivation`, `per-type-deactivation`; native `UnsubscribeAndResubscribe_ReturnsResourceWithoutSnapshotVersionChange` checks cache integration. |
+| V12: defaults, nodes and nonce/NACK relationships | `SotwStreamCorpusTests.SourceTraces_MatchDeclaredCallbacksWatchesAndSends` / `node-and-implied-types`, `stale-and-current-watch-nonces`, `callback-wire-nonce`, `nack-preserves-request-version` and ordered variants; native `SotwResponseTests.Nack_RedeliversCurrentSnapshotWithoutRollbackAndCallbacksCanPublish` checks real-cache no-rollback behavior. |
+| V13: ADS order and independent types | Stream fixtures `unordered-custom-ads-types`, `ordered-unordered-custom-ads-types`, `ordered-buffered-producer-order`, `ordered-replacement-drains-other-type`; native `SotwOrderedAdsTests.LateUnsubscribedResponse_IsFilteredAgainstReplacementSubscription` checks late filtering in both modes. |
+| V14: status | Every cache observation compares indexed counts and snapshot presence through immediate/deferred/canceled/no-registration/clear paths. Native `SnapshotCacheTests.CustomHashAndClock_DriveLiveStatusAndRetainFirstNode` checks identity and controlled times; Go absolute wall-clock values are not compared. |
+| V15: callbacks and errors | Stream fixtures `open-rejected`, `request-rejected`, `ads-missing-type`, `receive-error-closes-normally`, `response-then-channel-closure` and ordered variants. Rejection follows an existing watch; missing type rejects before the request callback. Native `SotwLifecycleTests.OperationFailure_PreservesOriginalAndCleansUp` and `CleanupFailures_RetainPrimaryAndAttemptEveryReleaseAndClose` check the .NET fault policy. Fetch hooks remain outside preview. |
+| Comparer acceptance/rejection | `SotwTraceComparerTests.GeneratedNonces_PreserveStreamWideAssociations`, `LiteralNoncesAndCallerVersions_RemainExact`, `BrokenTrace_IsRejected`, `ErrorsAndWatchCleanup_RemainExact`, `GeneratedNonce_CannotAliasPreviouslyObservedLiteral`, `UnknownOrMalformedEvents_AreRejected`; repository verification also rejects the injected stale association against actual reports. |
+
+## Verification and remaining gates
+
+Local macOS arm64 uses .NET SDK 10.0.400, native xUnit/MTP, Roslynator and Go 1.26.4. Complete `repository verify` passes 244 solution cases, zero failed/skipped, zero compiler/analyzer warnings or errors, all five package/symbol pairs, fresh Protocol (12), Validation (18), Core (147), Hosting (25) test consumers and executable Core/ASP.NET consumers. All listed Go corpora match, and the injected stale association is rejected. Focused tooling tests also pass all 42 cases. Exact-head CI and independent review results belong to the implementing PR. No dependencies, runtime APIs, schema/tool pins, generated fingerprints or package locks change.
+
+The harness has 19 snapshot, 23 cache, 14 subscription, 22 stream and eight helper cases, plus the separately gated 33 PGV cases. Fixture counts differ from native test counts because one corpus test executes every declared scenario. No static pairing or coverage percentage is claimed: the optional pairing parser prerequisite is unavailable.
+
+This completes the preview harness infrastructure and its bounded source comparisons. Full V05–V27/root coverage, adversarial concurrency, released-Envoy traffic/reconnect acceptance, new performance measurements and validator conformance retain their T12/T22/1.0 gates. Existing intentional .NET ownership, asynchronous publication/cancellation and exception-policy differences remain documented in T05–T11; no new runtime departure is introduced here.

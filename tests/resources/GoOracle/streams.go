@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -34,6 +33,7 @@ type streamStep struct {
 	ReceiveError bool     `json:"receiveError"`
 	Hold         bool     `json:"hold"`
 	Sent         int      `json:"sent"`
+	Reject       bool     `json:"reject"`
 }
 
 type streamObservation struct {
@@ -47,6 +47,7 @@ type streamCase struct {
 	DefaultType   string            `json:"defaultType"`
 	CallbackNonce string            `json:"callbackNonce"`
 	Ordered       bool              `json:"ordered"`
+	RejectOpen    bool              `json:"rejectOpen"`
 	Steps         []streamStep      `json:"steps"`
 	Observed      streamObservation `json:"observed"`
 }
@@ -66,10 +67,15 @@ type streamTrace struct {
 	callbackNonce string
 	heldRequest   *discovery.DiscoveryRequest
 	release       chan struct{}
+	rejectOpen    bool
+	rejectRequest *discovery.DiscoveryRequest
 }
 
 func (s *streamTrace) OnStreamOpen(_ context.Context, _ int64, typeURL string) error {
 	s.observation.Events = append(s.observation.Events, "open|"+typeURL)
+	if s.rejectOpen {
+		return grpcstatus.Error(codes.InvalidArgument, "callback rejected")
+	}
 	return nil
 }
 
@@ -81,6 +87,9 @@ func (s *streamTrace) OnStreamRequest(_ int64, request *discovery.DiscoveryReque
 	s.observation.Events = append(s.observation.Events, fmt.Sprintf("request|%s|%s|%s|%s|%s|%t", request.TypeUrl, request.Node.GetId(),
 		request.VersionInfo, request.ResponseNonce, strings.Join(request.ResourceNames, ","), request.ErrorDetail != nil))
 	s.requested <- true
+	if request == s.rejectRequest {
+		return grpcstatus.Error(codes.InvalidArgument, "callback rejected")
+	}
 	if request == s.heldRequest {
 		select {
 		case <-s.release:
@@ -128,8 +137,8 @@ func runStreams(args []string) error {
 	if err := json.Unmarshal(input, &cases); err != nil {
 		return err
 	}
-	if len(cases) != 16 {
-		return fmt.Errorf("expected sixteen declared stream traces, got %d", len(cases))
+	if len(cases) != 22 {
+		return fmt.Errorf("expected twenty-two declared stream traces, got %d", len(cases))
 	}
 	seen := map[string]bool{}
 	for index := range cases {
@@ -142,9 +151,7 @@ func runStreams(args []string) error {
 		if err != nil {
 			return fmt.Errorf("%s: %w", fixture.ID, err)
 		}
-		if !reflect.DeepEqual(observed, fixture.Observed) {
-			return fmt.Errorf("%s: stream differs: Go=%+v .NET=%+v", fixture.ID, observed, fixture.Observed)
-		}
+		fixture.Observed = observed
 	}
 	output, err := json.MarshalIndent(cases, "", "  ")
 	if err != nil {
@@ -153,14 +160,21 @@ func runStreams(args []string) error {
 	if err := os.WriteFile(args[1], append(output, '\n'), 0o644); err != nil {
 		return err
 	}
-	fmt.Printf("Go SotW streams: %d traces matched callbacks, watches, nodes, versions, nonces and cleanup.\n", len(cases))
+	fmt.Printf("Go SotW streams: captured %d actual callback, watch, request, send and error traces.\n", len(cases))
 	return nil
 }
 
 func executeStream(fixture streamCase) (streamObservation, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	trace := &streamTrace{requested: make(chan bool, 1), created: make(chan *streamRegistration, 1), callbackNonce: fixture.CallbackNonce, release: make(chan struct{})}
+	trace := &streamTrace{
+		requested:     make(chan bool, 1),
+		created:       make(chan *streamRegistration, 1),
+		callbackNonce: fixture.CallbackNonce,
+		release:       make(chan struct{}),
+		rejectOpen:    fixture.RejectOpen,
+	}
+	trace.observation.Disposals = []int{}
 	trace.mockStream = makeMockStream(ctx, func(response *discovery.DiscoveryResponse) {
 		trace.observation.Events = append(trace.observation.Events, fmt.Sprintf("send|%s|%s|%s", response.TypeUrl, response.VersionInfo, response.Nonce))
 	})
@@ -174,7 +188,7 @@ func executeStream(fixture streamCase) (streamObservation, error) {
 	}()
 	for _, step := range fixture.Steps {
 		switch step.Kind {
-		case "request":
+		case "request", "request-error":
 			request := &discovery.DiscoveryRequest{TypeUrl: step.Type, VersionInfo: step.Version, ResponseNonce: step.Nonce, ResourceNames: step.Names}
 			if step.Node != nil {
 				request.Node = &core.Node{Id: *step.Node}
@@ -185,10 +199,19 @@ func executeStream(fixture streamCase) (streamObservation, error) {
 			if step.Hold {
 				trace.heldRequest = request
 			}
+			if step.Reject {
+				trace.rejectRequest = request
+			}
 			select {
 			case trace.recv <- streamInput{request: request}:
 			case <-ctx.Done():
 				return streamObservation{}, ctx.Err()
+			}
+			if step.Kind == "request-error" {
+				if err := observeStreamError(ctx, done, &trace.observation); err != nil {
+					return streamObservation{}, err
+				}
+				continue
 			}
 			if _, err := nextStreamEvent(ctx, trace.requested); err != nil {
 				return streamObservation{}, err
@@ -236,6 +259,10 @@ func executeStream(fixture streamCase) (streamObservation, error) {
 				return streamObservation{}, fmt.Errorf("expected Unavailable after response channel closure, got %v", err)
 			}
 			trace.observation.Error = "Unavailable"
+		case "error":
+			if err := observeStreamError(ctx, done, &trace.observation); err != nil {
+				return streamObservation{}, err
+			}
 		case "end":
 			if step.ReceiveError {
 				select {
@@ -261,6 +288,18 @@ func executeStream(fixture streamCase) (streamObservation, error) {
 		trace.observation.Disposals = append(trace.observation.Disposals, registration.disposals)
 	}
 	return trace.observation, nil
+}
+
+func observeStreamError(ctx context.Context, done <-chan error, observation *streamObservation) error {
+	err, timeout := nextStreamEvent(ctx, done)
+	if timeout != nil {
+		return timeout
+	}
+	if err == nil {
+		return fmt.Errorf("expected a stream error, got successful completion")
+	}
+	observation.Error = grpcstatus.Code(err).String()
+	return nil
 }
 
 func nextStreamEvent[T any](ctx context.Context, events <-chan T) (T, error) {

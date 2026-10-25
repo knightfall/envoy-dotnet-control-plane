@@ -355,6 +355,8 @@ Subtasks:
 
 ### T21 — Build the Go/.NET differential harness
 
+Preview implementation and bounded V05–V15 evidence: [T21 preview differential harness](T21-PREVIEW-DIFFERENTIAL.md). Full root/Delta/Fetch/client matrix remains the separate 1.0 deliverable.
+
 **Scope:** preview subset then 1.0 / R22. **Depends on for completion:** T14–T20. **Outputs:** scripted scenario format, pinned Go driver, .NET driver, semantic trace comparer, divergence reports.
 
 Subtasks:

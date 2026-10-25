@@ -119,3 +119,7 @@ The repository CLI runs the Go stream comparison as part of `repository verify` 
 ## Preview resource helpers
 
 [T20 preview evidence](../docs/plan/T20-PREVIEW-HELPERS.md) maps three Core cases and two HTTP/2 ADS cases to the sample graph, stable replacements, helper/Any outcomes and both stream ordering modes. Core has 147 cases, Hosting has 25 and the solution has 227. The eight declared helper cases and the exported sample graph run through the actual pinned Go helpers in `repository verify`; the existing snapshot decoder is shared rather than duplicated. Focused source links make the exact sample graph available in both fresh package test consumers. Released-Envoy proof remains separate.
+
+## Preview differential harness
+
+[T21 preview evidence](../docs/plan/T21-PREVIEW-DIFFERENTIAL.md) maps V05–V15 to existing native tests and pinned Go scenarios. The cache corpus now has 23 traces, including actual retained-response re-observation after replacement; the stream corpus has 22, including rejected open/request and missing ADS type in both modes. Go writes its actual stream observations. The CLI compares reports using a per-stream nonce bijection and rejects an injected stale association on every verification run. Caller versions, errors, event order and disposal counts remain exact. Seventeen `SotwTraceComparerTests` cases run in the offline matrix, bringing tooling to 42 and solution discovery to 244 cases. Core (147) and Hosting (25) remain fully exercised by clean package consumers.

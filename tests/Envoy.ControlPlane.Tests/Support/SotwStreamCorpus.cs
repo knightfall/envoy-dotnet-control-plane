@@ -24,12 +24,25 @@ internal static class SotwStreamCorpus
         var events = new ConcurrentQueue<string>();
         var requested = Channel.CreateUnbounded<bool>();
         DiscoveryRequest? heldRequest = null;
+        DiscoveryRequest? rejectedRequest = null;
         var release = Signal();
-        stream.Callbacks.Open = (_, _, type, _) => { events.Enqueue("open|" + type); return ValueTask.CompletedTask; };
+        stream.Callbacks.Open = (_, _, type, _) =>
+        {
+            events.Enqueue("open|" + type);
+            if (fixture["rejectOpen"]?.GetValue<bool>() == true)
+            {
+                throw new SotwProtocolException(SotwProtocolError.InvalidArgument, "callback rejected");
+            }
+            return ValueTask.CompletedTask;
+        };
         stream.Callbacks.Request = async (_, request, token) =>
         {
             events.Enqueue($"request|{request.TypeUrl}|{request.Node.Id}|{request.VersionInfo}|{request.ResponseNonce}|{string.Join(',', request.ResourceNames)}|{(request.ErrorDetail is not null).ToString().ToLowerInvariant()}");
             Assert.True(requested.Writer.TryWrite(true));
+            if (ReferenceEquals(request, rejectedRequest))
+            {
+                throw new SotwProtocolException(SotwProtocolError.InvalidArgument, "callback rejected");
+            }
             if (ReferenceEquals(request, heldRequest)) await release.Task.WaitAsync(token);
         };
         stream.Watcher.Create = (request, subscription, responses) =>
@@ -64,12 +77,19 @@ internal static class SotwStreamCorpus
             switch (step!["kind"]!.GetValue<string>())
             {
                 case "request":
+                case "request-error":
                     var request = Request(step["type"]?.GetValue<string>() ?? "", step["nonce"]?.GetValue<string>() ?? "", Strings(step["names"]));
                     request.VersionInfo = step["version"]?.GetValue<string>() ?? "";
                     if (step["node"] is { } node) request.Node = new Node { Id = node.GetValue<string>() };
                     if (step["nack"]?.GetValue<bool>() == true) request.ErrorDetail = new Google.Rpc.Status { Code = 3, Message = "rejected" };
                     if (step["hold"]?.GetValue<bool>() == true) heldRequest = request;
+                    if (step["reject"]?.GetValue<bool>() == true) rejectedRequest = request;
                     stream.Input.Push(request);
+                    if (step["kind"]!.GetValue<string>() == "request-error")
+                    {
+                        terminalError = (await Assert.ThrowsAsync<SotwProtocolException>(() => Wait(stream.Running))).Error.ToString();
+                        break;
+                    }
                     await Wait(requested.Reader.ReadAsync().AsTask());
                     if (step["stale"]?.GetValue<bool>() != true && step["hold"]?.GetValue<bool>() != true) watches.Add(await stream.NextWatch());
                     break;
@@ -88,6 +108,9 @@ internal static class SotwStreamCorpus
                     watches[step["watch"]!.GetValue<int>()].Watch.CompleteResponses();
                     var failure = await Assert.ThrowsAsync<SotwProtocolException>(() => Wait(stream.Running));
                     terminalError = failure.Error.ToString();
+                    break;
+                case "error":
+                    terminalError = (await Assert.ThrowsAsync<SotwProtocolException>(() => Wait(stream.Running))).Error.ToString();
                     break;
                 case "end":
                     stream.Input.Complete(step["receiveError"]?.GetValue<bool>() == true ? new IOException("receive") : null);
