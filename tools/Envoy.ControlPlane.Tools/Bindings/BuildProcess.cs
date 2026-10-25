@@ -5,7 +5,8 @@ namespace Envoy.ControlPlane.Tools;
 
 internal static class BuildProcess
 {
-    internal static async Task<string> RunAsync(string executable, string[] arguments, string? directory = null)
+    internal static async Task<string> RunAsync(string executable, string[] arguments, string? directory = null,
+        IReadOnlyDictionary<string, string>? environment = null)
     {
         var start = new ProcessStartInfo(executable)
         {
@@ -16,6 +17,13 @@ internal static class BuildProcess
         foreach (string argument in arguments)
         {
             start.ArgumentList.Add(argument);
+        }
+        if (environment is not null)
+        {
+            foreach (var entry in environment)
+            {
+                start.Environment[entry.Key] = entry.Value;
+            }
         }
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Could not start " + executable);
         var stdout = process.StandardOutput.ReadToEndAsync();
