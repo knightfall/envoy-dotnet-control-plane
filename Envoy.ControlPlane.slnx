@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Envoy.ControlPlane.AspNetCore/Envoy.ControlPlane.AspNetCore.csproj" />
+    <Project Path="src/Envoy.ControlPlane.Protocol/Envoy.ControlPlane.Protocol.csproj" />
+    <Project Path="src/Envoy.ControlPlane.Validation.Annotations/Envoy.ControlPlane.Validation.Annotations.csproj" />
+    <Project Path="src/Envoy.ControlPlane.Validation/Envoy.ControlPlane.Validation.csproj" />
+    <Project Path="src/Envoy.ControlPlane/Envoy.ControlPlane.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Envoy.ControlPlane.Protocol.Tests/Envoy.ControlPlane.Protocol.Tests.csproj" />
+    <Project Path="tests/Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream.Tests.csproj" />
+    <Project Path="tests/Envoy.ControlPlane.Validation.Tests/Envoy.ControlPlane.Validation.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Envoy.ControlPlane.SchemaTools/Envoy.ControlPlane.SchemaTools.csproj" />
+    <Project Path="tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj" />
+  </Folder>
+</Solution>

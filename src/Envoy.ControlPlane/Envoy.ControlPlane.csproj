@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>Foundation package for the planned Envoy control-plane resource, cache and protocol runtime.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Envoy.ControlPlane.Protocol/Envoy.ControlPlane.Protocol.csproj" />
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

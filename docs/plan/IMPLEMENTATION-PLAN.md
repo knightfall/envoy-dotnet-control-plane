@@ -1,6 +1,6 @@
 # Implementation plan: tasks and subtasks
 
-Reviewed **25 October 2026**. T01/T02 merged in PRs #33/#34, with [provenance evidence](../../schemas/PROVENANCE.md) and [binding evidence](../../schemas/BINDINGS.md). T03 has a user-selected source arrangement and [bounded local feasibility evidence](../../schemas/VALIDATION.md), pending review at G1. T01 brought the test framework/runner and tooling CI forward from T04; the remaining library work is **planned**. T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. No runtime implementation result is claimed. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
+Reviewed **25 October 2026**. T01/T02 merged in PRs #33/#34, with [provenance evidence](../../schemas/PROVENANCE.md) and [binding evidence](../../schemas/BINDINGS.md). T03 has a user-selected source arrangement and [bounded local feasibility evidence](../../schemas/VALIDATION.md), merged in PR #35 for the bounded binding decision. T01 brought the test framework/runner and tooling CI forward from T04; T04 now establishes the [build/package foundation](T04-BUILD-FOUNDATION.md); runtime behavior remains **planned**. T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. No runtime implementation result is claimed. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
 
 ## Execution rules
 
@@ -100,7 +100,7 @@ Subtasks:
 
 ### T03 — Prove validation feasibility before binding freeze
 
-**Status:** Source implementation and bounded verification under local review. The user selected pinned ProtoValidate source with a separate annotation owner. [T03 evidence](../../schemas/VALIDATION.md) records 39 source fingerprints, explicit adaptations, 16 conditional-oneof metadata corrections, preserved original descriptors and 33 cases matching Go PGV. The native validation suite has 18 cases. G1 reviews the arrangement and package evidence; full T26/GV remains separate. Earlier published-provider probes are retained historical research; Celly cleanup is deferred.
+**Status:** Source implementation and bounded verification merged in PR #35. The user selected pinned ProtoValidate source with a separate annotation owner. [T03 evidence](../../schemas/VALIDATION.md) records 39 source fingerprints, explicit adaptations, 16 conditional-oneof metadata corrections, preserved original descriptors and 33 cases matching Go PGV. The native validation suite has 18 cases. The bounded arrangement is accepted for foundation work; full T26/GV remains separate. Earlier published-provider probes are retained historical research; Celly cleanup is deferred.
 
 **Scope:** foundation / R23. **Depends on:** T02. **Outputs:** rule inventory, candidate/metadata assessment, bounded Go/.NET comparison results, provider decision, and ADR10 update. This task gates G1; full GV conformance does not.
 
@@ -117,6 +117,8 @@ Subtasks:
 ## Epic B — foundational .NET contracts
 
 ### T04 — Establish repository and build structure
+
+**Status:** Implemented build/package foundation with local solution, package-content, and four fresh-consumer proofs. See [T04 evidence](T04-BUILD-FOUNDATION.md). Core and hosting projects establish dependencies only; their runtime behavior remains in T05 and later tasks.
 
 **Scope:** preview / R25. **Depends on:** T02, T03. **Outputs:** solution, root Protocol/Core/ASP.NET projects, optional validation-project layout, pinned SDK/build settings, test layout, scripts, and initial CI.
 

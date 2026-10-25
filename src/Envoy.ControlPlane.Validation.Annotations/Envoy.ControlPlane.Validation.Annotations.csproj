@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <Deterministic>true</Deterministic>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Version>0.1.0-t03</Version>
     <Description>Single-owner Protovalidate annotation and violation contracts for Envoy.ControlPlane.</Description>

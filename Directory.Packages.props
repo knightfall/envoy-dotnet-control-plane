@@ -8,6 +8,8 @@
     <PackageVersion Include="Envoy.ControlPlane.Protocol" Version="0.1.0-t03" />
     <PackageVersion Include="Envoy.ControlPlane.Validation.Annotations" Version="0.1.0-t03" />
     <PackageVersion Include="Envoy.ControlPlane.Validation" Version="0.1.0-t03" />
+    <PackageVersion Include="Envoy.ControlPlane" Version="0.1.0-t04" />
+    <PackageVersion Include="Envoy.ControlPlane.AspNetCore" Version="0.1.0-t04" />
     <PackageVersion Include="Roslynator.Analyzers" Version="5.0.1" />
     <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.2" />
     <PackageVersion Include="Cel" Version="0.3.3" />

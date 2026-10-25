@@ -55,6 +55,21 @@ This checks materialized evaluator fingerprints, runs the validation suite and p
 
 The overlay writes `catalog.generation.pb` with upstream source comments for C#/gRPC generation and normalized `catalog.pb` for packaged contract comparison. Protocol and Annotations include generated XML documentation.
 
+## Complete repository verification
+
+T04 adds [Envoy.ControlPlane.slnx](../Envoy.ControlPlane.slnx), containing all maintained projects. Generate contracts first, then run:
+
+```sh
+dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache <external-source-cache>
+dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify
+```
+
+`repository verify` checks solution registration, verifies pinned validation inputs, performs locked solution restore/build/test, compares the corpus with Go PGV, and packs all five runtime packages with symbols. It inspects readmes, licenses, assemblies, XML documentation where supplied, and separate portable-symbol packages. The source-built evaluator retains upstream's existing XML-documentation limitation.
+
+The command runs the full Protocol and Validation suites against fresh NuGet packages, then runs the Core and ASP.NET consumers under [tests/consumers/](../tests/consumers/README.md). Each consumer restores into a separate empty NuGet cache. Core's exact package graph excludes hosting and evaluator dependencies; ASP.NET adds its shared framework and Core dependency without an evaluator. The package projects are foundations; functional Core resources and hosting adapters remain later tasks.
+
+Solution tests use native MTP through `dotnet test --solution Envoy.ControlPlane.slnx`. The three existing suites are registered without changing their test methods. Reports and consumer locks are under Protocol's `obj/upstream/results/`; packages and `.snupkg` files remain under its `bin/packages/`. This is local candidate packaging, not a NuGet publishing command.
+
 ## Focused maintenance commands
 
 ```sh

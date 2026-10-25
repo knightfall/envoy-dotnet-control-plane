@@ -7,6 +7,17 @@ internal static class ValidationVerification
 {
     internal static async Task RunAsync()
     {
+        await VerifyInputsAsync();
+        await PackageVerification.RunTestsAsync(ValidationPaths.TestsProject, "validation");
+        int cases = await CompareWithGoAsync();
+        await PackageVerification.BuildPackageAsync();
+        await PackageVerification.PackAsync(ValidationPaths.EvaluatorProject);
+        await PackageVerification.VerifyCleanConsumerAsync(ValidationPaths.TestsProject, "validation-consumer");
+        Console.WriteLine($"Source-built ProtoValidate matched Go PGV for all {cases} declared cases; full T26/GV coverage remains separate.");
+    }
+
+    internal static async Task VerifyInputsAsync()
+    {
         VerifiedValidationSources.VerifyMaterialized();
         var bindingLock = JsonNode.Parse(File.ReadAllText(ValidationPaths.BindingsLock))!;
         Require(GetFileSha256(ValidationPaths.MetadataRoot + "/catalog.pb") == bindingLock["descriptorSetSha256"]!.GetValue<string>(),
@@ -24,8 +35,11 @@ internal static class ValidationVerification
         string version = await BuildProcess.RunAsync("go", ["version"]);
         Require(version.StartsWith("go version go" + corpus["goVersion"]!.GetValue<string>() + " ", StringComparison.Ordinal),
             "Go oracle toolchain differs from lock");
+    }
 
-        await PackageVerification.RunTestsAsync(ValidationPaths.TestsProject, "validation");
+    internal static async Task<int> CompareWithGoAsync()
+    {
+        var corpus = JsonNode.Parse(File.ReadAllText(ValidationPaths.SourcesLock))!["corpus"]!;
         const string report = "tests/Envoy.ControlPlane.Validation.Tests/bin/Release/net10.0/validation-corpus.json";
         var results = JsonNode.Parse(File.ReadAllText(report))!;
         var rows = results["Results"]!.AsArray();
@@ -42,11 +56,9 @@ internal static class ValidationVerification
                 && row["ExpectedValid"]!.GetValue<bool>() == fixture["valid"]!.GetValue<bool>(), "Source report changed the declared fixture contract");
         }
         string oracle = Path.GetFullPath(BindingPaths.InputsDirectory + "/results/validation/go-results.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(oracle)!);
         await BuildProcess.RunAsync("go", ["run", "-mod=readonly", ".", Path.GetFullPath(report), oracle], "tests/validation/GoOracle");
 
-        await PackageVerification.BuildPackageAsync();
-        await PackageVerification.PackAsync(ValidationPaths.EvaluatorProject);
-        await PackageVerification.VerifyCleanConsumerAsync(ValidationPaths.TestsProject, "validation-consumer");
-        Console.WriteLine($"Source-built ProtoValidate matched Go PGV for all {rows.Count} declared cases; full T26/GV coverage remains separate.");
+        return rows.Count;
     }
 }
