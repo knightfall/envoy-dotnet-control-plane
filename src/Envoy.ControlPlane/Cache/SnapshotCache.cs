@@ -33,10 +33,15 @@ public sealed class SnapshotCache : IConfigWatcher
     /// <param name="nodeId">The cache key for the snapshot.</param>
     /// <param name="snapshot">The replacement snapshot, retained without validation or cloning.</param>
     /// <param name="context">The publication context forwarded to delivered responses.</param>
+    /// <remarks>Cancellation of a queued publication prevents installation; cancellation after it begins can leave its snapshot installed.</remarks>
     public async Task SetSnapshotAsync(string nodeId, IResourceSnapshot snapshot, ResponseContext context = default)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
-        await publication.WaitAsync();
+        // Keep the source's install-before-cancellation behavior once publication can begin.
+        if (!publication.Wait(0))
+        {
+            await publication.WaitAsync(context.CancellationToken);
+        }
         try
         {
             var deliveries = new List<Task<bool>>();

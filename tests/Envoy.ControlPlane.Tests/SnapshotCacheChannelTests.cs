@@ -13,6 +13,29 @@ namespace Envoy.ControlPlane.Tests;
 public sealed class SnapshotCacheChannelTests
 {
     [Fact]
+    public async Task QueuedPublication_CancelsBeforeInstallationWithoutWaitingForAnotherConsumer()
+    {
+        var cache = new SnapshotCache();
+        await cache.SetSnapshotAsync("other", Listeners("retained"));
+        var responses = Channel.CreateBounded<ISotwResponse>(1);
+        Assert.True(responses.Writer.TryWrite(Response(StreamFixtures.Request())));
+        using var watch = cache.CreateWatch(SnapshotCacheFixtures.Request(ResourceTypeUrls.Listener), Subscription(wildcard: true), responses.Writer);
+        var blocked = cache.SetSnapshotAsync("node", Listeners("v1"));
+        Assert.False(blocked.IsCompleted);
+        using var cancellation = new CancellationTokenSource();
+        var queued = cache.SetSnapshotAsync("other", Listeners("canceled"), new ResponseContext(cancellation.Token));
+        Assert.False(queued.IsCompleted);
+        cancellation.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Wait(queued));
+        Assert.False(blocked.IsCompleted);
+        Assert.Equal("retained", cache.GetSnapshot("other").GetVersion(ResourceTypeUrls.Listener));
+        Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
+        await responses.Reader.ReadAsync(TestContext.Current.CancellationToken);
+        await Wait(blocked);
+        Assert.Equal("v1", (await responses.Reader.ReadAsync(TestContext.Current.CancellationToken)).ResponseVersion);
+    }
+
+    [Fact]
     public async Task FullDestination_AwaitsSpaceOutsideCacheLockAndSerializesPublications()
     {
         var cache = new SnapshotCache();

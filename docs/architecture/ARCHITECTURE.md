@@ -142,7 +142,7 @@ Publication algorithm:
 
 1. The application constructs a snapshot and keeps its messages stable while published.
 2. Under cache synchronization, replace the snapshot reference and evaluate eligible watches, matching Go's registration/publication behavior.
-3. Begin channel writes in source resource-priority order when cache ADS mode is enabled. Release cache synchronization before awaiting buffer space. Serialize asynchronous publications so later publications cannot overtake an earlier blocked one.
+3. Begin channel writes in source resource-priority order when cache ADS mode is enabled. Release cache synchronization before awaiting buffer space. Serialize asynchronous publications so later publications cannot overtake an earlier blocked one; honor cancellation while waiting before installation.
 4. `SetSnapshotAsync` returns after eligible enqueue operations settle, without waiting for Envoy to receive, ACK, or apply the change. The snapshot can remain installed after publication cancellation, matching the source behavior.
 
 Watch registration and snapshot lookup occur under the same cache synchronization so an update between lookup and registration cannot be lost. Response eligibility includes snapshot version, resource selection, subscriptions, and ADS readiness. If no snapshot exists, register a pending watch. Preserve the source's special ADS coverage edge: when a non-wildcard request omits a name present in the snapshot, creation returns neither a response nor a registered watch. An extra requested name absent from the snapshot is allowed if all snapshot resources are covered. T07 represents the untracked case as a pending cancelable task; its Go comparison fixtures establish the direction of the check.
