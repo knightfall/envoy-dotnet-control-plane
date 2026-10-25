@@ -27,7 +27,7 @@ dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify
 
 The repository command performs locked solution restore, Release build, native solution tests, Go comparison, solution pack, package-content/symbol inspection, the full Protocol/Validation NuGet-consumer suites, and executable Core/ASP.NET consumers. Each package consumer uses a separate empty NuGet cache and no source project reference. Consumer locks, runtime configuration and test reports are saved beneath Protocol's `obj/upstream/results/`; packages remain under its `bin/packages/`.
 
-Observed locally on macOS arm64:
+Observed locally on macOS arm64, including a fresh Git clone with no generated inputs or build outputs. Full `bindings generate` and `repository verify` both exited 0 from that clone:
 
 | Check | Result |
 |---|---|
