@@ -29,6 +29,12 @@
           "Grpc.AspNetCore.Server": "[2.84.0, )"
         }
       },
+      "envoy.controlplane.example": {
+        "type": "Project",
+        "dependencies": {
+          "Envoy.ControlPlane.AspNetCore": "[0.1.0-t04, )"
+        }
+      },
       "envoy.controlplane.protocol": {
         "type": "Project",
         "dependencies": {

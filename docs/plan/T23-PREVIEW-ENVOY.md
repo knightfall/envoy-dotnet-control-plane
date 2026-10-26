@@ -37,6 +37,8 @@ Both default ordinary ADS and optional ordered ADS execute every named check. Ch
 
 The request callback pauses the deliberate NACK until the application publishes its repair, preventing a repeated-invalid-response loop in the test. This gate is fixture orchestration and does not change the server's NACK behavior. Polling succeeds only on observed traffic/ACK predicates; bounded delays are failure controls, not a timing-based acceptance rule.
 
+The probe references the example project and calls its compiled resource factory through narrow internal access. It does not compile a second copy of that implementation. Clean package-consumer suites retain their focused source links so they can verify candidate packages without referencing application projects.
+
 ## Reports and verification
 
 Results live under Protocol's `obj/upstream/results/envoy/`: source/image/environment pins, extracted binary SHA-256, exact library revision and dirty-state flag, binary version, per-mode checks and request/response observations, generated bootstrap, typed-route admin dumps and Envoy stdout/stderr. Inputs are immutable and both image manifests are validated by Docker. Temporary source containers and execution containers are removed; the extracted binary stays outside source control and is deleted after the run.
