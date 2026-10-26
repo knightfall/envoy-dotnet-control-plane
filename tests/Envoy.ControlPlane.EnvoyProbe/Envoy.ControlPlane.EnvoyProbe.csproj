@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Envoy.ControlPlane.AspNetCore/Envoy.ControlPlane.AspNetCore.csproj" />
+    <ProjectReference Include="../../examples/Envoy.ControlPlane.Example/Envoy.ControlPlane.Example.csproj" />
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

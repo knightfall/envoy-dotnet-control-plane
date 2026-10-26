@@ -7,5 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Envoy.ControlPlane.AspNetCore/Envoy.ControlPlane.AspNetCore.csproj" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <InternalsVisibleTo Include="Envoy.ControlPlane.EnvoyProbe" />
   </ItemGroup>
 </Project>

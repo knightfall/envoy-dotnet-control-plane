@@ -385,6 +385,8 @@ Subtasks:
 
 ### T23 — Prove compatibility with released Envoy binaries
 
+Preview implementation and bounded V31 evidence: [T23 released Envoy](T23-PREVIEW-ENVOY.md). Delta/TTL and the remaining proxy matrix stay in the separate 1.0 deliverable.
+
 **Scope:** preview SotW subset then 1.0 / R22. **Depends on for completion:** T22. **Outputs:** pinned image matrix, bootstrap files, interop scripts and traffic/admin evidence.
 
 Subtasks:
