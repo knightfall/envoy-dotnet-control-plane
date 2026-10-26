@@ -146,17 +146,17 @@ public sealed class SnapshotCache : IConfigWatcher
                 var selection = SotwResponseSelection.Create(snapshot, request, subscription, ads, default);
                 if (selection.Untracked)
                 {
-                    return new SotwWatchRegistration(gate, responses, null);
+                    return new ResponseWatchRegistration<ISotwResponse>(gate, responses, null);
                 }
                 if (selection.Response is { } response)
                 {
-                    var immediate = new SotwWatchRegistration(gate, responses, null);
+                    var immediate = new ResponseWatchRegistration<ISotwResponse>(gate, responses, null);
                     _ = immediate.DeliverAsync(response, default);
                     return immediate;
                 }
             }
             long watchId = ++nextWatchId;
-            var completion = new SotwWatchRegistration(gate, responses, () => RemoveWatch(nodeId, watchId));
+            var completion = new ResponseWatchRegistration<ISotwResponse>(gate, responses, () => RemoveWatch(nodeId, watchId));
             info.Watches.Add(watchId, new PendingWatch(request, subscription, completion));
             return completion;
         }
@@ -199,7 +199,7 @@ public sealed class SnapshotCache : IConfigWatcher
         }
     }
 
-    private sealed record PendingWatch(DiscoveryRequest Request, ISubscription Subscription, SotwWatchRegistration Registration);
+    private sealed record PendingWatch(DiscoveryRequest Request, ISubscription Subscription, ResponseWatchRegistration<ISotwResponse> Registration);
 
     private sealed class StatusInfo(object gate, Node? node) : IStatusInfo
     {

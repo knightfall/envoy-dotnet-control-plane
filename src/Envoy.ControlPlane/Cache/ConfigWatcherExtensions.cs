@@ -22,22 +22,22 @@ public static class ConfigWatcherExtensions
         });
         var registration = watcher.CreateWatch(request, subscription, channel.Writer)
             ?? throw new InvalidOperationException("Missing watch registration");
-        return new TaskWatch(registration, channel.Reader);
+        return new TaskWatch<ISotwResponse>(registration, channel.Reader);
     }
 
-    private sealed class TaskWatch : IWatch<ISotwResponse>, IAsyncDisposable
+    private sealed class TaskWatch<TResponse> : IWatch<TResponse>, IAsyncDisposable where TResponse : IWatchResponse
     {
         private readonly IDisposable registration;
         private readonly CancellationTokenSource cancellation = new();
         private int disposed;
 
-        internal TaskWatch(IDisposable registration, ChannelReader<ISotwResponse> responses)
+        internal TaskWatch(IDisposable registration, ChannelReader<TResponse> responses)
         {
             this.registration = registration;
             Completion = responses.ReadAsync(cancellation.Token).AsTask();
         }
 
-        public Task<ISotwResponse> Completion { get; }
+        public Task<TResponse> Completion { get; }
 
         public void Dispose()
         {
