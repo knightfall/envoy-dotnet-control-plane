@@ -59,14 +59,14 @@ internal static class EnvoyVerification
             await BuildProcess.RunAsync("dotnet", ["build", Project, "--configuration", "Release", "--no-restore"]);
             await BuildProcess.RunAsync("docker", ["pull", envoyImage]);
             await BuildProcess.RunAsync("docker", ["pull", sdkImage]);
-            await BuildProcess.RunAsync("docker", ["create", "--name", sourceContainer, envoyImage, "--version"]);
             try
             {
+                await BuildProcess.RunAsync("docker", ["create", "--name", sourceContainer, envoyImage, "--version"]);
                 await BuildProcess.RunAsync("docker", ["cp", sourceContainer + ":/usr/local/bin/envoy", Path.Combine(scratch, "envoy")]);
             }
             finally
             {
-                await BuildProcess.RunAsync("docker", ["rm", sourceContainer]);
+                await BuildProcess.RunAsync("docker", ["rm", "--force", sourceContainer]);
             }
             string binaryHash = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(Path.Combine(scratch, "envoy"))));
             await WriteEnvironmentAsync(output, pins, platform, binaryHash);
