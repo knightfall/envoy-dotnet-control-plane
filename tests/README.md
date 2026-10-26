@@ -175,3 +175,7 @@ The repository CLI runs the Go stream comparison as part of `repository verify` 
 ## Focused ADS client
 
 `SotwAdsClientTests` verifies initialization/options, receive/ACK/NACK and source failure/reinit state; `SotwAdsClientLifecycleTests` verifies three bounded channel-gated ownership cases; `SotwAdsClientIntegrationTests` uses the existing Kestrel host for real HTTP/2 updates and errors. Twelve independently declared traces export `ads-client-corpus.json`; the repository CLI compares them with actual pinned Go ADSClient calls. [T19 evidence](../docs/plan/T19-SOTW-ADS-CLIENT.md) maps V26 to exact tests and documents the idiomatic .NET serialization/disposal boundaries.
+
+## Full helper inventory and conversions
+
+`MessageConversionsTests` directly covers return-new protobuf/Struct conversion, proto names, defaults/presence/enum/uint64, registered HCM/router Any in the existing example, nulls/unknown/malformed inputs and descriptor/WKT boundaries. Its corpus exports 17 independently expected cases and 74 symbol values to `conversion-corpus.json`; `repository verify` calls actual Go helpers/constants and compares semantic results. Existing ResourceCatalog/ResourceReferences/ResourceSerialization/preview tests remain the evidence for their unchanged behavior. [T20 compatibility](../docs/plan/T20-HELPER-COMPATIBILITY.md) contains every source mapping and scoped .NET adaptation.

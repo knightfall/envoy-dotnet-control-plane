@@ -64,6 +64,8 @@ func main() {
 		err = runGateway(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "ads-client" {
 		err = runAdsClient(os.Args[2:])
+	} else if len(os.Args) > 1 && os.Args[1] == "conversions" {
+		err = runConversions(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "delta-stream" {
 		err = runDeltaStreams(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "stream" {

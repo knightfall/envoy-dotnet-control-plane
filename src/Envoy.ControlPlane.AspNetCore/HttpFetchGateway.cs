@@ -82,14 +82,14 @@ internal sealed class HttpFetchGateway(TypeRegistry types)
 
     private static string GetTypeUrl(string path) => path switch
     {
-        "/v3/discovery:endpoints" => ResourceTypeUrls.Endpoint,
-        "/v3/discovery:clusters" => ResourceTypeUrls.Cluster,
-        "/v3/discovery:listeners" => ResourceTypeUrls.Listener,
-        "/v3/discovery:routes" => ResourceTypeUrls.Route,
-        "/v3/discovery:scoped-routes" => ResourceTypeUrls.ScopedRoute,
-        "/v3/discovery:secrets" => ResourceTypeUrls.Secret,
-        "/v3/discovery:runtime" => ResourceTypeUrls.Runtime,
-        "/v3/discovery:extension_configs" => ResourceTypeUrls.ExtensionConfig,
+        ResourceFetchPaths.Endpoints => ResourceTypeUrls.Endpoint,
+        ResourceFetchPaths.Clusters => ResourceTypeUrls.Cluster,
+        ResourceFetchPaths.Listeners => ResourceTypeUrls.Listener,
+        ResourceFetchPaths.Routes => ResourceTypeUrls.Route,
+        ResourceFetchPaths.ScopedRoutes => ResourceTypeUrls.ScopedRoute,
+        ResourceFetchPaths.Secrets => ResourceTypeUrls.Secret,
+        ResourceFetchPaths.Runtime => ResourceTypeUrls.Runtime,
+        ResourceFetchPaths.ExtensionConfigs => ResourceTypeUrls.ExtensionConfig,
         _ => "",
     };
 

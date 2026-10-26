@@ -5,8 +5,8 @@ namespace Envoy.ControlPlane.Resources;
 public static class WellKnownFilterNames
 {
     /// <summary>The HTTP connection manager network-filter label.</summary>
-    public const string HttpConnectionManager = "envoy.filters.network.http_connection_manager";
+    public const string HttpConnectionManager = WellKnownNames.HttpConnectionManager;
 
     /// <summary>The router HTTP-filter label.</summary>
-    public const string Router = "envoy.filters.http.router";
+    public const string Router = WellKnownNames.Router;
 }

@@ -77,3 +77,5 @@ The [detailed architecture](../architecture/ARCHITECTURE.md) describes state/lif
 - Protocol schema support and released Envoy runtime compatibility need separate manifests and evidence.
 
 Evidence: pkg/cache/v3/snapshot.go:83-121; pkg/cache/v3/simple.go:264-286; pkg/cache/v3/resource.go:111-124,145-147,300-305; pkg/cache/v3/linear.go:653-655; pkg/server/config/config.go:20-38; [Envoy xDS specification](https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol.html); [Protobuf serialization](https://protobuf.dev/programming-guides/serialization-not-canonical/).
+
+The [T20 helper compatibility report](T20-HELPER-COMPATIBILITY.md) maps every selected resource/name/reference/conversion/well-known helper, all constant symbols and the explicit .NET API/logging/marshal adaptations.
