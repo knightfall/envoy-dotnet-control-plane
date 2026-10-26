@@ -1,4 +1,5 @@
 using Envoy.ControlPlane.Cache;
+using Envoy.ControlPlane.Fetch;
 using Envoy.ControlPlane.Streams;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -30,6 +31,10 @@ public static class ControlPlaneServiceCollectionExtensions
             provider.GetRequiredService<DeltaOptions>(),
             provider.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping));
         services.TryAddSingleton<DeltaGrpcStream>();
+        services.TryAddSingleton(provider => new FetchServer(
+            provider.GetService<IConfigFetcher>() ?? provider.GetRequiredService<IConfigWatcher>() as IConfigFetcher ?? new UnsupportedFetcher(),
+            provider.GetService<IFetchCallbacks>()));
+        services.TryAddSingleton<FetchGrpc>();
         return services;
     }
 }

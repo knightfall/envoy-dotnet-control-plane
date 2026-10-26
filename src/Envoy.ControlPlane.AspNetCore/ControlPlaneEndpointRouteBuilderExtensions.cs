@@ -7,7 +7,7 @@ namespace Envoy.ControlPlane.AspNetCore;
 /// <summary>Maps implemented SotW and Delta gRPC services using generated upstream contracts.</summary>
 public static class ControlPlaneEndpointRouteBuilderExtensions
 {
-    /// <summary>Maps ADS, eight standard per-type services and Delta VHDS/LEDS, retaining endpoint conventions.</summary>
+    /// <summary>Maps ADS, eight standard services, Delta VHDS/LEDS and SotW/Fetch rate-limit discovery.</summary>
     /// <param name="endpoints">The application's endpoint builder.</param>
     /// <returns>The route group, for application authorization and other endpoint conventions.</returns>
     public static RouteGroupBuilder MapEnvoyControlPlane(this IEndpointRouteBuilder endpoints)
@@ -25,6 +25,7 @@ public static class ControlPlaneEndpointRouteBuilderExtensions
         group.MapGrpcService<ExtensionConfigDiscoveryService>();
         group.MapGrpcService<VirtualHostDiscoveryService>();
         group.MapGrpcService<LocalityEndpointDiscoveryService>();
+        group.MapGrpcService<RateLimitConfigDiscoveryService>();
         return group;
     }
 }

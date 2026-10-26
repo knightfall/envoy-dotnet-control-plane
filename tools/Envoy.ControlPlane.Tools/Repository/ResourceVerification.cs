@@ -25,7 +25,8 @@ internal static class ResourceVerification
     {
         const string directory = "tests/resources/GoOracle";
         string revision = JsonNode.Parse(File.ReadAllText("upstream-baseline.json"))!["goControlPlane"]!["commit"]!.GetValue<string>();
-        foreach (string module in new[] { "github.com/envoyproxy/go-control-plane", "github.com/envoyproxy/go-control-plane/envoy" })
+        foreach (string module in new[] { "github.com/envoyproxy/go-control-plane", "github.com/envoyproxy/go-control-plane/envoy",
+                     "github.com/envoyproxy/go-control-plane/ratelimit" })
         {
             string metadata = await BuildProcess.RunAsync("go", ["list", "-mod=readonly", "-m", "-json", module], directory);
             var resolved = JsonNode.Parse(metadata)!;

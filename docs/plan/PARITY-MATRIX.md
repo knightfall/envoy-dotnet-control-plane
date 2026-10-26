@@ -18,7 +18,7 @@ The rate-limit service descriptor declares only StreamRlsConfigs and FetchRlsCon
 
 HTTP paths are the eight constants in pkg/resource/v3/resource.go, implemented by pkg/server/v3/gateway.go. Preserve path-to-type-URL selection and the existing unchanged-result 304, invalid-input 400, unknown-route 404, and fetch-error 500 behavior, subject to explicitly documented host-layer limits.
 
-Current implementation: the nine preview SotW methods and all eleven Delta methods have generated-client HTTP/2 evidence; see [T14](T14-DELTA-GRPC.md). Fetch and rate-limit configuration hosting remain pending.
+Current implementation: ten SotW methods (including rate-limit), all eleven Delta methods and all nine unary Fetch methods have generated-client HTTP/2 evidence; see [T14](T14-DELTA-GRPC.md) and [T18](T18-FETCH-GATEWAY.md). The eight-route HTTP gateway has native transport and pinned-Go JSON/status evidence. Full proxy acceptance remains separate.
 
 All implemented methods above belong in recommended 1.0 scope. The preview covers the eight standard SotW per-type services and SotW ADS with SnapshotCache; ratelimit configuration joins the complete 1.0 surface. The Go reference does not supply runtime implementations for every other generated Envoy service, such as external authorization, rate-limit decisions, or load reporting.
 

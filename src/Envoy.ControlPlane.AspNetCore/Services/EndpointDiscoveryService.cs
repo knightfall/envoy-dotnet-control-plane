@@ -5,7 +5,7 @@ using Contract = Envoy.Service.Endpoint.V3.EndpointDiscoveryService;
 
 namespace Envoy.ControlPlane.AspNetCore.Services;
 
-internal sealed class EndpointDiscoveryService(SotwGrpcStream streams, DeltaGrpcStream delta) : Contract.EndpointDiscoveryServiceBase
+internal sealed class EndpointDiscoveryService(SotwGrpcStream streams, DeltaGrpcStream delta, FetchGrpc fetch) : Contract.EndpointDiscoveryServiceBase
 {
     public override Task StreamEndpoints(IAsyncStreamReader<DiscoveryRequest> requestStream,
         IServerStreamWriter<DiscoveryResponse> responseStream, ServerCallContext context) =>
@@ -14,4 +14,7 @@ internal sealed class EndpointDiscoveryService(SotwGrpcStream streams, DeltaGrpc
     public override Task DeltaEndpoints(IAsyncStreamReader<DeltaDiscoveryRequest> requestStream,
         IServerStreamWriter<DeltaDiscoveryResponse> responseStream, ServerCallContext context) =>
         delta.RunAsync(requestStream, responseStream, context, ResourceTypeUrls.Endpoint);
+
+    public override Task<DiscoveryResponse> FetchEndpoints(DiscoveryRequest request, ServerCallContext context) =>
+        fetch.RunAsync(request, context, ResourceTypeUrls.Endpoint);
 }

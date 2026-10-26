@@ -114,13 +114,16 @@ public sealed class HostingLifecycleTests
     }
 
     [Fact]
-    public async Task DeferredFetch_RetainsGeneratedUnimplementedStatus()
+    public async Task Fetch_UsesCacheWithoutOpeningAStream()
     {
         await using var host = await StartAsync();
         var endpoint = new Envoy.Service.Endpoint.V3.EndpointDiscoveryService.EndpointDiscoveryServiceClient(host.Channel);
-        var fetch = await Assert.ThrowsAsync<RpcException>(async () =>
-            await endpoint.FetchEndpointsAsync(Request(), cancellationToken: TestContext.Current.CancellationToken));
-        Assert.Equal(StatusCode.Unimplemented, fetch.StatusCode);
+        await host.Cache.Inner.SetSnapshotAsync("node", Snapshot(ResourceTypeUrls.Endpoint, "polling"));
+        var fetch = await endpoint.FetchEndpointsAsync(Request("ignored/type"), cancellationToken: TestContext.Current.CancellationToken);
+        Assert.Equal("polling", fetch.VersionInfo);
+        Assert.Equal(ResourceTypeUrls.Endpoint, fetch.TypeUrl);
+        Assert.Single(fetch.Resources);
+        Assert.Empty(host.Cache.Inner.GetStatusKeys());
         Assert.False(host.Cache.Created.Reader.TryRead(out _));
         Assert.False(host.Callbacks.Opened.Reader.TryRead(out _));
     }

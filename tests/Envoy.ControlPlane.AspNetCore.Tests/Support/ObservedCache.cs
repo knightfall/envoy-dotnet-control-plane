@@ -4,13 +4,15 @@ using Envoy.Service.Discovery.V3;
 
 namespace Envoy.ControlPlane.AspNetCore.Tests.Support;
 
-internal sealed class ObservedCache : IConfigWatcher, IDisposable
+internal sealed class ObservedCache : IConfigWatcher, IConfigFetcher, IDisposable
 {
     internal SnapshotCache Inner { get; } = new();
     internal Channel<DiscoveryRequest> Created { get; } = Channel.CreateUnbounded<DiscoveryRequest>();
     internal Channel<DeltaDiscoveryRequest> DeltaCreated { get; } = Channel.CreateUnbounded<DeltaDiscoveryRequest>();
     internal bool CloseResponsesOnCreate { get; set; }
     internal int Disposals { get; private set; }
+
+    public Task<ISotwResponse> FetchAsync(DiscoveryRequest request, ResponseContext context = default) => Inner.FetchAsync(request, context);
 
     public IDisposable CreateWatch(DiscoveryRequest request, ISubscription subscription, ChannelWriter<ISotwResponse> responses)
     {

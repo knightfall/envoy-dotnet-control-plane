@@ -1,5 +1,6 @@
 using System.Net;
 using Envoy.ControlPlane.Cache;
+using Envoy.ControlPlane.Fetch;
 using Envoy.ControlPlane.Streams;
 using Grpc.Net.Client;
 using Microsoft.AspNetCore.Authentication;
@@ -26,7 +27,8 @@ internal sealed class GrpcHost(WebApplication application, GrpcChannel channel, 
     private bool disposed;
 
     internal static async Task<GrpcHost> StartAsync(SotwOptions? options = null, bool authorize = false,
-        Action<ObservedCache, HostCallbacks>? configure = null, DeltaOptions? deltaOptions = null)
+        Action<ObservedCache, HostCallbacks>? configure = null, DeltaOptions? deltaOptions = null,
+        Action<IServiceCollection>? services = null, Action<WebApplication>? mapEndpoints = null)
     {
         var cache = new ObservedCache();
         var callbacks = new HostCallbacks();
@@ -38,6 +40,7 @@ internal sealed class GrpcHost(WebApplication application, GrpcChannel channel, 
         builder.Services.AddSingleton<IConfigWatcher>(cache);
         builder.Services.AddSingleton<ISotwCallbacks>(callbacks);
         builder.Services.AddSingleton<IDeltaCallbacks>(callbacks);
+        builder.Services.AddSingleton<IFetchCallbacks>(callbacks);
         if (options is not null)
         {
             builder.Services.AddSingleton(options);
@@ -47,6 +50,7 @@ internal sealed class GrpcHost(WebApplication application, GrpcChannel channel, 
             builder.Services.AddSingleton(deltaOptions);
         }
         builder.Services.AddEnvoyControlPlane();
+        services?.Invoke(builder.Services);
         builder.Services.Configure<HostOptions>(host => host.ShutdownTimeout = TimeSpan.FromSeconds(2));
         if (authorize)
         {
@@ -65,6 +69,7 @@ internal sealed class GrpcHost(WebApplication application, GrpcChannel channel, 
         {
             endpoints.RequireAuthorization("xds");
         }
+        mapEndpoints?.Invoke(application);
         await application.StartAsync(TestContext.Current.CancellationToken);
         var addresses = application.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!;
         return new GrpcHost(application, GrpcChannel.ForAddress(addresses.Addresses.Single()), cache, callbacks);
