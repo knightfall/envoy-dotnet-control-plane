@@ -12,6 +12,7 @@
     <ProjectReference Include="../../src/Envoy.ControlPlane.Protocol/Envoy.ControlPlane.Protocol.csproj" />
     <ProjectReference Include="../../src/Envoy.ControlPlane.Validation/Envoy.ControlPlane.Validation.csproj" />
     <PackageReference Include="xunit.v3.mtp-v2" />
+    <PackageReference Include="coverlet.MTP" PrivateAssets="all" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
     <Compile Include="../../tools/Envoy.ControlPlane.SchemaTools/OverlayTransform.cs" Link="Support/OverlayTransform.cs" />
     <Compile Include="../../tools/Envoy.ControlPlane.Tools/Validation/VerifiedValidationSources.cs" Link="Support/VerifiedValidationSources.cs" />

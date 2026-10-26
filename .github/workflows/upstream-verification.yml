@@ -29,6 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
@@ -61,6 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
@@ -90,7 +92,37 @@ jobs:
       - name: Generate verified contracts with Buf
         run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- bindings generate --cache ../upstream-sources
       - name: Build solution, run tests and Go comparisons, pack and verify fresh consumers
-        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- repository verify
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- repository verify ${{ matrix.os == 'ubuntu-latest' && '--coverage' || '' }}
+      - name: Add coverage summary
+        if: always() && matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          report=src/Envoy.ControlPlane.Protocol/obj/upstream/results/coverage/report/SummaryGithub.md
+          if [ -f "$report" ]; then
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload portable coverage report
+        if: always() && matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: code-coverage
+          path: src/Envoy.ControlPlane.Protocol/obj/upstream/results/coverage/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload repository and package-consumer test results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: repository-tests-${{ matrix.os }}
+          path: |
+            src/Envoy.ControlPlane.Protocol/obj/upstream/results/repository/**/*.trx
+            src/Envoy.ControlPlane.Protocol/obj/upstream/results/coverage/raw/**/*.trx
+            src/Envoy.ControlPlane.Protocol/obj/upstream/results/consumer/*.trx
+            src/Envoy.ControlPlane.Protocol/obj/upstream/results/validation-consumer/*.trx
+            src/Envoy.ControlPlane.Protocol/obj/upstream/results/core-consumer/*.trx
+            src/Envoy.ControlPlane.Protocol/obj/upstream/results/hosting-consumer/*.trx
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload binding evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

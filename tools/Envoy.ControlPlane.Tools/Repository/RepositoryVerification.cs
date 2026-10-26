@@ -11,13 +11,25 @@ internal static class RepositoryVerification
     {
         try
         {
-            Require(args is ["verify"], "Usage: repository verify (run bindings generate first)");
+            Require(args is ["verify"] or ["verify", "--coverage"], "Usage: repository verify [--coverage] (run bindings generate first)");
             VerifyProjectInventory();
             await ValidationVerification.VerifyInputsAsync();
             await BuildProcess.RunAsync("dotnet", ["restore", Solution, "--locked-mode"]);
             await BuildProcess.RunAsync("dotnet", ["build", Solution, "--configuration", "Release", "--no-restore"]);
-            await BuildProcess.RunAsync("dotnet", ["test", "--solution", Solution, "--configuration", "Release", "--no-build", "--no-restore",
-                "--results-directory", Path.GetFullPath(BindingPaths.InputsDirectory + "/results/repository"), "--report-xunit-trx"]);
+            string testResults = Path.GetFullPath(BindingPaths.InputsDirectory + "/results/repository");
+            if (Directory.Exists(testResults))
+            {
+                Directory.Delete(testResults, recursive: true);
+            }
+            if (args.Length == 2)
+            {
+                await CodeCoverageVerification.RunTestsAsync(Solution);
+            }
+            else
+            {
+                await BuildProcess.RunAsync("dotnet", ["test", "--solution", Solution, "--configuration", "Release", "--no-build", "--no-restore",
+                    "--results-directory", testResults, "--report-xunit-trx"]);
+            }
             CopyLifecycleReports();
             int cases = await ValidationVerification.CompareWithGoAsync();
             await ResourceVerification.CompareWithGoAsync();

@@ -1,0 +1,41 @@
+name: Test results
+
+on:
+  workflow_run:
+    workflows: [Upstream verification]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  report:
+    name: Publish test results
+    if: github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Report offline fixture tests
+        if: '!cancelled()'
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3.2.0
+        with:
+          artifact: /upstream-tests-(.*)/
+          name: Offline tests ($1)
+          path: '**/*.trx'
+          reporter: dotnet-trx
+          list-suites: failed
+          list-tests: failed
+          fail-on-empty: true
+      - name: Report repository and package-consumer tests
+        if: '!cancelled()'
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3.2.0
+        with:
+          artifact: /repository-tests-(.*)/
+          name: Repository and consumer tests ($1)
+          path: '**/*.trx'
+          reporter: dotnet-trx
+          list-suites: failed
+          list-tests: failed
+          fail-on-empty: true
