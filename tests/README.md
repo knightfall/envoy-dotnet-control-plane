@@ -187,3 +187,7 @@ Repository verification executes V05–V27 through 16 actual Go modes / 260 case
 ## Root lifecycle verification
 
 [T22 root lifecycle](../docs/plan/T22-ROOT-LIFECYCLE.md) maps the remaining V14/V15/V28–V30 requirements to Delta cleanup, Delta/Fetch active-hook host shutdown, explicit heartbeat timer disposal and existing Linear/Mux/source progress tests. Seven new cases bring the solution to 474 (Core 264, Hosting 109). The finite Delta ADS run adds 64 streams/256 responses/384 requests and sixteen zero-watch memory samples; all three lifecycle reports are retained by repository verify. Process-memory samples are diagnostic, not an SLA or proof of unrestricted soak stability. Fresh package consumers run the same lifecycle suites. Released-proxy Delta/TTL remains T23.
+
+## Root released-Envoy verification
+
+[T23 root evidence](../docs/plan/T23-ROOT-ENVOY.md) extends envoy verify to 35 checks: retained twenty SotW checks, nine actual Delta/ADS checks and six explicit Delta TTL checks. CI runs the same immutable Envoy 1.40.1/SDK images on Linux amd64 and arm64. Delta verifies four-family traffic/admin state, removal/re-addition and reconnect initial versions. The TTL producer is test-only and uses existing passthrough envelopes; it adds no automatic Delta scheduler. The default proxy's SotW CDS heartbeat incompatibility is recorded as a limitation. Eight additional offline report-verifier cases bring solution discovery to 482, with actual proxy/CI results reported separately.

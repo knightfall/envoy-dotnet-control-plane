@@ -33,6 +33,18 @@ internal sealed class ProbeHost(WebApplication application, int port) : IAsyncDi
         return await StartAsync(application, cancellationToken);
     }
 
+    internal static async Task<ProbeHost> ManagementAsync(IConfigWatcher cache, IDeltaCallbacks callbacks,
+        int port, CancellationToken cancellationToken)
+    {
+        var builder = Builder(HttpProtocols.Http2, port);
+        builder.Services.AddSingleton<IConfigWatcher>(cache);
+        builder.Services.AddSingleton(callbacks);
+        builder.Services.AddEnvoyControlPlane();
+        var application = builder.Build();
+        application.MapEnvoyControlPlane();
+        return await StartAsync(application, cancellationToken);
+    }
+
     private static WebApplicationBuilder Builder(HttpProtocols protocol, int port)
     {
         var builder = WebApplication.CreateSlimBuilder();

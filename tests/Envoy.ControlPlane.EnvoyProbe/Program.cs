@@ -19,6 +19,8 @@ internal static class Program
             await File.WriteAllTextAsync(Path.Combine(output, "envoy-version.txt"), text);
             await EnvoyScenario.RunAsync(binary, template, output, ordered: false);
             await EnvoyScenario.RunAsync(binary, template, output, ordered: true);
+            await DeltaEnvoyScenario.RunAsync(binary, template, output);
+            await TtlEnvoyScenario.RunAsync(binary, template, output);
             return 0;
         }
         catch (Exception error) when (error is not OutOfMemoryException)

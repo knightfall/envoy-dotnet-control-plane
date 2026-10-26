@@ -93,3 +93,7 @@ T21 retains the prior drivers and adds actual rest.NewServer.Fetch comparison th
 ## T22 root lifecycle
 
 T22 reuses the attributed source-derived cache/stream suites above and adds only native .NET ownership/host-lifetime proof. No upstream algorithm, test source or dependency is copied for the new timer tracking, active Delta/Fetch callback cancellation, custom-producer cleanup or seeded Delta HTTP/2 run. [T22 mapping](../../docs/plan/T22-ROOT-LIFECYCLE.md) identifies existing Linear/Mux/Delta/heartbeat proof and retained diagnostic artifacts. The Microsoft fake-clock dependency and original licenses remain unchanged.
+
+## T23 root proxy probe
+
+The Delta and TTL runs reuse the attributed ADS bootstrap and the existing example graph against the immutable official Envoy release. The generated Delta bootstrap changes only the API type and isolated loopback substitutions. New observation/traffic/admin code and the bounded caller-built Delta TTL producer are native test glue; no server, cache selection or hashing algorithm is copied. The released Envoy mux/CDS source was inspected to document the observed SotW heartbeat restriction, with exact source links in [T23 evidence](../../docs/plan/T23-ROOT-ENVOY.md). Original licenses and image/source pins remain unchanged.

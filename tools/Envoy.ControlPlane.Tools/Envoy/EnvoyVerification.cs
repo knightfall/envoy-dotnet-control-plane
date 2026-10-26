@@ -100,7 +100,15 @@ internal static class EnvoyVerification
                 Require(report["architecture"]!.GetValue<string>() == (platform == "linux/amd64" ? "X64" : "Arm64"),
                     "Envoy probe architecture differs from the selected image platform");
             }
-            Console.WriteLine("Released Envoy: twenty V31 checks passed across ordinary and ordered ADS on " + platform);
+            foreach (string scenario in new[] { "delta", "ttl" })
+            {
+                var report = JsonNode.Parse(File.ReadAllText(Path.Combine(output, scenario, "report.json")))!.AsObject();
+                if (scenario == "delta") EnvoyResults.VerifyDelta(report);
+                else EnvoyResults.VerifyTtl(report);
+                Require(report["architecture"]!.GetValue<string>() == (platform == "linux/amd64" ? "X64" : "Arm64"),
+                    "Envoy root probe architecture differs from the selected image platform");
+            }
+            Console.WriteLine("Released Envoy: 35 V31-V33 checks passed for SotW/ADS, Delta/ADS and TTL on " + platform);
         }
         finally
         {
