@@ -26,7 +26,7 @@ internal static class ReproducibilityReport
             var descriptors = Read(scratch);
             var inputs = new JsonObject();
             foreach (string path in new[] { "upstream-baseline.json", "schemas/upstream.lock.json", "schemas/catalog.json", "schemas/bindings.lock.json",
-                "schemas/validation/bindings.lock.json", "schemas/validation/sources.lock.json", "global.json" })
+                "schemas/validation/bindings.lock.json", "schemas/validation/sources.lock.json", "global.json", "tests/resources/envoy-images.lock.json" })
             {
                 inputs.Add(path, Read(path));
             }
@@ -36,7 +36,8 @@ internal static class ReproducibilityReport
                 packageVersions.Add(package.Attribute("Include")!.Value, package.Attribute("Version")!.Value);
             }
             inputs.Add("packageVersions", packageVersions);
-            foreach (string path in new[] { "Directory.Packages.props", "Directory.Build.props", "Directory.Build.targets", "Envoy.ControlPlane.slnx" })
+            foreach (string path in new[] { "Directory.Packages.props", "Directory.Build.props", "Directory.Build.targets", "Envoy.ControlPlane.slnx",
+                "NuGet.Config", ".editorconfig", ".gitattributes" })
             {
                 inputs.Add(path, File.Exists(path) ? GetFileSha256(path) : null);
             }
@@ -44,12 +45,7 @@ internal static class ReproducibilityReport
             {
                 inputs.Add(Path.GetFileName(path), GetFileSha256(path));
             }
-            foreach (string path in Directory.EnumerateFiles("tools", "*.cs", SearchOption.AllDirectories)
-                         .Where(path => !path.Split(Path.DirectorySeparatorChar).Any(segment => segment is "bin" or "obj"))
-                         .Order(StringComparer.Ordinal))
-            {
-                inputs.Add(path.Replace('\\', '/'), ComputeSha256(System.Text.Encoding.UTF8.GetBytes(File.ReadAllText(path).ReplaceLineEndings("\n"))));
-            }
+            RecordMaintainedInputs(inputs, Path.GetFullPath("."));
             var coverage = new JsonObject
             {
                 ["gate"] = "T26/GV incomplete",
@@ -73,6 +69,11 @@ internal static class ReproducibilityReport
                 ["inputs"] = inputs,
                 ["descriptors"] = descriptors,
                 ["coverage"] = coverage,
+                ["verificationCatalog"] = new JsonObject
+                {
+                    ["goDotnetCorpora"] = JsonSerializer.SerializeToNode(RootDifferentialVerification.ModeNames()),
+                    ["meaning"] = "Current corpus inventory only; no execution or passing result is implied",
+                },
             });
         }
         finally
@@ -84,6 +85,26 @@ internal static class ReproducibilityReport
 
     internal static void Compare(string before, string after, string output) =>
         Write(output, ReproducibilityDiff.Create(Read(before), Read(after)));
+
+    internal static void RecordMaintainedInputs(JsonObject inputs, string repository)
+    {
+        string[] extensions = [".cs", ".csproj", ".proto", ".json", ".go", ".mod", ".sum", ".yaml", ".yml"];
+        foreach (string directory in new[] { "src", "tests", "tools", "examples", ".github/workflows" })
+        {
+            string root = Path.Combine(repository, directory);
+            if (!Directory.Exists(root)) continue;
+            var files = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
+                         .Where(file => extensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase))
+                         .Select(file => (SourcePath: file, RelativePath: Path.GetRelativePath(repository, file).Replace('\\', '/')))
+                         .Where(file => !file.RelativePath.Split('/').Any(segment => segment is "bin" or "obj"))
+                         .OrderBy(file => file.RelativePath, StringComparer.Ordinal);
+            foreach (var file in files)
+            {
+                if (inputs.ContainsKey(file.RelativePath)) continue;
+                inputs.Add(file.RelativePath, ComputeSha256(System.Text.Encoding.UTF8.GetBytes(File.ReadAllText(file.SourcePath).ReplaceLineEndings("\n"))));
+            }
+        }
+    }
 
     private static JsonObject Read(string path) => JsonNode.Parse(File.ReadAllText(path))!.AsObject();
 

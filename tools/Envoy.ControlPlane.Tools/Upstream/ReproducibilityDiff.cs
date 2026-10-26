@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using static Envoy.ControlPlane.Tools.BindingIntegrity;
 
@@ -27,6 +28,18 @@ internal static class ReproducibilityDiff
             ["changes"] = changes,
             ["validationAcceptance"] = false,
             ["coverage"] = after["coverage"]!.DeepClone(),
+            ["verificationSelection"] = new JsonObject
+            {
+                ["policy"] = "Conservative full replay; no dependency-level or case-level pruning",
+                ["goDotnetCorpora"] = JsonSerializer.SerializeToNode(changed ? RootDifferentialVerification.ModeNames() : []),
+                ["nativeTests"] = changed ? "Complete solution and all fresh package consumers" : "None selected",
+                ["commands"] = JsonSerializer.SerializeToNode(changed ? new[]
+                {
+                    "bindings generate --cache <source-cache>", "repository verify", "envoy verify",
+                } : []),
+                ["executionEvidence"] = "Selection only; no command execution or passing result is implied",
+                ["performanceBaseline"] = "Manual only; not selected",
+            },
             ["requiredVerification"] = changed
                 ? "Regenerate and run repository verify, including every declared Go/.NET validation case. Changed/new constraints remain unproven until T26/GV establishes their coverage; this report cannot approve validator claims."
                 : "No recorded input or descriptor/rule change. Existing evidence remains scoped to its original commit, cases and platform; T26/GV is still incomplete.",

@@ -9,6 +9,8 @@ internal static class RootDifferentialVerification
     private const string CoreOutput = "tests/Envoy.ControlPlane.Tests/bin/Release/net10.0/";
     private const string HostingOutput = "tests/Envoy.ControlPlane.AspNetCore.Tests/bin/Release/net10.0/";
 
+    internal static string[] ModeNames() => Inputs().Select(input => input.Mode).ToArray();
+
     internal static async Task VerifyAsync()
     {
         string directory = Path.GetFullPath(BindingPaths.InputsDirectory + "/results/root-differential");

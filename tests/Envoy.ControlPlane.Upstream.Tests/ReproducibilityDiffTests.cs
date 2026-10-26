@@ -20,6 +20,8 @@ public sealed class ReproducibilityDiffTests
         Assert.False(report["validationAcceptance"]!.GetValue<bool>());
         Assert.Equal("not-assessed", report["coverage"]!["unsupportedConstraints"]!.GetValue<string>());
         Assert.Equal("new-library-commit", report["afterRevision"]!.GetValue<string>());
+        Assert.Empty(report["verificationSelection"]!["goDotnetCorpora"]!.AsArray());
+        Assert.Empty(report["verificationSelection"]!["commands"]!.AsArray());
     }
 
     [Fact]
@@ -106,6 +108,35 @@ public sealed class ReproducibilityDiffTests
         Assert.Equal("new-schema-commit", change["after"]!["envoyApi"]!["commit"]!.GetValue<string>());
         Assert.False(report["validationAcceptance"]!.GetValue<bool>());
         Assert.False(Directory.Exists(Path.Combine(fixture.Root, "src")));
+    }
+
+    [Fact]
+    public void RuntimeAndCorpusChanges_SelectFullCurrentReplayWithoutApprovingValidation()
+    {
+        var before = Snapshot();
+        before["inputs"]!["src/Envoy.ControlPlane/Streams/DeltaSession.cs"] = "old-runtime";
+        before["inputs"]!["tests/resources/GoOracle/delta_streams.go"] = "old-corpus";
+        var after = (JsonObject)before.DeepClone();
+        after["inputs"]!["src/Envoy.ControlPlane/Streams/DeltaSession.cs"] = "new-runtime";
+        after["inputs"]!["tests/resources/GoOracle/delta_streams.go"] = "new-corpus";
+
+        var report = ReproducibilityDiff.Create(before, after);
+
+        Assert.Equal("old-runtime", before["inputs"]!["src/Envoy.ControlPlane/Streams/DeltaSession.cs"]!.GetValue<string>());
+        var changes = report["changes"]!["inputs"]!.AsArray();
+        Assert.Equal(new[] { "old-runtime", "old-corpus" }, changes.Select(row => row!["before"]!.GetValue<string>()));
+        Assert.Equal(new[] { "new-runtime", "new-corpus" }, changes.Select(row => row!["after"]!.GetValue<string>()));
+        var selection = report["verificationSelection"]!;
+        Assert.Equal(new[] { "snapshot", "cache", "subscription", "helpers", "delta-subscription", "delta-cache",
+            "linear-cache", "mux-cache", "heartbeats", "fetch", "fetch-engine", "gateway", "ads-client", "conversions",
+            "delta-stream", "stream" }, selection["goDotnetCorpora"]!.AsArray().Select(value => value!.GetValue<string>()));
+        Assert.Equal(new[] { "bindings generate --cache <source-cache>", "repository verify", "envoy verify" },
+            selection["commands"]!.AsArray().Select(value => value!.GetValue<string>()));
+        Assert.Equal("Complete solution and all fresh package consumers", selection["nativeTests"]!.GetValue<string>());
+        Assert.Equal("Manual only; not selected", selection["performanceBaseline"]!.GetValue<string>());
+        Assert.Contains("no command execution or passing result", selection["executionEvidence"]!.GetValue<string>(), StringComparison.Ordinal);
+        Assert.False(report["validationAcceptance"]!.GetValue<bool>());
+        Assert.Equal("not-assessed", report["coverage"]!["unsupportedConstraints"]!.GetValue<string>());
     }
 
     private static JsonObject Snapshot() => JsonNode.Parse("""
