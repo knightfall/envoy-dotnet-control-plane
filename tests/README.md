@@ -143,3 +143,7 @@ The repository CLI runs the Go stream comparison as part of `repository verify` 
 ## Delta cache foundation
 
 [T14 foundation](../docs/plan/T14-DELTA-CACHE.md) adds thirteen cases (Core 165, solution 287), including fourteen independently declared cache outcomes compared with actual pinned Go payloads, versions, removals, status and lazy maps. Existing custom-producer and SotW lifecycle assertions remain. The full fresh Core consumer runs the same 165 cases. Stream callback/nonce behavior, first-request dispatch and Delta HTTP/2 remain the next T14 increment.
+
+## Delta stream processing
+
+[T14 stream evidence](../docs/plan/T14-DELTA-STREAMS.md) maps sixteen added cases (Core 181, solution 303) to shared-channel draining, original-request callback order, per-type initial versions, nonce/NACK updates, post-send returned versions, asynchronous watch disposal and cleanup. `DeltaStreamCorpusTests.SourceTraces_MatchDeclaredDeltaCallbacksWatchesAndSends` exports ten independently declared traces; `GoOracle/delta_streams.go` invokes the actual pinned Delta server and compares exact events and disposal counts. `repository verify` runs this comparison and the full 181-case fresh Core consumer. Delta gRPC methods, real HTTP/2 and released-Envoy Delta proof remain separate.

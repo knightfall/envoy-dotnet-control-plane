@@ -15,6 +15,7 @@
     <EmbeddedResource Include="Fixtures/sotw-subscription-cases.json" LogicalName="Envoy.ControlPlane.Tests.SotwCases.json" />
     <EmbeddedResource Include="Fixtures/delta-subscription-cases.json" LogicalName="Envoy.ControlPlane.Tests.DeltaCases.json" />
     <EmbeddedResource Include="Fixtures/sotw-stream-cases.json" LogicalName="Envoy.ControlPlane.Tests.StreamCases.json" />
+    <EmbeddedResource Include="Fixtures/delta-stream-cases.json" LogicalName="Envoy.ControlPlane.Tests.DeltaStreamCases.json" />
     <EmbeddedResource Include="Fixtures/cache-cases.json" LogicalName="Envoy.ControlPlane.Tests.CacheCases.json" />
     <EmbeddedResource Include="Fixtures/snapshot-cases.json" LogicalName="Envoy.ControlPlane.Tests.SnapshotCases.json" />
     <EmbeddedResource Include="Fixtures/preview-helper-cases.json" LogicalName="Envoy.ControlPlane.Tests.PreviewHelperCases.json" />

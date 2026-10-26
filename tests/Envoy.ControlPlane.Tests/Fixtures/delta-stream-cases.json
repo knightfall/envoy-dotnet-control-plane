@@ -1,0 +1,423 @@
+[
+  {
+    "id": "implied-type-and-carried-node",
+    "defaultType": "implied",
+    "steps": [
+      {
+        "kind": "request",
+        "type": "",
+        "node": "client",
+        "add": [
+          "a"
+        ]
+      },
+      {
+        "kind": "respond",
+        "watch": 0,
+        "version": "v",
+        "names": [
+          "a"
+        ]
+      },
+      {
+        "kind": "request",
+        "type": "",
+        "nonce": "1"
+      },
+      {
+        "kind": "end"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|implied",
+        "request||client||a||false",
+        "watch|implied|a|||false",
+        "response|implied|v|1",
+        "send|implied|v|1",
+        "request|||1|||false",
+        "watch|implied|a||a=v|false",
+        "close|client"
+      ],
+      "disposals": [
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "id": "first-versions-per-type-and-stale-nack",
+    "defaultType": "",
+    "steps": [
+      {
+        "kind": "request",
+        "type": "A",
+        "add": [
+          "a"
+        ],
+        "initial": {
+          "a": "initial-a"
+        }
+      },
+      {
+        "kind": "respond",
+        "watch": 0,
+        "version": "delivered",
+        "names": [
+          "a"
+        ]
+      },
+      {
+        "kind": "request",
+        "type": "B",
+        "add": [
+          "b"
+        ],
+        "initial": {
+          "b": "initial-b"
+        }
+      },
+      {
+        "kind": "respond",
+        "watch": 1,
+        "version": "other",
+        "names": [
+          "b"
+        ]
+      },
+      {
+        "kind": "request",
+        "type": "A",
+        "nonce": "old",
+        "add": [
+          "new"
+        ],
+        "initial": {
+          "a": "must-not-reset"
+        },
+        "nack": true
+      },
+      {
+        "kind": "end"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "request|A|||a||false",
+        "watch|A|a||a=initial-a|false",
+        "response|A|delivered|1",
+        "send|A|delivered|1",
+        "request|B|||b||false",
+        "watch|B|b||b=initial-b|false",
+        "response|B|other|2",
+        "send|B|other|2",
+        "request|A||old|new||true",
+        "watch|A|a,new||a=delivered|false",
+        "close|"
+      ],
+      "disposals": [
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "id": "shared-queued-response-order",
+    "defaultType": "",
+    "steps": [
+      {
+        "kind": "request",
+        "type": "A",
+        "add": [
+          "a"
+        ]
+      },
+      {
+        "kind": "request",
+        "type": "B",
+        "add": [
+          "b"
+        ]
+      },
+      {
+        "kind": "request",
+        "type": "hold",
+        "hold": true
+      },
+      {
+        "kind": "queue",
+        "watch": 0,
+        "version": "one",
+        "names": [
+          "a"
+        ]
+      },
+      {
+        "kind": "queue",
+        "watch": 1,
+        "version": "two",
+        "names": [
+          "b"
+        ]
+      },
+      {
+        "kind": "release",
+        "sent": 2
+      },
+      {
+        "kind": "request",
+        "type": "A",
+        "add": [
+          "new"
+        ],
+        "remove": [
+          "a"
+        ]
+      },
+      {
+        "kind": "end"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "request|A|||a||false",
+        "watch|A|a|||false",
+        "request|B|||b||false",
+        "watch|B|b|||false",
+        "request|hold|||||false",
+        "watch|hold||||true",
+        "response|A|one|1",
+        "send|A|one|1",
+        "response|B|two|2",
+        "send|B|two|2",
+        "request|A|||new|a|false",
+        "watch|A|new|||false",
+        "close|"
+      ],
+      "disposals": [
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "id": "open-rejection",
+    "defaultType": "",
+    "rejectOpen": true,
+    "steps": [
+      {
+        "kind": "error"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "close|"
+      ],
+      "disposals": [],
+      "error": "InvalidArgument"
+    }
+  },
+  {
+    "id": "ads-missing-type-callback-before-error",
+    "defaultType": "",
+    "steps": [
+      {
+        "kind": "request-error",
+        "node": "client"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "request||client||||false",
+        "close|client"
+      ],
+      "disposals": [],
+      "error": "InvalidArgument"
+    }
+  },
+  {
+    "id": "request-rejection-before-node-capture",
+    "defaultType": "",
+    "steps": [
+      {
+        "kind": "request",
+        "type": "A",
+        "node": "first"
+      },
+      {
+        "kind": "request-error",
+        "type": "B",
+        "node": "rejected",
+        "reject": true
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "request|A|first||||false",
+        "watch|A||||true",
+        "request|B|rejected||||false",
+        "close|first"
+      ],
+      "disposals": [
+        1
+      ],
+      "error": "InvalidArgument"
+    }
+  },
+  {
+    "id": "per-type-legacy-option",
+    "defaultType": "",
+    "disabledTypes": [
+      "A"
+    ],
+    "steps": [
+      {
+        "kind": "request",
+        "type": "A"
+      },
+      {
+        "kind": "request",
+        "type": "B"
+      },
+      {
+        "kind": "end"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "request|A|||||false",
+        "watch|A||||false",
+        "request|B|||||false",
+        "watch|B||||true",
+        "close|"
+      ],
+      "disposals": [
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "id": "global-legacy-option-and-prefix",
+    "defaultType": "",
+    "disableLegacy": true,
+    "steps": [
+      {
+        "kind": "request",
+        "type": "A"
+      },
+      {
+        "kind": "request",
+        "type": "B",
+        "add": [
+          "dir/*"
+        ]
+      },
+      {
+        "kind": "end"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|",
+        "request|A|||||false",
+        "watch|A||||false",
+        "request|B|||dir/*||false",
+        "watch|B||dir/||false",
+        "close|"
+      ],
+      "disposals": [
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "id": "response-callback-can-change-nonce",
+    "defaultType": "A",
+    "callbackNonce": "callback-token",
+    "steps": [
+      {
+        "kind": "request",
+        "type": "",
+        "add": [
+          "a"
+        ]
+      },
+      {
+        "kind": "respond",
+        "watch": 0,
+        "version": "v",
+        "names": [
+          "a"
+        ]
+      },
+      {
+        "kind": "request",
+        "type": "",
+        "nonce": "callback-token"
+      },
+      {
+        "kind": "end"
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|A",
+        "request||||a||false",
+        "watch|A|a|||false",
+        "response|A|v|1",
+        "send|A|v|callback-token",
+        "request|||callback-token|||false",
+        "watch|A|a||a=v|false",
+        "close|"
+      ],
+      "disposals": [
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "id": "callback-mutation-and-receive-error",
+    "defaultType": "A",
+    "mutate": true,
+    "steps": [
+      {
+        "kind": "request",
+        "type": "mutate"
+      },
+      {
+        "kind": "request",
+        "type": ""
+      },
+      {
+        "kind": "end",
+        "receiveError": true
+      }
+    ],
+    "expected": {
+      "events": [
+        "open|A",
+        "request|mutate|||||false",
+        "watch|changed|selected|||false",
+        "request||||||false",
+        "watch|A||||true",
+        "close|callback"
+      ],
+      "disposals": [
+        1,
+        1
+      ]
+    }
+  }
+]
