@@ -238,6 +238,8 @@ Subtasks:
 
 ### T12 — Deliver the preview vertical slice
 
+The [preview guide](../preview/README.md) and [compatibility manifest](../preview/compatibility.json) assemble the implemented subset, exact pins, usage and bounded G2 evidence.
+
 **Scope:** preview / R22. **Depends on:** T11, T20. **Outputs:** runnable example, preview compatibility manifest, initial differential/Envoy evidence, preview usage guide.
 
 Subtasks:
