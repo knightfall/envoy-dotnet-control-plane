@@ -16,4 +16,4 @@ The initial backend is `127.0.0.1:8080`; the listener resource describes `127.0.
 
 The application uses ordinary `ILogger` logging. For an authenticated host, configure an application authentication provider and protect the returned endpoint group with `RequireAuthorization`, as shown in the hosting package readme. Existing callbacks can apply node/claim checks. The library does not supply credentials, an authentication provider or an authorization policy.
 
-The example constructs a complete HTTP resource graph. A released Envoy bootstrap, accepted configuration, real backend traffic and reconnect proof remain T12/T22/T23 work; helper and gRPC checks alone do not establish those results.
+The example constructs a complete HTTP resource graph. Run `dotnet run --project tools/Envoy.ControlPlane.Tools -- envoy verify` from the repository root after generation for the isolated released-Envoy traffic, update, NACK/repair and reconnect proof. The probe references this project and uses its compiled resource factory. [The preview guide](../../docs/preview/README.md) documents exact source/package/proxy pins, Docker requirements, evidence and limits.

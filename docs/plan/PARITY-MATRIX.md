@@ -1,6 +1,6 @@
 # v3 parity matrix
 
-Reviewed 24 October 2026 against Go commit 67c5345367582741334e34ffc66a561b0ce32946. Paths below are relative to the separate go-control-plane checkout. Target entries are proposed capabilities, not implemented results.
+Reviewed 24 October 2026 against Go commit 67c5345367582741334e34ffc66a561b0ce32946. Paths below are relative to the separate go-control-plane checkout. This table defines the complete target surface. The [preview guide](../preview/README.md) and [compatibility manifest](../preview/compatibility.json) identify the implemented subset and its observed evidence.
 
 ## Discovery transports
 

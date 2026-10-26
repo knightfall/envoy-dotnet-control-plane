@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "release": "sotw-preview",
+  "publication": "not-published",
+  "targetFramework": "net10.0",
+  "fullRootParity": false,
+  "validationConformance": "T26/GV incomplete; validation not included in preview",
+  "sourcePins": {
+    "goControlPlane": {
+      "repository": "https://github.com/envoyproxy/go-control-plane.git",
+      "branch": "main",
+      "commit": "67c5345367582741334e34ffc66a561b0ce32946"
+    },
+    "envoyApi": {
+      "repository": "https://github.com/envoyproxy/envoy.git",
+      "commit": "82a4424f760b6ba3ffc9f2911389d061656f35c8",
+      "source": "go-control-plane/envoy/COMMIT"
+    },
+    "ratelimitApi": {
+      "repository": "https://github.com/envoyproxy/ratelimit.git",
+      "commit": "0d9cfd0b3934c6c66bd97544592f3f539e7138cc",
+      "source": "api/ratelimit/{config,service}/ratelimit/v3/*.proto"
+    }
+  },
+  "bindings": {
+    "descriptorSetSha256": "c34501434b0580470167d4a257269e25d921dbd5c6ba4968255642cf1e3d10a4",
+    "generatedSourceCount": 540,
+    "generatedSourcesSha256": "75f703a5ccf75567169bfdc5d7e4645c9648d6bb8218f7e075825be12f2c929c"
+  },
+  "derivedMetadata": {
+    "descriptorSetSha256": "7403284aec07c54c08d450dbc5ccea77f9c713e88c971c22421c37283e59e9f9",
+    "generatedSourceCount": 540,
+    "generatedSourcesSha256": "3d68c6a4dd31907c29c8c8de05136ded90ada8de0bf9c4efe118429d2ebca51d",
+    "annotationSourceCount": 1,
+    "annotationSourcesSha256": "769ac71289df8ae63979e4713cc89923b3fd1ccc115107a670f783e89383c0f0"
+  },
+  "toolchain": {
+    "dotnetSdk": "10.0.400",
+    "go": "1.26.4",
+    "buf": "1.75.0",
+    "plugins": [
+      {
+        "remote": "buf.build/protocolbuffers/csharp:v35.1",
+        "revision": 1
+      },
+      {
+        "remote": "buf.build/grpc/csharp:v1.84.0",
+        "revision": 1
+      }
+    ]
+  },
+  "previewPackages": {
+    "Envoy.ControlPlane.Protocol": "0.1.0-t03",
+    "Envoy.ControlPlane.Validation.Annotations": "0.1.0-t03",
+    "Envoy.ControlPlane": "0.1.0-t04",
+    "Envoy.ControlPlane.AspNetCore": "0.1.0-t04"
+  },
+  "services": [
+    {
+      "family": "ADS",
+      "rpc": "envoy.service.discovery.v3.AggregatedDiscoveryService/StreamAggregatedResources",
+      "mode": "SotW"
+    },
+    {
+      "family": "CDS",
+      "rpc": "envoy.service.cluster.v3.ClusterDiscoveryService/StreamClusters",
+      "mode": "SotW"
+    },
+    {
+      "family": "EDS",
+      "rpc": "envoy.service.endpoint.v3.EndpointDiscoveryService/StreamEndpoints",
+      "mode": "SotW"
+    },
+    {
+      "family": "LDS",
+      "rpc": "envoy.service.listener.v3.ListenerDiscoveryService/StreamListeners",
+      "mode": "SotW"
+    },
+    {
+      "family": "RDS",
+      "rpc": "envoy.service.route.v3.RouteDiscoveryService/StreamRoutes",
+      "mode": "SotW"
+    },
+    {
+      "family": "SRDS",
+      "rpc": "envoy.service.route.v3.ScopedRoutesDiscoveryService/StreamScopedRoutes",
+      "mode": "SotW"
+    },
+    {
+      "family": "SDS",
+      "rpc": "envoy.service.secret.v3.SecretDiscoveryService/StreamSecrets",
+      "mode": "SotW"
+    },
+    {
+      "family": "RTDS",
+      "rpc": "envoy.service.runtime.v3.RuntimeDiscoveryService/StreamRuntime",
+      "mode": "SotW"
+    },
+    {
+      "family": "ECDS",
+      "rpc": "envoy.service.extension.v3.ExtensionConfigDiscoveryService/StreamExtensionConfigs",
+      "mode": "SotW"
+    }
+  ],
+  "defaults": {
+    "orderedAds": false,
+    "legacyWildcard": true,
+    "adsCacheReadiness": false,
+    "semanticValidationOnPublication": false
+  },
+  "implemented": [
+    "Stable resource entries and partial snapshots",
+    "Explicit EDS/RDS reference consistency",
+    "SotW SnapshotCache and custom watcher/snapshot contracts",
+    "Named/prefix/wildcard SotW subscriptions",
+    "Channel-based ordinary and optional ordered ADS",
+    "Callbacks, status, cancellation and host cleanup",
+    "ASP.NET Core generated service adapters and standard endpoint authorization"
+  ],
+  "notImplemented": [
+    "Delta cache/server/ADS delivery",
+    "LinearCache and MuxCache",
+    "Unary Fetch and HTTP gateway",
+    "Automatic TTL/heartbeat scheduling",
+    "SotW ADS client helper",
+    "Full resource/Struct conversion inventory",
+    "VHDS/LEDS/rate-limit configuration hosting",
+    "Full optional-validator conformance",
+    "Matcher and broader contrib/legacy catalog"
+  ],
+  "releasedEnvoy": {
+    "version": "1.40.1",
+    "sourceCommit": "86af01fdec40c31d025c495a4aa303c4126b2fd0",
+    "imageLock": "tests/resources/envoy-images.lock.json",
+    "observedPlatforms": [
+      "linux/arm64",
+      "linux/amd64"
+    ],
+    "liveGraphFamilies": [
+      "CDS",
+      "EDS",
+      "LDS",
+      "RDS"
+    ],
+    "checksPerMode": 10,
+    "modes": [
+      "ordinary ADS",
+      "ordered ADS"
+    ],
+    "limits": [
+      "One proxy release",
+      "Plaintext isolated test network",
+      "Other methods have generated-client HTTP/2 evidence, not this live graph proof"
+    ]
+  },
+  "evidence": {
+    "previewRuntime": {
+      "pullRequest": 52,
+      "verifiedHead": "a1f6b2ebb52a3b28f8ebbe2f498fe20665dafbb5",
+      "mergedCommit": "db493082a7c094d622ec1c8e105fd27a5f2473dc",
+      "checksPassed": 12,
+      "report": "docs/plan/T23-PREVIEW-ENVOY.md"
+    },
+    "packagesAndReproducibility": {
+      "pullRequest": 53,
+      "verifiedHead": "1cd7b25aca931eac5d96a7be50ef63cdbb60553b",
+      "mergedCommit": "34bd0a2ec4cb405b1bf76f179a68eb15f04810ff",
+      "checksPassed": 12,
+      "solutionTests": 271,
+      "report": "docs/plan/T24-PREVIEW-READINESS.md"
+    },
+    "differential": {
+      "snapshots": 19,
+      "helpers": 8,
+      "cacheTraces": 23,
+      "subscriptionTraces": 14,
+      "streamTraces": 22,
+      "staleAckMutationRejected": true,
+      "report": "docs/plan/T21-PREVIEW-DIFFERENTIAL.md"
+    },
+    "lifecycle": {
+      "streams": 128,
+      "responses": 512,
+      "report": "docs/plan/T22-PREVIEW-LIFECYCLE.md"
+    },
+    "boundedValidationResearch": {
+      "cases": 33,
+      "fullConformance": false,
+      "report": "schemas/VALIDATION.md"
+    }
+  },
+  "intentionalDotnetDifferences": [
+    "Channel-based response delivery with await-one convenience adapter",
+    "CancellationToken and async ownership instead of goroutine/mutex translation",
+    "Standard ASP.NET Core DI/authorization/ILogger hosting",
+    "TimeSpan precision is 100 ns",
+    "Opaque version relationships, without universal Go/C# hash equality",
+    "Source-mode exception policy mapped to .NET exceptions and gRPC statuses"
+  ],
+  "readiness": "Preview subset evidence established by the referenced commits; T12 implementing PR records final documentation review and CI. This manifest authorizes no publication."
+}

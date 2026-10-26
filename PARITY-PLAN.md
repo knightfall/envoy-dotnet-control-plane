@@ -1,6 +1,6 @@
 # .NET parity plan for go-control-plane
 
-Reviewed on **24 October 2026**. Status: revised proposal; implementation and protocol generation have not started.
+Design baseline reviewed on **24 October 2026**. The proposal below records that review, rather than current implementation status. The [SotW preview guide](docs/preview/README.md), [compatibility manifest](docs/preview/compatibility.json) and [README](README.md) record subsequent implementation and proof.
 
 ## Recommendation
 
@@ -14,12 +14,12 @@ The root release claim should be “v3 server/cache/client behavior at the pinne
 
 The caller supplies Envoy configuration. The library supplies in-memory caches, discovery protocol handling, and hosting integration. Resource translation, durable storage, and deployment orchestration remain application concerns, matching the upstream scope.
 
-The [detailed architecture](docs/architecture/ARCHITECTURE.md), [decision register](docs/architecture/DECISIONS.md), [implementation tasks and subtasks](docs/plan/IMPLEMENTATION-PLAN.md), and [verification traceability](docs/plan/TRACEABILITY.md) expand this proposal into an actionable design. All implementation tasks remain planned.
+The [detailed architecture](docs/architecture/ARCHITECTURE.md), [decision register](docs/architecture/DECISIONS.md), [implementation tasks and subtasks](docs/plan/IMPLEMENTATION-PLAN.md), and [verification traceability](docs/plan/TRACEABILITY.md) expand this proposal into an actionable design. The implementation plan tracks the remaining scope; current evidence is linked from the preview guide.
 
 ## Baseline and repository layout
 
-- Go reference: ../go-control-plane/ — clean main tracking origin/main.
-- .NET planning repository: this directory, ../dotnet-control-plane/ — separate repository at [knightfall/envoy-dotnet-control-plane](https://github.com/knightfall/envoy-dotnet-control-plane); proposal branch `docs/parity-plan` and PR #1.
+- Go reference: the immutable remote origin recorded in [upstream-baseline.json](upstream-baseline.json). A sibling checkout is not required.
+- .NET repository: [knightfall/envoy-dotnet-control-plane](https://github.com/knightfall/envoy-dotnet-control-plane); the original proposal was PR #1.
 - Go baseline: **67c5345367582741334e34ffc66a561b0ce32946**, committed 23 October 2026 UTC.
 - Mirrored Envoy source: **82a4424f760b6ba3ffc9f2911389d061656f35c8**, from envoy/COMMIT.
 - Previous Go baseline: 0b31c014c0e3d2dd3e5e8b7dddfcb638e191c4a7.
@@ -111,7 +111,7 @@ Release gates:
 
 No Go or .NET runtime tests, SDK restore, protocol generation, package build, or live Envoy interop were run during this proposal review. Git synchronization, source inspection, documentation checks, and primary-source research establish the planning evidence only.
 
-Subsequent implementation evidence: [T01](schemas/PROVENANCE.md) proves source provenance, and [T02](schemas/BINDINGS.md) proves a Buf-generated net10.0 Protocol candidate and clean package consumption. T03 validation feasibility and live Envoy/runtime parity remain separate gates.
+Subsequent implementation evidence is consolidated in the [preview guide](docs/preview/README.md). T01–T11 and the preview portions of T20–T24 now have source, binding, runtime, package and released-Envoy evidence; full root parity and T26/GV remain separate gates.
 
 ## Implementation sequence
 
