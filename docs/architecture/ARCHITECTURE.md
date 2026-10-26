@@ -110,7 +110,7 @@ public interface IWatch<T> : IDisposable
 
 public interface IConfigFetcher
 {
-    ValueTask<FetchResult> FetchAsync(DiscoveryRequest request, CancellationToken cancellationToken);
+    Task<ISotwResponse> FetchAsync(DiscoveryRequest request, ResponseContext context = default);
 }
 ```
 
@@ -156,6 +156,8 @@ Owns a single type URL and shared resource collection, with exact/prefix/wildcar
 ### 6.3 MuxCache
 
 Routes SotW and Delta through separately configurable classification functions and delegates fetch using the source's selection contract. Classifier output selects a registered child cache; missing keys are errors. Child caches remain independently owned unless explicitly registered with ownership transfer. The mux must not hide LinearCache's unsupported fetch or invent an aggregate snapshot transaction.
+
+T16 implements this using a constructor-copied ordinal routing index, caller-owned children, direct channel/registration/task delegation and a separate `IConfigFetcher` capability. The public routing table is fixed, rather than copying Go's mutable struct fields. Fetch preserves `ResponseContext`; watch-only children explicitly report unsupported Fetch. SnapshotCache polling and Fetch transports remain T18. See [T16 evidence](../plan/T16-MUX-CACHE.md) for the implemented boundary and source/native comparisons.
 
 ### 6.4 Status
 

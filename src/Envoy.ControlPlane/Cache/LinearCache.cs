@@ -9,7 +9,7 @@ namespace Envoy.ControlPlane.Cache;
 
 /// <summary>Stores one node-independent collection of named, stable messages for SotW and Delta watches.</summary>
 /// <remarks>Keep mutation input collections stable until their asynchronous publication completes; retained messages remain stable until replaced.</remarks>
-public sealed partial class LinearCache : IConfigWatcher
+public sealed partial class LinearCache : IConfigWatcher, IConfigFetcher
 {
     private readonly object gate = new();
     private readonly SemaphoreSlim publication = new(1, 1);
@@ -130,6 +130,9 @@ public sealed partial class LinearCache : IConfigWatcher
         _ = cancellationToken;
         return Task.FromException<ISotwResponse>(new NotSupportedException("Fetch is not implemented by LinearCache."));
     }
+
+    Task<ISotwResponse> IConfigFetcher.FetchAsync(DiscoveryRequest request, ResponseContext context) =>
+        FetchAsync(request, context.CancellationToken);
 
     private string CurrentVersion => versionPrefix + version.ToString(CultureInfo.InvariantCulture);
 

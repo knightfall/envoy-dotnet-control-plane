@@ -307,6 +307,8 @@ Subtasks:
 
 **Acceptance:** V20 passes for routing, missing key, child errors and Linear fetch limitation. Cancellation reaches exactly the selected child and does not affect unrelated streams.
 
+Implementation and bounded source/native verification: [T16 evidence](T16-MUX-CACHE.md). Fetch delegation uses a separate capability; SnapshotCache polling and shared Fetch transports remain T18.
+
 ### T17 — Implement TTL wrapping and SotW heartbeat scheduling
 
 **Scope:** 1.0 / R16. **Depends on:** T07, T14. **Outputs:** TTL materialization and TimeProvider-backed cache timer.
