@@ -26,6 +26,7 @@ internal static class RepositoryVerification
             await SotwSubscriptionVerification.CompareWithGoAsync();
             await DeltaSubscriptionVerification.CompareWithGoAsync();
             await DeltaCacheVerification.CompareWithGoAsync();
+            await DeltaStreamVerification.CompareWithGoAsync();
             await SotwStreamVerification.CompareWithGoAsync();
             await BuildProcess.RunAsync("dotnet", ["pack", Solution, "--configuration", "Release", "--no-build", "--no-restore",
                 "--output", BindingPaths.PackageDirectory]);
@@ -37,7 +38,7 @@ internal static class RepositoryVerification
             await RootConsumerVerification.RunAsync("Core");
             await RootConsumerVerification.RunAsync("AspNetCore");
             await ReproducibilityReport.WriteAsync(Path.Combine(BindingPaths.InputsDirectory, "results", "reproducibility", "snapshot.json"));
-            Console.WriteLine($"Repository build, tests, packages, consumers and reproducibility report passed; {cases} Go PGV cases and the snapshot/SotW-and-Delta-cache/subscription/stream corpora matched. Delta streams, Fetch, full GV and the separately invoked released-Envoy command remain outside this verification command.");
+            Console.WriteLine($"Repository build, tests, packages, consumers and reproducibility report passed; {cases} Go PGV cases and the snapshot/SotW-and-Delta-cache/subscription/stream corpora matched. Delta gRPC adapters, Fetch, full GV and the separately invoked released-Envoy command remain outside this verification command.");
             return 0;
         }
         catch (Exception error) when (error is not OutOfMemoryException)
