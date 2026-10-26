@@ -254,6 +254,8 @@ Subtasks:
 
 ### T13 — Implement Delta subscription state
 
+Implementation and bounded V16 evidence: [T13 Delta subscriptions](T13-DELTA-SUBSCRIPTIONS.md). Per-type server dispatch and Delta delivery remain T14.
+
 **Scope:** 1.0 / R12. **Depends on:** T08. **Outputs:** Delta subscription transitions and initial-version state.
 
 Subtasks:
