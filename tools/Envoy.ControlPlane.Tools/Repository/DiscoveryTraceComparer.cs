@@ -2,31 +2,37 @@ using System.Text.Json.Nodes;
 
 namespace Envoy.ControlPlane.Tools;
 
-internal static class SotwTraceComparer
+internal static class DiscoveryTraceComparer
 {
     internal static void Compare(string id, JsonObject candidate, JsonObject reference)
+        => CompareCore(id, candidate, reference, requestNonceField: 4, protocol: "SotW");
+
+    internal static void CompareDelta(string id, JsonObject candidate, JsonObject reference)
+        => CompareCore(id, candidate, reference, requestNonceField: 3, protocol: "Delta");
+
+    private static void CompareCore(string id, JsonObject candidate, JsonObject reference, int requestNonceField, string protocol)
     {
         var actualEvents = candidate["events"]!.AsArray();
         var expectedEvents = reference["events"]!.AsArray();
         if (actualEvents.Count != expectedEvents.Count)
         {
-            throw Difference(id, "event count", expectedEvents.Count.ToString(), actualEvents.Count.ToString());
+            throw Difference(id, "event count", expectedEvents.Count.ToString(), actualEvents.Count.ToString(), protocol);
         }
 
         var nonces = new NonceMapping();
         for (int index = 0; index < expectedEvents.Count; index++)
         {
-            string[] actual = ParseEvent(actualEvents[index]!.GetValue<string>());
-            string[] expected = ParseEvent(expectedEvents[index]!.GetValue<string>());
+            string[] actual = ParseEvent(actualEvents[index]!.GetValue<string>(), protocol);
+            string[] expected = ParseEvent(expectedEvents[index]!.GetValue<string>(), protocol);
             if (actual[0] != expected[0])
             {
-                throw Difference(id, $"event {index} kind", expected[0], actual[0]);
+                throw Difference(id, $"event {index} kind", expected[0], actual[0], protocol);
             }
 
             int nonceField = expected[0] switch
             {
                 "response" or "send" => 3,
-                "request" => 4,
+                "request" => requestNonceField,
                 _ => -1,
             };
             for (int field = 1; field < expected.Length; field++)
@@ -36,7 +42,7 @@ internal static class SotwTraceComparer
                     : actual[field] == expected[field];
                 if (!matches)
                 {
-                    throw Difference(id, $"event {index} {expected[0]} field {field}", expected[field], actual[field]);
+                    throw Difference(id, $"event {index} {expected[0]} field {field}", expected[field], actual[field], protocol);
                 }
             }
         }
@@ -47,11 +53,11 @@ internal static class SotwTraceComparer
         expectedMetadata.Remove("events");
         if (!JsonNode.DeepEquals(actualMetadata, expectedMetadata))
         {
-            throw Difference(id, "error/watch lifecycle", expectedMetadata.ToJsonString(), actualMetadata.ToJsonString());
+            throw Difference(id, "error/watch lifecycle", expectedMetadata.ToJsonString(), actualMetadata.ToJsonString(), protocol);
         }
     }
 
-    private static string[] ParseEvent(string value)
+    private static string[] ParseEvent(string value, string protocol)
     {
         string[] fields = value.Split('|');
         int count = fields[0] switch
@@ -60,17 +66,17 @@ internal static class SotwTraceComparer
             "request" => 7,
             "watch" => 6,
             "response" or "send" => 4,
-            _ => throw new InvalidDataException("Unknown SotW trace event: " + value),
+            _ => throw new InvalidDataException($"Unknown {protocol} trace event: " + value),
         };
         if (fields.Length != count)
         {
-            throw new InvalidDataException("Malformed SotW trace event: " + value);
+            throw new InvalidDataException($"Malformed {protocol} trace event: " + value);
         }
         return fields;
     }
 
-    private static InvalidDataException Difference(string id, string location, string expected, string actual) =>
-        new($"{id}: SotW trace differs at {location}: Go={expected}; .NET={actual}");
+    private static InvalidDataException Difference(string id, string location, string expected, string actual, string protocol) =>
+        new($"{id}: {protocol} trace differs at {location}: Go={expected}; .NET={actual}");
 
     private sealed class NonceMapping
     {

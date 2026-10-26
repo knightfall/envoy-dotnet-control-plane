@@ -9,6 +9,17 @@ namespace Envoy.ControlPlane.Tests;
 public sealed class FetchServerTests
 {
     [Fact]
+    public async Task SourceCases_MatchDeclaredHookAndErrorBoundariesAndExportObservations()
+    {
+        var inputs = FetchEngineCorpus.Cases();
+        Assert.Equal(9, inputs.Length);
+        Assert.Equal(9, inputs.Select(input => input.Id).Distinct(StringComparer.Ordinal).Count());
+        var results = new List<FetchEngineResult>();
+        foreach (var input in inputs) results.Add(await FetchEngineCorpus.EvaluateAsync(input));
+        FetchEngineCorpus.Write(results);
+    }
+
+    [Fact]
     public async Task Callbacks_PreserveOrderIdentityContextAndMutations()
     {
         var request = new DiscoveryRequest();

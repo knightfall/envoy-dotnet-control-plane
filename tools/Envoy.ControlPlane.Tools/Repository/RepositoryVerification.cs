@@ -46,6 +46,7 @@ internal static class RepositoryVerification
             await ConversionVerification.CompareWithGoAsync();
             await DeltaStreamVerification.CompareWithGoAsync();
             await SotwStreamVerification.CompareWithGoAsync();
+            await RootDifferentialVerification.VerifyAsync();
             await BuildProcess.RunAsync("dotnet", ["pack", Solution, "--configuration", "Release", "--no-build", "--no-restore",
                 "--output", BindingPaths.PackageDirectory]);
             PackageContentsVerification.Verify();

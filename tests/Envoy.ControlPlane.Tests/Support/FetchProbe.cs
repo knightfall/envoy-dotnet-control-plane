@@ -11,6 +11,7 @@ internal sealed class FetchProbe : IConfigFetcher, IFetchCallbacks
     internal Action<DiscoveryRequest>? BeforeRequest { get; set; }
     internal Action<DiscoveryResponse?>? BeforeResponse { get; set; }
     internal DiscoveryRequest? LastRequest { get; private set; }
+    internal DiscoveryRequest? ResponseRequest { get; private set; }
     internal ResponseContext LastContext { get; private set; }
     internal ResponseContext CallbackContext { get; private set; }
 
@@ -32,6 +33,7 @@ internal sealed class FetchProbe : IConfigFetcher, IFetchCallbacks
 
     public ValueTask OnFetchResponseAsync(DiscoveryRequest request, DiscoveryResponse? response)
     {
+        ResponseRequest = request;
         Events.Add(response is null ? "response:null" : "response");
         BeforeResponse?.Invoke(response);
         return ValueTask.CompletedTask;

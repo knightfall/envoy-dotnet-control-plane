@@ -60,12 +60,16 @@ func main() {
 		err = runHeartbeats(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "fetch" {
 		err = runFetch(os.Args[2:])
+	} else if len(os.Args) > 1 && os.Args[1] == "fetch-engine" {
+		err = runFetchEngine(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "gateway" {
 		err = runGateway(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "ads-client" {
 		err = runAdsClient(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "conversions" {
 		err = runConversions(os.Args[2:])
+	} else if len(os.Args) > 1 && os.Args[1] == "negative-comparisons" {
+		err = runNegativeComparisons(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "delta-stream" {
 		err = runDeltaStreams(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "stream" {
@@ -73,7 +77,7 @@ func main() {
 	} else if len(os.Args) > 1 && os.Args[1] == "helpers" {
 		err = runHelpers(os.Args[2:])
 	} else {
-		err = run()
+		err = runSnapshots(os.Args[1:])
 	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -81,11 +85,11 @@ func main() {
 	}
 }
 
-func run() error {
-	if len(os.Args) != 3 {
+func runSnapshots(args []string) error {
+	if len(args) != 2 {
 		return fmt.Errorf("usage: resource-oracle <candidate-report-json> <output-json>")
 	}
-	input, err := os.ReadFile(os.Args[1])
+	input, err := os.ReadFile(args[0])
 	if err != nil {
 		return err
 	}
@@ -116,7 +120,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(os.Args[2], append(output, '\n'), 0o644); err != nil {
+	if err := os.WriteFile(args[1], append(output, '\n'), 0o644); err != nil {
 		return err
 	}
 	fmt.Printf("Go snapshots: %d cases matched names, versions, TTLs, consistency and lazy version-map outcomes.\n", len(results))

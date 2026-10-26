@@ -44,8 +44,8 @@ public sealed class HttpGatewayTests
     public async Task SourceCases_MatchDeclaredOutcomesAndExportActualObservations()
     {
         var inputs = HttpGatewayCorpus.Cases();
-        Assert.Equal(23, inputs.Length);
-        Assert.Equal(23, inputs.Select(input => input.Id).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(30, inputs.Length);
+        Assert.Equal(30, inputs.Select(input => input.Id).Distinct(StringComparer.Ordinal).Count());
         var results = new List<GatewayResult>();
         foreach (var input in inputs) results.Add(await HttpGatewayCorpus.EvaluateAsync(input));
         HttpGatewayCorpus.Write(results);
