@@ -171,3 +171,7 @@ The repository CLI runs the Go stream comparison as part of `repository verify` 
 ## Fetch and HTTP gateway
 
 `SnapshotFetchTests` and `FetchServerTests` cover cache polling and the shared callback/materialization engine. `FetchEndpointTests` exercises nine generated unary clients, rate-limit SotW and the watch-only/authorization/cancellation boundaries over Kestrel HTTP/2. `HttpGatewayTests` covers eight HTTP routes, JSON/Any, statuses, path cleaning and ordinary endpoint conventions. Fourteen cache and twenty-three HTTP inputs export actual observations to `fetch-corpus.json` / `gateway-corpus.json`; `repository verify` compares them with actual pinned Go APIs. [T18 evidence](../docs/plan/T18-FETCH-GATEWAY.md) maps each requirement to exact tests and distinguishes bounded source/network proof from full proxy acceptance. Fresh package consumers include these tests and all support sources.
+
+## Focused ADS client
+
+`SotwAdsClientTests` verifies initialization/options, receive/ACK/NACK and source failure/reinit state; `SotwAdsClientLifecycleTests` verifies three bounded channel-gated ownership cases; `SotwAdsClientIntegrationTests` uses the existing Kestrel host for real HTTP/2 updates and errors. Twelve independently declared traces export `ads-client-corpus.json`; the repository CLI compares them with actual pinned Go ADSClient calls. [T19 evidence](../docs/plan/T19-SOTW-ADS-CLIENT.md) maps V26 to exact tests and documents the idiomatic .NET serialization/disposal boundaries.

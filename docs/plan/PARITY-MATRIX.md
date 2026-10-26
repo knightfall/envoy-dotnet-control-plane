@@ -39,7 +39,7 @@ Evidence: pkg/server/v3/server.go:44-61,186-357; pkg/server/v3/gateway.go:38-98;
 | TTL / heartbeats | SotW/Delta resource wrapping; source automatic SotW heartbeat refresh without payload; cancellation/disposal | 1.0 |
 | Fetch handlers | Unary service adapters and common cache-fetch semantics | 1.0 |
 | HTTPGateway | Eight routes; Protobuf JSON/Any; status behavior | 1.0 |
-| SotW ADSClient | Initialization, initial request, receive, ACK/NACK based on last accepted/received state, connection-error classification | 1.0 |
+| SotW ADSClient | Initialization, initial request, receive, ACK/NACK based on last accepted/received state, connection-error classification | Implemented; [T19 evidence](T19-SOTW-ADS-CLIENT.md) |
 | Resource helpers / wellknown | Type URLs/names, reference extraction including HCM Any, relevant well-known extension names | Both |
 | Struct conversion | Message/Struct conversion using Protobuf JSON rules | 1.0 |
 | Logging | Map the Go facade to ILogger; document the .NET API change | Both |
