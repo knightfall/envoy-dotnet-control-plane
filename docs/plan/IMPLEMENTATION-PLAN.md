@@ -268,6 +268,8 @@ Subtasks:
 
 ### T14 — Implement Delta cache responses, streams, and ADS
 
+The [Delta cache/response foundation](T14-DELTA-CACHE.md) implements the first increment. Stream processing, callbacks, service adapters and transport evidence remain required before completing T14.
+
 **Scope:** 1.0 / R13, R10. **Depends on:** T07, T09, T13. **Outputs:** Delta cache eligibility/version maps, session loop, per-type/ADS service adapters.
 
 Subtasks:
