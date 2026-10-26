@@ -70,6 +70,10 @@ The command runs the full Protocol, Validation, Core and Hosting suites against 
 
 Solution tests use native MTP through `dotnet test --solution Envoy.ControlPlane.slnx`. All five maintained suites are registered, including Core and Hosting. Reports and consumer locks are under Protocol's `obj/upstream/results/`; packages and `.snupkg` files remain under its `bin/packages/`. This is local candidate packaging, not a NuGet publishing command.
 
+To collect portable coverage while running the same verification, use `repository verify --coverage`. It runs the solution's declared test projects with **Coverlet.MTP 10.1.0**, keeping each project's results in its own directory to avoid report collisions. The pinned local **ReportGenerator 5.5.11** tool merges those reports into HTML, Cobertura XML and a Markdown summary under `obj/upstream/results/coverage/report/`. The command restores that tool from `.config/dotnet-tools.json`; it needs no global tool installation. Fresh package consumers and Go comparisons still run afterward.
+
+Coverage includes test-loaded `Envoy.ControlPlane*` assemblies and excludes test assemblies and generated/materialized `obj/` sources. It reports executed authored code, not all repository files, full behavioral parity or an acceptance threshold. Ordinary verification remains available without instrumentation. CI collects coverage only on Linux; all platforms retain their existing functional and package checks. The HTML/Cobertura artifact needs no hosted coverage service or GitHub Code Quality subscription.
+
 ## Focused maintenance commands
 
 ```sh

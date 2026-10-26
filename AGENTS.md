@@ -77,6 +77,6 @@ Use [tests/README.md](tests/README.md) for additional test commands and [.github
 - Use repository issues and milestones for agreed tasks and acceptance evidence. Do not add hours, effort estimates or estimate calculations. Execution timeouts are not effort estimates.
 - Inspect Git status and configured remotes before changing branches or publishing. Preserve existing work and keep changes scoped to the task.
 - Use normal Git branches, commits and pull requests. Do not manufacture repository changes through blob/tree APIs.
-- Use GPT-6.1 Sol with xhigh reasoning for independent agent reviews before merging.
+- Rely on the Codex review in the GitHub pull request before merging, address actionable findings and verify required CI on the current head. Do not run additional review agents in the chat unless the user explicitly requests them.
 - Provide concrete changes and a full review summary before pushing unless publication is already authorized for that scope. Merge only with authorization; do not request the same authorization repeatedly.
 - Report commands run, pass/fail/skip counts, analyzer findings and tested platforms. Distinguish observed results from configured CI, pending checks and future acceptance gates.
