@@ -3,7 +3,7 @@ using Envoy.Service.Discovery.V3;
 
 namespace Envoy.ControlPlane.Cache;
 
-/// <summary>Task-based consumption of the channel-based SotW producer contract.</summary>
+/// <summary>Await-one consumption of the channel-based configuration producer contracts.</summary>
 public static class ConfigWatcherExtensions
 {
     /// <summary>Registers a one-shot response with an individual buffer and awaitable completion.</summary>
@@ -23,6 +23,25 @@ public static class ConfigWatcherExtensions
         var registration = watcher.CreateWatch(request, subscription, channel.Writer)
             ?? throw new InvalidOperationException("Missing watch registration");
         return new TaskWatch<ISotwResponse>(registration, channel.Reader);
+    }
+
+    /// <summary>Registers one Delta response with an individual buffer and awaitable completion.</summary>
+    /// <param name="watcher">The configuration producer.</param>
+    /// <param name="request">The stable originating Delta request.</param>
+    /// <param name="subscription">Subscription metadata stable for the registration lifetime.</param>
+    /// <exception cref="InvalidOperationException">The producer returned no registration.</exception>
+    public static IWatch<IDeltaResponse> CreateDeltaWatch(this IConfigWatcher watcher, DeltaDiscoveryRequest request, ISubscription subscription)
+    {
+        ArgumentNullException.ThrowIfNull(watcher);
+        var channel = Channel.CreateBounded<IDeltaResponse>(new BoundedChannelOptions(1)
+        {
+            SingleReader = true,
+            AllowSynchronousContinuations = false,
+            FullMode = BoundedChannelFullMode.Wait,
+        });
+        var registration = watcher.CreateDeltaWatch(request, subscription, channel.Writer)
+            ?? throw new InvalidOperationException("Missing Delta watch registration");
+        return new TaskWatch<IDeltaResponse>(registration, channel.Reader);
     }
 
     private sealed class TaskWatch<TResponse> : IWatch<TResponse>, IAsyncDisposable where TResponse : IWatchResponse

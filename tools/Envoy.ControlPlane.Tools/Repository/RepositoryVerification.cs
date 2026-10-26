@@ -25,6 +25,7 @@ internal static class RepositoryVerification
             await SnapshotCacheVerification.CompareWithGoAsync();
             await SotwSubscriptionVerification.CompareWithGoAsync();
             await DeltaSubscriptionVerification.CompareWithGoAsync();
+            await DeltaCacheVerification.CompareWithGoAsync();
             await SotwStreamVerification.CompareWithGoAsync();
             await BuildProcess.RunAsync("dotnet", ["pack", Solution, "--configuration", "Release", "--no-build", "--no-restore",
                 "--output", BindingPaths.PackageDirectory]);

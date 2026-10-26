@@ -119,7 +119,7 @@ internal sealed class StreamWatcher : IConfigWatcher
         Assert.True(Created.Writer.TryWrite(registration));
         return watch;
     }
-    public IWatch<IDeltaResponse> CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription) => throw new NotSupportedException();
+    public IDisposable CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription, ChannelWriter<IDeltaResponse> responses) => throw new NotSupportedException();
 }
 
 internal sealed class StreamCallbacks : ISotwCallbacks
