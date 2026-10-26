@@ -54,6 +54,8 @@ internal static class PackageVerification
 
             File.Copy(Path.Combine(scratch, "packages.lock.json"),
                 InputsDirectory + "/" + reportName + ".packages.lock.json", overwrite: true);
+            File.Copy(Path.Combine(scratch, "packages.lock.json"),
+                Path.Combine(repository, InputsDirectory, "results", reportName, "packages.lock.json"), overwrite: true);
             Console.WriteLine("Clean package consumer passed with no project reference and a fresh NuGet cache.");
         }
         finally

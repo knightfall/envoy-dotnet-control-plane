@@ -15,5 +15,6 @@
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
     <Compile Include="../../tools/Envoy.ControlPlane.SchemaTools/PgvRuleInventory.cs" Link="Support/PgvRuleInventory.cs" />
     <Compile Include="../../tools/Envoy.ControlPlane.SchemaTools/OverlayTransform.cs" Link="Support/OverlayTransform.cs" />
+    <Compile Include="../../tools/Envoy.ControlPlane.SchemaTools/DescriptorSnapshot.cs" Link="Support/DescriptorSnapshot.cs" />
   </ItemGroup>
 </Project>

@@ -34,7 +34,8 @@ internal static class RepositoryVerification
             await PackageVerification.VerifyCleanConsumerAsync("tests/Envoy.ControlPlane.AspNetCore.Tests/Envoy.ControlPlane.AspNetCore.Tests.csproj", "hosting-consumer");
             await RootConsumerVerification.RunAsync("Core");
             await RootConsumerVerification.RunAsync("AspNetCore");
-            Console.WriteLine($"Repository build, tests, packages and consumers passed; {cases} Go PGV cases and the snapshot/cache/subscription/stream corpora matched. Delta, Fetch, released-Envoy acceptance and full GV remain separate tasks.");
+            await ReproducibilityReport.WriteAsync(Path.Combine(BindingPaths.InputsDirectory, "results", "reproducibility", "snapshot.json"));
+            Console.WriteLine($"Repository build, tests, packages, consumers and reproducibility report passed; {cases} Go PGV cases and the snapshot/cache/subscription/stream corpora matched. Delta, Fetch, full GV and the separately invoked released-Envoy command remain outside this verification command.");
             return 0;
         }
         catch (Exception error) when (error is not OutOfMemoryException)

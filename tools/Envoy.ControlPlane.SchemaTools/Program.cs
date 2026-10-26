@@ -16,8 +16,14 @@ internal static class Program
                 ValidationInventory.Write(inventory);
                 return 0;
             }
+            if (args is ["snapshot", var source, var translated, var snapshot])
+            {
+                var report = DescriptorSnapshot.Create(OverlayTransform.Read(source), OverlayTransform.Read(translated));
+                File.WriteAllText(snapshot, report.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }) + "\n");
+                return 0;
+            }
 
-            Console.Error.WriteLine("Usage: overlay <original-descriptors> <migrated-descriptors> <output-descriptors> | inventory <output-json>");
+            Console.Error.WriteLine("Usage: overlay <original-descriptors> <migrated-descriptors> <output-descriptors> | inventory <output-json> | snapshot <original-descriptors> <derived-descriptors> <output-json>");
             return 1;
         }
         catch (Exception error) when (error is not OutOfMemoryException)

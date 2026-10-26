@@ -77,6 +77,8 @@ dotnet run --project tools/Envoy.ControlPlane.Tools -- patch <generated-director
 dotnet restore tools/Envoy.ControlPlane.SchemaTools/Envoy.ControlPlane.SchemaTools.csproj --locked-mode
 dotnet run --project tools/Envoy.ControlPlane.SchemaTools -- inventory <output-json>
 dotnet run --project tools/Envoy.ControlPlane.SchemaTools -- overlay <original-descriptors> <migrated-descriptors> <output-descriptors>
+dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream report <output-json>
+dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream diff <before-json> <after-json> <output-json>
 ```
 
 Run schema-helper commands after bootstrap generation. `patch` accepts only exact locked input or already corrected fingerprints and verifies replacement counts. The inventory and overlay use typed protobuf APIs. Their source is linked into the relevant package-consumer suites so those suites do not acquire a dependency on a tooling package.
@@ -84,6 +86,8 @@ Run schema-helper commands after bootstrap generation. `patch` accepts only exac
 The upstream suite references the main project and exercises its actual CLI in subprocesses. MSBuild tracks that dependency without a separate script-build target. [Tests](../tests/README.md) and [CI](../.github/workflows/upstream-verification.yml) define maintained entry points. Generated inputs and source remain under `obj/`; package output remains under `bin/`.
 
 The earlier provider experiments and orchestration under [scripts/](../scripts/README.md) are retained historical research, outside both active projects and CI. Their removal remains deferred.
+
+`upstream report` runs after generation and records source/tool pins, schema fingerprints, original PGV rules, derived options and unproven validation coverage. It does not fetch newer sources or approve changed locks. `upstream diff` needs no generated Protocol and retains exact added/changed/removed values. Save baselines outside `obj/upstream`, which generation replaces. [T24 readiness](../docs/plan/T24-PREVIEW-READINESS.md) documents update and verification gates. `repository verify` retains its snapshot and every consumer lock under `obj/upstream/results/` for CI upload.
 
 ## Migration verification
 
