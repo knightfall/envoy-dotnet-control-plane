@@ -135,3 +135,7 @@ The repository CLI runs the Go stream comparison as part of `repository verify` 
 ## Preview package and update evidence
 
 [T24 readiness](../docs/plan/T24-PREVIEW-READINESS.md) maps eleven added offline cases and two actual-catalog cases to notice bytes and source/schema/rule reporting. Tooling has 59 cases, Protocol has 14 and solution discovery has 271. Tests check exact old/new rules and pins, added/removed constraints, unproven validation status, incomplete reports, the actual diff CLI without generated bindings and original/derived metadata separation. `repository verify` retains the full reproducibility snapshot and every test-consumer lock beside CI reports; it also verifies actual redistributed notices against locked hashes. Existing fresh-package suites and executable consumers continue to prove package ownership and target/framework boundaries. No optional-validation parity claim is added.
+
+## Delta subscription state
+
+[T13 evidence](../docs/plan/T13-DELTA-SUBSCRIPTIONS.md) maps V16 to twelve expected state traces and two focused ownership/initialization tests. Core has 152 cases and the solution has 274. The existing Go oracle invokes actual pinned Delta subscription APIs and compares every state; no subscription algorithm is copied into comparison glue. The full fresh Core package consumer includes the new fixture/support sources and tests. Server request dispatch, Delta cache/watch responses and network behavior remain T14.

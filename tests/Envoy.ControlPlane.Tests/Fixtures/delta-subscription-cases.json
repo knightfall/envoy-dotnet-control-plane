@@ -1,0 +1,869 @@
+[
+  {
+    "id": "legacy-unsubscribe-only",
+    "allowLegacyWildcard": true,
+    "initialSubscribed": [],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "a": "v1"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "a"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [
+          "a"
+        ],
+        "unsubscribed": []
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "a"
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": ""
+        }
+      }
+    ]
+  },
+  {
+    "id": "legacy-disabled-empty",
+    "allowLegacyWildcard": false,
+    "initialSubscribed": [],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "a": "v1"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "a"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [
+          "a"
+        ],
+        "unsubscribed": []
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "exact-unsubscribe-resubscribe",
+    "allowLegacyWildcard": false,
+    "initialSubscribed": [
+      "a"
+    ],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "a": "v1",
+      "other": "v0"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "a"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [
+          "a"
+        ],
+        "unsubscribed": []
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1",
+          "other": "v0"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "other": "v0"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "other": "v0"
+        }
+      }
+    ]
+  },
+  {
+    "id": "explicit-wildcard-known-and-unknown-removal",
+    "allowLegacyWildcard": false,
+    "initialSubscribed": [
+      "*",
+      "a"
+    ],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "a": "v1",
+      "b": "v1"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "a"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "b"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "*"
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1",
+          "b": "v1"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "",
+          "b": "v1"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": ""
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": ""
+        }
+      }
+    ]
+  },
+  {
+    "id": "subscribe-before-unsubscribe-overlap",
+    "allowLegacyWildcard": false,
+    "initialSubscribed": [],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "a": "v1"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [
+          "a"
+        ],
+        "unsubscribed": [
+          "a"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [
+          "*",
+          "a"
+        ],
+        "unsubscribed": [
+          "a"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [
+          "*"
+        ],
+        "unsubscribed": [
+          "*"
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": ""
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": ""
+        }
+      }
+    ]
+  },
+  {
+    "id": "prefix-removal-retains-returned-state",
+    "allowLegacyWildcard": false,
+    "initialSubscribed": [
+      "collection/*"
+    ],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "collection/a": "v1",
+      "other": "v2"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "collection/*"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [
+          "collection/*"
+        ],
+        "unsubscribed": []
+      },
+      {
+        "kind": "returned",
+        "returned": {
+          "collection/b": "v2"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {
+          "collection/a": "v1",
+          "other": "v2"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "collection/a": "v1",
+          "other": "v2"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {
+          "collection/a": "v1",
+          "other": "v2"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {
+          "collection/b": "v2"
+        }
+      }
+    ]
+  },
+  {
+    "id": "ordinal-exact-and-prefix-state",
+    "allowLegacyWildcard": false,
+    "initialSubscribed": [
+      "A",
+      "collection/*"
+    ],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "A": "1",
+      "a": "2"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "a"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [
+          "a",
+          "Collection/*"
+        ],
+        "unsubscribed": []
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "collection/*"
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [
+          "A"
+        ],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {
+          "A": "1",
+          "a": "2"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "A"
+        ],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {
+          "A": "1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "A",
+          "a"
+        ],
+        "prefixes": [
+          "Collection/",
+          "collection/"
+        ],
+        "returned": {
+          "A": "1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "A",
+          "a"
+        ],
+        "prefixes": [
+          "Collection/"
+        ],
+        "returned": {
+          "A": "1"
+        }
+      }
+    ]
+  },
+  {
+    "id": "legacy-star-removal-until-first-addition",
+    "allowLegacyWildcard": true,
+    "initialSubscribed": [],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "a": "v1"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "*"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [
+          "a"
+        ],
+        "unsubscribed": [
+          "*"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "a"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": []
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "initial-name-permanently-disables-legacy",
+    "allowLegacyWildcard": true,
+    "initialSubscribed": [
+      "a"
+    ],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "a": "v1"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": []
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "a"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": []
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "wildcard-prefix-and-name-removal",
+    "allowLegacyWildcard": true,
+    "initialSubscribed": [
+      "*",
+      "collection/*",
+      "a"
+    ],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "a": "v1",
+      "collection/x": "v1",
+      "other": "v2"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "collection/*",
+          "a"
+        ]
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "*"
+        ]
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [
+          "collection/"
+        ],
+        "returned": {
+          "a": "v1",
+          "collection/x": "v1",
+          "other": "v2"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "",
+          "collection/x": "v1",
+          "other": "v2"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": "",
+          "collection/x": "v1",
+          "other": "v2"
+        }
+      }
+    ]
+  },
+  {
+    "id": "returned-metadata-replacement",
+    "allowLegacyWildcard": false,
+    "initialSubscribed": [
+      "a",
+      "b"
+    ],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "a": "old"
+    },
+    "steps": [
+      {
+        "kind": "returned",
+        "returned": {
+          "a": "v1",
+          "b": "v2"
+        }
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "b"
+        ]
+      },
+      {
+        "kind": "returned",
+        "returned": {}
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": false,
+        "exact": [
+          "a",
+          "b"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "old"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a",
+          "b"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1",
+          "b": "v2"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "v1"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {}
+      }
+    ]
+  },
+  {
+    "id": "reconnect-seeds-fresh-per-type-state",
+    "allowLegacyWildcard": true,
+    "initialSubscribed": [
+      "*",
+      "a"
+    ],
+    "initialUnsubscribed": [],
+    "initialVersions": {
+      "a": "accepted"
+    },
+    "steps": [
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": [
+          "a"
+        ]
+      },
+      {
+        "kind": "reconnect",
+        "subscribed": [
+          "a"
+        ],
+        "unsubscribed": [],
+        "returned": {
+          "a": "accepted"
+        }
+      },
+      {
+        "kind": "update",
+        "subscribed": [],
+        "unsubscribed": []
+      },
+      {
+        "kind": "reconnect",
+        "subscribed": [],
+        "unsubscribed": [],
+        "returned": {
+          "b": "new"
+        }
+      }
+    ],
+    "expected": [
+      {
+        "wildcard": true,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "accepted"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "a": ""
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "accepted"
+        }
+      },
+      {
+        "wildcard": false,
+        "exact": [
+          "a"
+        ],
+        "prefixes": [],
+        "returned": {
+          "a": "accepted"
+        }
+      },
+      {
+        "wildcard": true,
+        "exact": [],
+        "prefixes": [],
+        "returned": {
+          "b": "new"
+        }
+      }
+    ]
+  }
+]
