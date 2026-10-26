@@ -118,21 +118,13 @@ public sealed class HostingLifecycleTests
     }
 
     [Fact]
-    public async Task DeferredMethods_RetainGeneratedUnimplementedStatus()
+    public async Task DeferredFetch_RetainsGeneratedUnimplementedStatus()
     {
         await using var host = await StartAsync();
         var endpoint = new Envoy.Service.Endpoint.V3.EndpointDiscoveryService.EndpointDiscoveryServiceClient(host.Channel);
         var fetch = await Assert.ThrowsAsync<RpcException>(async () =>
             await endpoint.FetchEndpointsAsync(Request(), cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(StatusCode.Unimplemented, fetch.StatusCode);
-        var ads = new Envoy.Service.Discovery.V3.AggregatedDiscoveryService.AggregatedDiscoveryServiceClient(host.Channel);
-        using var delta = ads.DeltaAggregatedResources(cancellationToken: TestContext.Current.CancellationToken);
-        var unsupported = await Assert.ThrowsAsync<RpcException>(async () =>
-        {
-            await delta.RequestStream.WriteAsync(new Envoy.Service.Discovery.V3.DeltaDiscoveryRequest(), TestContext.Current.CancellationToken);
-            await Wait(delta.ResponseStream.MoveNext(TestContext.Current.CancellationToken));
-        });
-        Assert.Equal(StatusCode.Unimplemented, unsupported.StatusCode);
         Assert.False(host.Cache.Created.Reader.TryRead(out _));
         Assert.False(host.Callbacks.Opened.Reader.TryRead(out _));
     }

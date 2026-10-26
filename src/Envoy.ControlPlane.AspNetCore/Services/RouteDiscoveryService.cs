@@ -5,9 +5,13 @@ using Contract = Envoy.Service.Route.V3.RouteDiscoveryService;
 
 namespace Envoy.ControlPlane.AspNetCore.Services;
 
-internal sealed class RouteDiscoveryService(SotwGrpcStream streams) : Contract.RouteDiscoveryServiceBase
+internal sealed class RouteDiscoveryService(SotwGrpcStream streams, DeltaGrpcStream delta) : Contract.RouteDiscoveryServiceBase
 {
     public override Task StreamRoutes(IAsyncStreamReader<DiscoveryRequest> requestStream,
         IServerStreamWriter<DiscoveryResponse> responseStream, ServerCallContext context) =>
         streams.RunAsync(requestStream, responseStream, context, ResourceTypeUrls.Route);
+
+    public override Task DeltaRoutes(IAsyncStreamReader<DeltaDiscoveryRequest> requestStream,
+        IServerStreamWriter<DeltaDiscoveryResponse> responseStream, ServerCallContext context) =>
+        delta.RunAsync(requestStream, responseStream, context, ResourceTypeUrls.Route);
 }

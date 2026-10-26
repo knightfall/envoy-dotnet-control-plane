@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Envoy.ControlPlane.AspNetCore;
 
-/// <summary>Registers the SotW engine and its ASP.NET Core transport.</summary>
+/// <summary>Registers the SotW/Delta engines and their ASP.NET Core transport.</summary>
 public static class ControlPlaneServiceCollectionExtensions
 {
     /// <summary>Adds hosting for an application-registered singleton cache and optional callbacks/options.</summary>
@@ -17,12 +17,19 @@ public static class ControlPlaneServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         services.AddGrpc();
         services.TryAddSingleton<SotwOptions>();
+        services.TryAddSingleton<DeltaOptions>();
         services.TryAddSingleton(provider => new SotwServer(
             provider.GetRequiredService<IConfigWatcher>(),
             provider.GetService<ISotwCallbacks>(),
             provider.GetRequiredService<SotwOptions>(),
             provider.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping));
         services.TryAddSingleton<SotwGrpcStream>();
+        services.TryAddSingleton(provider => new DeltaServer(
+            provider.GetRequiredService<IConfigWatcher>(),
+            provider.GetService<IDeltaCallbacks>(),
+            provider.GetRequiredService<DeltaOptions>(),
+            provider.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping));
+        services.TryAddSingleton<DeltaGrpcStream>();
         return services;
     }
 }
