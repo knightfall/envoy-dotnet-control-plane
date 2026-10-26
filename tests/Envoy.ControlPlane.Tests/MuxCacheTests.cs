@@ -155,12 +155,13 @@ public sealed class MuxCacheTests
     public async Task UnsupportedFetch_RemainsVisibleForLinearAndWatcherOnlyChildren()
     {
         var linear = new LinearCache(ResourceTypeUrls.Route);
-        var mux = new MuxCache(new Dictionary<string, IConfigWatcher> { ["linear"] = linear, ["snapshot"] = new SnapshotCache() },
+        var watcher = new RejectingWatcher(new InvalidOperationException("A watch must not be created by Fetch"));
+        var mux = new MuxCache(new Dictionary<string, IConfigWatcher> { ["linear"] = linear, ["watcher"] = watcher },
             request => request.Node.Id, _ => "linear");
         var linearError = await Assert.ThrowsAsync<NotSupportedException>(() => mux.FetchAsync(Request(ResourceTypeUrls.Route, nodeId: "linear")));
         Assert.Equal("Fetch is not implemented by LinearCache.", linearError.Message);
-        var snapshotError = await Assert.ThrowsAsync<NotSupportedException>(() => mux.FetchAsync(Request(ResourceTypeUrls.Cluster, nodeId: "snapshot")));
-        Assert.Contains("snapshot", snapshotError.Message, StringComparison.Ordinal);
+        var watcherError = await Assert.ThrowsAsync<NotSupportedException>(() => mux.FetchAsync(Request(ResourceTypeUrls.Cluster, nodeId: "watcher")));
+        Assert.Contains("watcher", watcherError.Message, StringComparison.Ordinal);
         Assert.Equal(0, linear.NumCacheWatches);
     }
 

@@ -2,13 +2,14 @@ using System.Threading.Channels;
 using System.Collections.Concurrent;
 using Envoy.Config.Core.V3;
 using Envoy.ControlPlane.Cache;
+using Envoy.ControlPlane.Fetch;
 using Envoy.ControlPlane.Streams;
 using Envoy.Service.Discovery.V3;
 using Grpc.Core;
 
 namespace Envoy.ControlPlane.AspNetCore.Tests.Support;
 
-internal sealed class HostCallbacks : ISotwCallbacks, IDeltaCallbacks
+internal sealed class HostCallbacks : ISotwCallbacks, IDeltaCallbacks, IFetchCallbacks
 {
     internal Channel<ServerCallContext> Opened { get; } = Channel.CreateUnbounded<ServerCallContext>();
     internal Channel<DiscoveryRequest> Requested { get; } = Channel.CreateUnbounded<DiscoveryRequest>();
@@ -16,6 +17,21 @@ internal sealed class HostCallbacks : ISotwCallbacks, IDeltaCallbacks
     internal Channel<DeltaDiscoveryResponse> DeltaResponses { get; } = Channel.CreateUnbounded<DeltaDiscoveryResponse>();
     internal Channel<Node> Closed { get; } = Channel.CreateUnbounded<Node>();
     internal Exception? RequestFailure { get; set; }
+    internal Channel<ResponseContext> FetchContexts { get; } = Channel.CreateUnbounded<ResponseContext>();
+    internal Func<ResponseContext, DiscoveryRequest, ValueTask>? FetchRequestHandler { get; set; }
+    internal Action<DiscoveryResponse?>? FetchResponseHandler { get; set; }
+
+    public ValueTask OnFetchRequestAsync(ResponseContext context, DiscoveryRequest request)
+    {
+        FetchContexts.Writer.TryWrite(context);
+        return FetchRequestHandler?.Invoke(context, request) ?? ValueTask.CompletedTask;
+    }
+
+    public ValueTask OnFetchResponseAsync(DiscoveryRequest request, DiscoveryResponse? response)
+    {
+        FetchResponseHandler?.Invoke(response);
+        return ValueTask.CompletedTask;
+    }
     internal Func<DiscoveryRequest, CancellationToken, ValueTask>? RequestHandler { get; set; }
     internal Func<DiscoveryResponse, CancellationToken, ValueTask>? ResponseHandler { get; set; }
     internal Func<DeltaDiscoveryRequest, CancellationToken, ValueTask>? DeltaRequestHandler { get; set; }

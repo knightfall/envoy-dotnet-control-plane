@@ -6,6 +6,8 @@ github.com/envoyproxy/go-control-plane v0.14.1-0.20261023125212-67c534536758 h1:
 github.com/envoyproxy/go-control-plane v0.14.1-0.20261023125212-67c534536758/go.mod h1:wwvlvqk2XnGcGJj1B3HoARBhAgro1SEKWH6Cz8QWWuE=
 github.com/envoyproxy/go-control-plane/envoy v1.40.1-0.20261023125212-67c534536758 h1:3pFavYWJXtONASzffs27dyCLcaYragk2FnV4m3uhGrk=
 github.com/envoyproxy/go-control-plane/envoy v1.40.1-0.20261023125212-67c534536758/go.mod h1:UbyoeBOJzbYe0qSX0JaDGNDDbPfsJuvxDJ5AN9+nZ8k=
+github.com/envoyproxy/go-control-plane/ratelimit v0.1.1-0.20261023125212-67c534536758 h1:13uYdVUmMiA2C1FpUZCB6SWuOXBSzGxQkth+7Y7OVBo=
+github.com/envoyproxy/go-control-plane/ratelimit v0.1.1-0.20261023125212-67c534536758/go.mod h1:JFs+buFrqD93jtZts8Gy6osEJlBtzJImlfUZ/dEYXE4=
 github.com/envoyproxy/protoc-gen-validate v1.3.3 h1:MVQghNeW+LZcmXe7SY1V36Z+WFMDjpqGAGacLe2T0ds=
 github.com/envoyproxy/protoc-gen-validate v1.3.3/go.mod h1:TsndJ/ngyIdQRhMcVVGDDHINPLWB7C82oDArY51KfB0=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=

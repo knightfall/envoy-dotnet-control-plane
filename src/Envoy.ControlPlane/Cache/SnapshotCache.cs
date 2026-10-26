@@ -7,7 +7,7 @@ using Envoy.Service.Discovery.V3;
 namespace Envoy.ControlPlane.Cache;
 
 /// <summary>Stores stable snapshots and delivers one-shot SotW and Delta responses by node.</summary>
-public sealed partial class SnapshotCache : IConfigWatcher
+public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
 {
     private readonly object gate = new();
     private readonly SemaphoreSlim publication = new(1, 1);

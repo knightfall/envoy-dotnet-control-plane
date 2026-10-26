@@ -1,6 +1,6 @@
 # Envoy.ControlPlane.AspNetCore
 
-Hosts the Core SotW and Delta engines through the authoritative generated gRPC contracts and Kestrel. ADS and CDS, EDS, LDS, RDS, SRDS, SDS, RTDS and ECDS support both streaming modes. VHDS and LEDS add their Delta-only RPCs. Fetch retains generated `Unimplemented` responses; rate-limit configuration hosting remains pending.
+Hosts the Core SotW and Delta engines through the authoritative generated gRPC contracts and Kestrel. ADS and CDS, EDS, LDS, RDS, SRDS, SDS, RTDS and ECDS support both streaming modes. VHDS and LEDS add their Delta-only RPCs. The eight standard services also support unary Fetch. Rate-limit configuration supports dedicated SotW `StreamRlsConfigs` and unary `FetchRlsConfigs`, with no dedicated Delta RPC. The HTTP gateway is opt-in.
 
 ```csharp
 using Envoy.ControlPlane.AspNetCore;
@@ -45,3 +45,19 @@ The transport forwards the framework asynchronous request reader and serial writ
 `ILogger` records stream open/close and protocol status at debug level, without resource payloads. Configure logging providers and gRPC logging through the host. Protocol/Core keep their existing dependency boundary, and no optional validation/CEL dependency is introduced.
 
 The repository's `examples/Envoy.ControlPlane.Example` shows a configuration-driven HTTP graph update source with listener/HCM/router/route/cluster/endpoint resources. `docs/plan/T11-ASP-NET-HOST.md` records the original SotW HTTP/2 tests and package-consumer evidence; `docs/plan/T14-DELTA-GRPC.md` records all eleven Delta RPCs and their transport tests. The separately verified SotW released-Envoy graph does not establish Delta proxy acceptance, full xDS parity or new performance measurements. The accepted transport performance baseline runs only by manual dispatch.
+
+## Fetch and optional HTTP gateway
+
+The shared Core `FetchServer` uses an explicitly registered singleton `IConfigFetcher`, or the registered watcher when it also implements that capability (including `SnapshotCache` and `MuxCache`). A watcher-only producer continues streaming and reports unsupported Fetch; LinearCache retains its unsupported result. Optional `IFetchCallbacks` run for both transports. gRPC adapters set the service's type before the request hook, preserve application `RpcException` statuses and use the framework's normal handling for ordinary cache errors, including unchanged versions. Unary contexts carry `ServerCallContext` and combined call/host cancellation.
+
+After `AddEnvoyControlPlane`, opt in separately at the application root:
+
+```csharp
+application.MapEnvoyControlPlaneHttpGateway().RequireAuthorization("xds");
+```
+
+The fallback endpoint cleans paths and handles `/v3/discovery:endpoints`, `clusters`, `listeners`, `routes`, `scoped-routes`, `secrets`, `runtime` and `extension_configs`. Ordinary application endpoints take precedence. No rate-limit/ADS/VHDS/LEDS HTTP route is added. Every method may supply a JSON body; content type does not select a codec. The selected route overrides the body's type before callbacks. JSON responses preserve protobuf field names. An unchanged version (including an ordinary wrapped `SkipFetchException`) returns an empty 304; bad/read-failed JSON is 400, unknown paths 404 and Fetch/materialization/format failures 500. Successful responses use `application/json`; error bodies are empty and server exception details stay in debug logs.
+
+Google.Protobuf supplies parsing/formatting. The default Any registry includes the eight resource roots, their descriptor dependencies and discovery TTL wrappers. For opaque extension payloads, supply a **complete** registry containing those roots/wrappers plus application extension descriptors, using `Google.Protobuf.Reflection.TypeRegistry.FromMessages`/`FromFiles`. A Listener descriptor alone cannot resolve an HCM payload hidden in Any; include `HttpConnectionManager.Descriptor`. No global reflection registry or alternate JSON implementation is installed. Unknown Any formatting fails with 500.
+
+Kestrel, routing middleware and clients can canonicalize/escape URLs before this handler sees `Request.Path`; the gateway then applies source-style slash/dot cleaning. Normal endpoint authorization and host body limits still apply. Host connection/body-read failures and cancellation can terminate a request before a library status can be sent; a body-read failure delivered to the gateway maps to 400. No global quota, method restriction, media-type rejection or parser-limit override is introduced. Strict UTF-8 decoding precedes the stock protobuf parser. Error text, JSON whitespace/property order and time precision are runtime/adapter differences; the bounded Go corpus compares semantic JSON, not byte formatting. See `docs/plan/T18-FETCH-GATEWAY.md` for observed proof and remaining full-matrix/interop gates.

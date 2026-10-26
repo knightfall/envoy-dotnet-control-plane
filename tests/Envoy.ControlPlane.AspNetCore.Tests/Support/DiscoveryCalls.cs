@@ -21,6 +21,7 @@ internal static class DiscoveryCalls
         ResourceTypeUrls.Secret => new Envoy.Service.Secret.V3.SecretDiscoveryService.SecretDiscoveryServiceClient(channel).StreamSecrets(headers, cancellationToken: cancellationToken),
         ResourceTypeUrls.Runtime => new Envoy.Service.Runtime.V3.RuntimeDiscoveryService.RuntimeDiscoveryServiceClient(channel).StreamRuntime(headers, cancellationToken: cancellationToken),
         ResourceTypeUrls.ExtensionConfig => new Envoy.Service.Extension.V3.ExtensionConfigDiscoveryService.ExtensionConfigDiscoveryServiceClient(channel).StreamExtensionConfigs(headers, cancellationToken: cancellationToken),
+        ResourceTypeUrls.RateLimitConfig => new Ratelimit.Service.Ratelimit.V3.RateLimitConfigDiscoveryService.RateLimitConfigDiscoveryServiceClient(channel).StreamRlsConfigs(headers, cancellationToken: cancellationToken),
         _ => throw new ArgumentOutOfRangeException(nameof(typeUrl)),
     };
 
@@ -44,6 +45,7 @@ internal static class DiscoveryCalls
         ResourceTypeUrls.Secret => new Envoy.Extensions.TransportSockets.Tls.V3.Secret { Name = name },
         ResourceTypeUrls.Runtime => new Envoy.Service.Runtime.V3.Runtime { Name = name },
         ResourceTypeUrls.ExtensionConfig => new TypedExtensionConfig { Name = name },
+        ResourceTypeUrls.RateLimitConfig => new Ratelimit.Config.Ratelimit.V3.RateLimitConfig { Name = name },
         _ => throw new ArgumentOutOfRangeException(nameof(typeUrl)),
     };
 }

@@ -337,6 +337,8 @@ Subtasks:
 
 **Acceptance:** V23–V25/V28 pass. Both fetch transports share semantics, unsupported child fetch remains visible, and all RPC/routes match the matrix including negative endpoint inventory.
 
+Implementation and bounded source/native/network verification: [T18 evidence](T18-FETCH-GATEWAY.md).
+
 ### T19 — Implement the focused SotW ADS client
 
 **Scope:** 1.0 / R19. **Depends on:** T04, T09. **Outputs:** ADS client wrapper and error classification.
