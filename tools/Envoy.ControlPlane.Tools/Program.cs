@@ -6,7 +6,7 @@ internal static class Program
     {
         if (args.Length == 0 || args is ["--help"])
         {
-            Console.WriteLine("Commands: upstream <sync|inspect|export>, bindings <generate|verify>, validation verify, repository verify, transport <verify|benchmark>, envoy verify, patch <output-directory> [binding-lock]");
+            Console.WriteLine("Commands: upstream <sync|inspect|export|report|diff>, bindings <generate|verify>, validation verify, repository verify, transport <verify|benchmark>, envoy verify, patch <output-directory> [binding-lock]");
             return 0;
         }
 

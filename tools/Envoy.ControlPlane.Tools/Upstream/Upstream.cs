@@ -11,7 +11,17 @@ internal static class Upstream
         {
             if (args.Length == 0 || args.Contains("--help"))
             {
-                Console.WriteLine("upstream <sync|inspect|export> --cache <external-directory> [--offline] [--write-catalog]");
+                Console.WriteLine("upstream <sync|inspect|export> --cache <external-directory> [--offline] [--write-catalog] | report <output-json> | diff <before-json> <after-json> <output-json>");
+                return 0;
+            }
+            if (args is ["report", var output])
+            {
+                await ReproducibilityReport.WriteAsync(output);
+                return 0;
+            }
+            if (args is ["diff", var before, var after, var difference])
+            {
+                ReproducibilityReport.Compare(before, after, difference);
                 return 0;
             }
             var options = UpstreamOptions.Parse(args);

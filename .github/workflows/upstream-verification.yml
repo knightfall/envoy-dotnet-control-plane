@@ -100,6 +100,8 @@ jobs:
             src/Envoy.ControlPlane.Protocol/obj/upstream/results/
             src/Envoy.ControlPlane.Protocol/obj/upstream/consumer.packages.lock.json
             src/Envoy.ControlPlane.Protocol/obj/upstream/validation-consumer.packages.lock.json
+            src/Envoy.ControlPlane.Protocol/obj/upstream/core-consumer.packages.lock.json
+            src/Envoy.ControlPlane.Protocol/obj/upstream/hosting-consumer.packages.lock.json
             src/Envoy.ControlPlane.Protocol/bin/packages/
             src/Envoy.ControlPlane.Protocol/obj/validation/catalog.report.json
           if-no-files-found: warn

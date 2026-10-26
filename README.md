@@ -20,6 +20,7 @@ The [T02 binding proof](schemas/BINDINGS.md) uses **Buf CLI**, pinned official C
 ## Supporting evidence
 
 - [Parity matrix](docs/plan/PARITY-MATRIX.md): exact service and library coverage.
+- [T24 preview readiness](docs/plan/T24-PREVIEW-READINESS.md): exact packaged notices, clean consumption and source/schema/rule update reports with explicit validation gaps.
 - [T23 released Envoy](docs/plan/T23-PREVIEW-ENVOY.md): immutable proxy images, live traffic updates, NACK/repair and same-process reconnect in both ADS modes.
 - [T22 preview lifecycle](docs/plan/T22-PREVIEW-LIFECYCLE.md): cancellation at blocked writers/callbacks, direct host-lifetime proof and seeded HTTP/2 cleanup reports.
 - [T21 preview differential harness](docs/plan/T21-PREVIEW-DIFFERENTIAL.md): actual Go observations, relationship-preserving nonce comparison and injected-mismatch proof.
@@ -55,3 +56,5 @@ The preview subset of T21 expands the Go cache corpus to **23** and stream corpu
 The preview subset of T22 adds eight cases, bringing Core to **149**, Hosting to **31** and the solution to **252 tests**. The new boundaries cover cancellation during a blocked writer and active request/response callbacks before a host shutdown deadline. Seeded real HTTP/2 runs exercise **128 streams / 512 responses** across both modes, assert watch and close counts, and retain process-memory diagnostics. See [preview lifecycle evidence](docs/plan/T22-PREVIEW-LIFECYCLE.md) for limits and existing race/failure coverage.
 
 The preview subset of T23 adds a separate non-packable real-Envoy executable and the maintained `envoy verify` command. The locally observed Linux arm64 run passes **20 V31 checks** with Envoy **1.40.1**, including traffic, endpoint/route changes, explicit NACK/repair and reconnect. Six offline report-validation cases bring tooling to **48** and the solution to **258 tests**. The Linux amd64 workflow records its own execution evidence; see [released-Envoy proof](docs/plan/T23-PREVIEW-ENVOY.md) for exact pins and limits.
+
+The preview subset of T24 adds `upstream report`/`upstream diff`, preserves old/new schema/rule values, reports unproven optional-validator coverage, verifies exact packaged notices and retains every clean-consumer lock in CI evidence. Eleven offline and two real-catalog cases bring tooling to **59**, Protocol to **14** and the solution to **271 tests**. [Preview readiness](docs/plan/T24-PREVIEW-READINESS.md) describes reproduction and scope; T12 remains the preview acceptance gate.

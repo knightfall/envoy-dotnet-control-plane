@@ -400,6 +400,8 @@ Subtasks:
 
 ### T24 — Complete packaging, CI, and upstream-update tooling
 
+Preview implementation and update-report scope: [T24 preview readiness](T24-PREVIEW-READINESS.md). Full root coverage and T26/GV remain separate.
+
 **Scope:** preview subset then 1.0 / R25. **Depends on for completion:** T23. **Outputs:** package/regeneration/update scripts, CI jobs, clean-consumer and compatibility manifests.
 
 Subtasks:
