@@ -351,6 +351,8 @@ Subtasks:
 
 **Acceptance:** V26 passes against scripted and loopback servers. NACK retains accepted version with latest received nonce; ACK advances acceptance; external channel remains usable after wrapper disposal.
 
+Implementation and source/native/HTTP2 evidence: [T19 focused ADS client](T19-SOTW-ADS-CLIENT.md).
+
 ### T20 — Complete resource, conversion, and well-known helpers
 
 **Preview status:** Implements the narrow label surface, reuses existing name/type/reference helpers and builds the complete HTTP sample graph. Five added native cases and a shared Go helper comparison cover the preview subset; see [evidence and source mapping](T20-PREVIEW-HELPERS.md). Message/Struct conversion and the remaining 1.0 inventory remain separate.

@@ -91,3 +91,20 @@ Heartbeats select pending SotW wildcard/exact TTL resources, retaining versions/
 Fetch creates no watch/status entries or request timestamps. Its lazy response retains the original request/context and selected stable resources, uses normal TTL wrappers and exposes an empty returned-resource ledger. As in the source, the cache forwards cancellation context without rejecting an already-canceled immediate read. Application callbacks/producers may observe cancellation.
 
 `FetchServer` consumes any `IConfigFetcher` and optional `IFetchCallbacks`. It calls the request hook, producer, materializer and response hook in that order. Request hooks may mutate or reject; response hooks may mutate the outgoing envelope and receive null if materialization failed. Missing outer envelopes fail before response hooks. Producer/materializer exceptions propagate unchanged after the applicable hooks. The original response callback signature has no context/cancellation argument. See `docs/plan/T18-FETCH-GATEWAY.md` for source mapping and transport boundaries.
+
+## Focused SotW ADS client
+
+`Envoy.ControlPlane.Clients.SotwAdsClient` uses the generated ADS client with an application-owned `Grpc.Core.CallInvoker`. It fixes one node/type, opens/sends its initial request explicitly, returns opaque resource lists and lets the application ACK or NACK. It adds no transport/channel constructor, reconnection, resource decoding or validation policy.
+
+```csharp
+using var client = new Envoy.ControlPlane.Clients.SotwAdsClient(node, ResourceTypeUrls.Route);
+await client.InitializeAsync(callInvoker, new Grpc.Core.CallOptions(cancellationToken: stoppingToken));
+var resources = await client.FetchAsync(stoppingToken);
+// After the application accepts these resources:
+await client.AckAsync(stoppingToken);
+// Alternatively, reject with client.NackAsync(message, stoppingToken).
+```
+
+ACK advances accepted state before its send; NACK keeps that version and uses the latest received nonce. Explicit reinitialization retains received state and ACKs it, including a previously rejected response. Open failure retains the old call; initial-send failure retains the new call. Async operations serialize, with cancelable queueing; canceling a read may cancel the gRPC call. Use `IsConnectionError` for EOF/Unavailable/Cancelled, then choose recovery in the application. Local queue cancellation is not classified as connection loss.
+
+Dispose cancels/releases owned calls, including the old call during replacement, and rejects further use. The caller still awaits pending operations and retains ownership of the external invoker/channel and stable node/resources. `docs/plan/T19-SOTW-ADS-CLIENT.md` records exact source semantics, runtime adaptations and scripted/loopback evidence.
