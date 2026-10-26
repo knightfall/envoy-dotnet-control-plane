@@ -6,8 +6,8 @@ using Envoy.Service.Discovery.V3;
 
 namespace Envoy.ControlPlane.Cache;
 
-/// <summary>Stores stable snapshots and delivers one-shot SotW responses by node.</summary>
-public sealed class SnapshotCache : IConfigWatcher
+/// <summary>Stores stable snapshots and delivers one-shot SotW and Delta responses by node.</summary>
+public sealed partial class SnapshotCache : IConfigWatcher
 {
     private readonly object gate = new();
     private readonly SemaphoreSlim publication = new(1, 1);
@@ -29,7 +29,7 @@ public sealed class SnapshotCache : IConfigWatcher
         this.timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    /// <summary>Publishes a stable snapshot and completes eligible SotW watches without awaiting proxy ACK.</summary>
+    /// <summary>Publishes a stable snapshot and completes eligible watches without awaiting proxy ACK.</summary>
     /// <param name="nodeId">The cache key for the snapshot.</param>
     /// <param name="snapshot">The replacement snapshot, retained without validation or cloning.</param>
     /// <param name="context">The publication context forwarded to delivered responses.</param>
@@ -54,6 +54,7 @@ public sealed class SnapshotCache : IConfigWatcher
                     if (status.TryGetValue(nodeId, out var info))
                     {
                         StartDeliveries(snapshot, info, context, deliveries);
+                        StartDeltaDeliveries(snapshot, info, context, deliveries);
                     }
                 }
             }
@@ -146,28 +147,21 @@ public sealed class SnapshotCache : IConfigWatcher
                 var selection = SotwResponseSelection.Create(snapshot, request, subscription, ads, default);
                 if (selection.Untracked)
                 {
-                    return new SotwWatchRegistration(gate, responses, null);
+                    return new ResponseWatchRegistration<ISotwResponse>(gate, responses, null);
                 }
                 if (selection.Response is { } response)
                 {
-                    var immediate = new SotwWatchRegistration(gate, responses, null);
+                    var immediate = new ResponseWatchRegistration<ISotwResponse>(gate, responses, null);
                     _ = immediate.DeliverAsync(response, default);
                     return immediate;
                 }
             }
             long watchId = ++nextWatchId;
-            var completion = new SotwWatchRegistration(gate, responses, () => RemoveWatch(nodeId, watchId));
+            var completion = new ResponseWatchRegistration<ISotwResponse>(gate, responses, () => RemoveWatch(nodeId, watchId));
             info.Watches.Add(watchId, new PendingWatch(request, subscription, completion));
             return completion;
         }
     }
-
-    /// <summary>Delta delivery is not yet available; its cache implementation is T14.</summary>
-    /// <param name="request">The originating Delta request.</param>
-    /// <param name="subscription">The stable subscription view.</param>
-    /// <exception cref="NotSupportedException">Delta cache delivery has not been implemented.</exception>
-    public IWatch<IDeltaResponse> CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription) =>
-        throw new NotSupportedException("SnapshotCache Delta delivery is not yet implemented");
 
     /// <summary>Returns the live synchronized status view, or null when no status is indexed.</summary>
     /// <param name="nodeId">The cache key.</param>
@@ -199,12 +193,14 @@ public sealed class SnapshotCache : IConfigWatcher
         }
     }
 
-    private sealed record PendingWatch(DiscoveryRequest Request, ISubscription Subscription, SotwWatchRegistration Registration);
+    private sealed record PendingWatch(DiscoveryRequest Request, ISubscription Subscription, ResponseWatchRegistration<ISotwResponse> Registration);
 
     private sealed class StatusInfo(object gate, Node? node) : IStatusInfo
     {
         internal Dictionary<long, PendingWatch> Watches { get; } = new();
+        internal Dictionary<long, PendingDeltaWatch> DeltaWatches { get; } = new();
         internal DateTimeOffset LastWatch { get; set; }
+        internal DateTimeOffset LastDeltaWatch { get; set; }
         public Node? Node
         {
             get
@@ -227,8 +223,27 @@ public sealed class SnapshotCache : IConfigWatcher
             }
         }
 
-        public int NumDeltaWatches => 0;
-        public DateTimeOffset LastDeltaWatchRequestTime => default;
+        public int NumDeltaWatches
+        {
+            get
+            {
+                lock (gate)
+                {
+                    return DeltaWatches.Count;
+                }
+            }
+        }
+
+        public DateTimeOffset LastDeltaWatchRequestTime
+        {
+            get
+            {
+                lock (gate)
+                {
+                    return LastDeltaWatch;
+                }
+            }
+        }
 
         public DateTimeOffset LastWatchRequestTime
         {

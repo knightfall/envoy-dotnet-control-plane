@@ -2,15 +2,15 @@ using System.Threading.Channels;
 
 namespace Envoy.ControlPlane.Cache;
 
-internal sealed class SotwWatchRegistration(object gate, ChannelWriter<ISotwResponse> responses, Action? release)
-    : IDisposable, IAsyncDisposable
+internal sealed class ResponseWatchRegistration<TResponse>(object gate, ChannelWriter<TResponse> responses, Action? release)
+    : IDisposable, IAsyncDisposable where TResponse : IWatchResponse
 {
     private readonly CancellationTokenSource cancellation = new();
     private Task<bool>? delivery;
     private Task? disposal;
     private bool disposed;
 
-    internal Task<bool> DeliverAsync(ISotwResponse response, CancellationToken publication)
+    internal Task<bool> DeliverAsync(TResponse response, CancellationToken publication)
     {
         lock (gate)
         {
@@ -27,7 +27,7 @@ internal sealed class SotwWatchRegistration(object gate, ChannelWriter<ISotwResp
         }
     }
 
-    private async Task<bool> WriteAsync(ISotwResponse response, CancellationToken publication)
+    private async Task<bool> WriteAsync(TResponse response, CancellationToken publication)
     {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation.Token, publication);
         try

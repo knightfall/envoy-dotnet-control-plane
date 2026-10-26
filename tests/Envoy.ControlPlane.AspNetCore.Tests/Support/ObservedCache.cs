@@ -22,8 +22,8 @@ internal sealed class ObservedCache : IConfigWatcher, IDisposable
         return registration;
     }
 
-    public IWatch<IDeltaResponse> CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription) =>
-        Inner.CreateDeltaWatch(request, subscription);
+    public IDisposable CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription, ChannelWriter<IDeltaResponse> responses) =>
+        Inner.CreateDeltaWatch(request, subscription, responses);
 
     public void Dispose() => Disposals++;
 }

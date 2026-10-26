@@ -224,11 +224,14 @@ public sealed class SnapshotCacheTests
     }
 
     [Fact]
-    public void DeltaDelivery_IsExplicitlyUnavailableInTheSotwSlice()
+    public void DeltaDelivery_RegistersPendingWatchWithoutASnapshot()
     {
         var cache = new SnapshotCache();
-        Assert.Contains("Delta", Assert.Throws<NotSupportedException>(() =>
-            cache.CreateDeltaWatch(new DeltaDiscoveryRequest(), Subscription())).Message);
-        Assert.Empty(cache.GetStatusKeys());
+        using var watch = cache.CreateDeltaWatch(new DeltaDiscoveryRequest { Node = new Node { Id = "node" } }, Subscription());
+        Assert.False(watch.Completion.IsCompleted);
+        Assert.Equal(new[] { "node" }, cache.GetStatusKeys());
+        Assert.Equal(1, cache.GetStatusInfo("node")!.NumDeltaWatches);
+        watch.Dispose();
+        Assert.Equal(0, cache.GetStatusInfo("node")!.NumDeltaWatches);
     }
 }

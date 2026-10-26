@@ -46,11 +46,12 @@ internal sealed class ImmediateWatcher(ISotwResponse sotw, IDeltaResponse delta)
         return watch;
     }
 
-    public IWatch<IDeltaResponse> CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription)
+    public IDisposable CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription, ChannelWriter<IDeltaResponse> responses)
     {
         LastRequest = request;
         LastSubscription = subscription;
         var watch = new Watch<IDeltaResponse>();
+        if (!responses.TryWrite(delta)) throw new InvalidOperationException("Fixture buffer unexpectedly full");
         watch.TrySetResult(delta);
         return watch;
     }
@@ -59,7 +60,7 @@ internal sealed class ImmediateWatcher(ISotwResponse sotw, IDeltaResponse delta)
 internal sealed class RejectingWatcher(Exception failure) : IConfigWatcher
 {
     public IDisposable CreateWatch(DiscoveryRequest request, ISubscription subscription, ChannelWriter<ISotwResponse> responses) => throw failure;
-    public IWatch<IDeltaResponse> CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription) => throw failure;
+    public IDisposable CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription, ChannelWriter<IDeltaResponse> responses) => throw failure;
 }
 
 internal sealed class InspectedResponse(ISotwResponse inner, TaskCompletionSource inspected) : ISotwResponse

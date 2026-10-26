@@ -139,3 +139,7 @@ The repository CLI runs the Go stream comparison as part of `repository verify` 
 ## Delta subscription state
 
 [T13 evidence](../docs/plan/T13-DELTA-SUBSCRIPTIONS.md) maps V16 to twelve expected state traces and two focused ownership/initialization tests. Core has 152 cases and the solution has 274. The existing Go oracle invokes actual pinned Delta subscription APIs and compares every state; no subscription algorithm is copied into comparison glue. The full fresh Core package consumer includes the new fixture/support sources and tests. Server request dispatch, Delta cache/watch responses and network behavior remain T14.
+
+## Delta cache foundation
+
+[T14 foundation](../docs/plan/T14-DELTA-CACHE.md) adds thirteen cases (Core 165, solution 287), including fourteen independently declared cache outcomes compared with actual pinned Go payloads, versions, removals, status and lazy maps. Existing custom-producer and SotW lifecycle assertions remain. The full fresh Core consumer runs the same 165 cases. Stream callback/nonce behavior, first-request dispatch and Delta HTTP/2 remain the next T14 increment.
