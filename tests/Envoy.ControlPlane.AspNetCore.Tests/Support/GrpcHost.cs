@@ -26,7 +26,7 @@ internal sealed class GrpcHost(WebApplication application, GrpcChannel channel, 
     private bool disposed;
 
     internal static async Task<GrpcHost> StartAsync(SotwOptions? options = null, bool authorize = false,
-        Action<ObservedCache, HostCallbacks>? configure = null)
+        Action<ObservedCache, HostCallbacks>? configure = null, DeltaOptions? deltaOptions = null)
     {
         var cache = new ObservedCache();
         var callbacks = new HostCallbacks();
@@ -37,9 +37,14 @@ internal sealed class GrpcHost(WebApplication application, GrpcChannel channel, 
             endpoint => endpoint.Protocols = HttpProtocols.Http2));
         builder.Services.AddSingleton<IConfigWatcher>(cache);
         builder.Services.AddSingleton<ISotwCallbacks>(callbacks);
+        builder.Services.AddSingleton<IDeltaCallbacks>(callbacks);
         if (options is not null)
         {
             builder.Services.AddSingleton(options);
+        }
+        if (deltaOptions is not null)
+        {
+            builder.Services.AddSingleton(deltaOptions);
         }
         builder.Services.AddEnvoyControlPlane();
         builder.Services.Configure<HostOptions>(host => host.ShutdownTimeout = TimeSpan.FromSeconds(2));

@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "sotw-preview",
+  "scopeNote": "Historical accepted SotW preview; current source additionally implements T14 Delta support. See docs/plan/T14-DELTA-GRPC.md for separate evidence.",
   "publication": "not-published",
   "targetFramework": "net10.0",
   "fullRootParity": false,
@@ -117,7 +118,7 @@
     "Callbacks, status, cancellation and host cleanup",
     "ASP.NET Core generated service adapters and standard endpoint authorization"
   ],
-  "notImplemented": [
+  "outsidePreview": [
     "Delta cache/server/ADS delivery",
     "LinearCache and MuxCache",
     "Unary Fetch and HTTP gateway",

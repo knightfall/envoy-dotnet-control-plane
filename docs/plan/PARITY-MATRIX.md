@@ -1,6 +1,6 @@
 # v3 parity matrix
 
-Reviewed 24 October 2026 against Go commit 67c5345367582741334e34ffc66a561b0ce32946. Paths below are relative to the separate go-control-plane checkout. This table defines the complete target surface. The [preview guide](../preview/README.md) and [compatibility manifest](../preview/compatibility.json) identify the implemented subset and its observed evidence.
+Reviewed 24 October 2026 against Go commit 67c5345367582741334e34ffc66a561b0ce32946. Paths below refer to the pinned remote source tree. This table defines the complete target surface. The [preview guide](../preview/README.md) and [compatibility manifest](../preview/compatibility.json) identify the implemented subset and its observed evidence.
 
 ## Discovery transports
 
@@ -17,6 +17,8 @@ The SotW versus Delta choice and the separate-stream versus ADS choice are indep
 The rate-limit service descriptor declares only StreamRlsConfigs and FetchRlsConfigs. ADS has generic type-URL dispatch; the absence of a dedicated RPC does not mean an arbitrary type cannot travel over ADS.
 
 HTTP paths are the eight constants in pkg/resource/v3/resource.go, implemented by pkg/server/v3/gateway.go. Preserve path-to-type-URL selection and the existing unchanged-result 304, invalid-input 400, unknown-route 404, and fetch-error 500 behavior, subject to explicitly documented host-layer limits.
+
+Current implementation: the nine preview SotW methods and all eleven Delta methods have generated-client HTTP/2 evidence; see [T14](T14-DELTA-GRPC.md). Fetch and rate-limit configuration hosting remain pending.
 
 All implemented methods above belong in recommended 1.0 scope. The preview covers the eight standard SotW per-type services and SotW ADS with SnapshotCache; ratelimit configuration joins the complete 1.0 surface. The Go reference does not supply runtime implementations for every other generated Envoy service, such as external authorization, rate-limit decisions, or load reporting.
 

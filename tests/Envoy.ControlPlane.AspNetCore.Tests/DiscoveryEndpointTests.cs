@@ -92,19 +92,22 @@ public sealed class DiscoveryEndpointTests
     }
 
     [Fact]
-    public async Task EndpointInventory_ContainsOnlyTheNinePreviewServiceContracts()
+    public async Task EndpointInventory_ContainsSotwAndDeltaContractsWithoutRateLimitHosting()
     {
         await using var host = await StartAsync();
         var methods = ((IEndpointRouteBuilder)host.Application).DataSources.SelectMany(source => source.Endpoints)
             .Select(endpoint => endpoint.Metadata.GetMetadata<GrpcMethodMetadata>()).OfType<GrpcMethodMetadata>()
             .Select(metadata => metadata.Method).ToArray();
-        Assert.Equal(26, methods.Length);
-        Assert.Equal(9, methods.Select(method => method.ServiceName).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(28, methods.Length);
+        Assert.Equal(11, methods.Select(method => method.ServiceName).Distinct(StringComparer.Ordinal).Count());
         Assert.Equal(new[] { "StreamAggregatedResources", "StreamClusters", "StreamEndpoints", "StreamExtensionConfigs", "StreamListeners",
                 "StreamRoutes", "StreamRuntime", "StreamScopedRoutes", "StreamSecrets" },
             methods.Where(method => method.Type == MethodType.DuplexStreaming && !method.Name.StartsWith("Delta", StringComparison.Ordinal))
                 .Select(method => method.Name).Order(StringComparer.Ordinal));
-        Assert.DoesNotContain(methods, method => method.Name.Contains("VirtualHost", StringComparison.Ordinal)
-            || method.Name.Contains("Locality", StringComparison.Ordinal) || method.Name.Contains("RlsConfig", StringComparison.Ordinal));
+        Assert.Equal(new[] { "DeltaAggregatedResources", "DeltaClusters", "DeltaEndpoints", "DeltaExtensionConfigs", "DeltaListeners",
+                "DeltaLocalityEndpoints", "DeltaRoutes", "DeltaRuntime", "DeltaScopedRoutes", "DeltaSecrets", "DeltaVirtualHosts" },
+            methods.Where(method => method.Name.StartsWith("Delta", StringComparison.Ordinal))
+                .Select(method => method.Name).Order(StringComparer.Ordinal));
+        Assert.DoesNotContain(methods, method => method.Name.Contains("RlsConfig", StringComparison.Ordinal));
     }
 }

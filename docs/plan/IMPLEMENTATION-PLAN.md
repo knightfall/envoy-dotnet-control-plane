@@ -268,7 +268,7 @@ Subtasks:
 
 ### T14 — Implement Delta cache responses, streams, and ADS
 
-The [Delta cache/response foundation](T14-DELTA-CACHE.md) implements the first increment. The [Delta stream increment](T14-DELTA-STREAMS.md) adds Core processing and callbacks. Service adapters and real HTTP/2 evidence remain required before completing T14.
+The [Delta cache/response foundation](T14-DELTA-CACHE.md) implements the first increment. The [Delta stream increment](T14-DELTA-STREAMS.md) adds Core processing and callbacks. The [Delta gRPC increment](T14-DELTA-GRPC.md) supplies all eleven adapters and real HTTP/2 evidence. Full released-Envoy Delta acceptance remains separate V32/T23 work.
 
 **Scope:** 1.0 / R13, R10. **Depends on:** T07, T09, T13. **Outputs:** Delta cache eligibility/version maps, session loop, per-type/ADS service adapters.
 

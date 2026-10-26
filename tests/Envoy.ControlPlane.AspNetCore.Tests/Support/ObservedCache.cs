@@ -8,6 +8,7 @@ internal sealed class ObservedCache : IConfigWatcher, IDisposable
 {
     internal SnapshotCache Inner { get; } = new();
     internal Channel<DiscoveryRequest> Created { get; } = Channel.CreateUnbounded<DiscoveryRequest>();
+    internal Channel<DeltaDiscoveryRequest> DeltaCreated { get; } = Channel.CreateUnbounded<DeltaDiscoveryRequest>();
     internal bool CloseResponsesOnCreate { get; set; }
     internal int Disposals { get; private set; }
 
@@ -22,8 +23,16 @@ internal sealed class ObservedCache : IConfigWatcher, IDisposable
         return registration;
     }
 
-    public IDisposable CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription, ChannelWriter<IDeltaResponse> responses) =>
-        Inner.CreateDeltaWatch(request, subscription, responses);
+    public IDisposable CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription, ChannelWriter<IDeltaResponse> responses)
+    {
+        var registration = Inner.CreateDeltaWatch(request, subscription, responses);
+        if (CloseResponsesOnCreate)
+        {
+            responses.TryComplete();
+        }
+        DeltaCreated.Writer.TryWrite(request);
+        return registration;
+    }
 
     public void Dispose() => Disposals++;
 }

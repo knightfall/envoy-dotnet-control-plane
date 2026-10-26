@@ -5,9 +5,13 @@ using Contract = Envoy.Service.Listener.V3.ListenerDiscoveryService;
 
 namespace Envoy.ControlPlane.AspNetCore.Services;
 
-internal sealed class ListenerDiscoveryService(SotwGrpcStream streams) : Contract.ListenerDiscoveryServiceBase
+internal sealed class ListenerDiscoveryService(SotwGrpcStream streams, DeltaGrpcStream delta) : Contract.ListenerDiscoveryServiceBase
 {
     public override Task StreamListeners(IAsyncStreamReader<DiscoveryRequest> requestStream,
         IServerStreamWriter<DiscoveryResponse> responseStream, ServerCallContext context) =>
         streams.RunAsync(requestStream, responseStream, context, ResourceTypeUrls.Listener);
+
+    public override Task DeltaListeners(IAsyncStreamReader<DeltaDiscoveryRequest> requestStream,
+        IServerStreamWriter<DeltaDiscoveryResponse> responseStream, ServerCallContext context) =>
+        delta.RunAsync(requestStream, responseStream, context, ResourceTypeUrls.Listener);
 }

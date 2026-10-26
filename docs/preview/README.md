@@ -2,6 +2,8 @@
 
 The preview supplies .NET 10 bindings, SnapshotCache, eight standard SotW discovery streams and SotW ADS through ASP.NET Core gRPC/Kestrel. Its listener/HCM/router/route/cluster/endpoint example has released-Envoy traffic, live update, NACK/repair and reconnect proof. [compatibility.json](compatibility.json) records exact packages, source/tool/binding pins, RPCs, defaults, intentional .NET differences and immutable evidence commits. **No NuGet packages or images have been published.** T12's implementing PR records its final review/CI gate.
 
+This is the accepted **SotW preview** record. Current source additionally implements [Delta cache/streams and eleven gRPC methods](../plan/T14-DELTA-GRPC.md); that later HTTP/2 evidence does not expand the preview's released-Envoy acceptance. The manifest's `outsidePreview` list describes its acceptance boundary, not current source availability.
+
 ## Reproduce and run
 
 From a clone's root, use SDK **10.0.400** and Go **1.26.4**. Initial generation needs network access and a writable external source cache; no separate source checkout or global Buf installation is required. Consumers of compiled packages need .NET 10, without Go or Buf.
@@ -88,6 +90,6 @@ CI retains reports, consumer locks, packages/symbols and separate live-proxy dia
 
 ## Remaining scope
 
-The preview hosts **SotW ADS/CDS/EDS/LDS/RDS/SRDS/SDS/RTDS/ECDS**. Delta/Fetch methods on mapped services retain generated unimplemented responses. VHDS, LEDS, rate-limit configuration hosting, external authorization, rate-limit decisions and other generated services are not supplied by this host. Descriptors alone do not implement a service.
+The accepted preview covers **SotW ADS/CDS/EDS/LDS/RDS/SRDS/SDS/RTDS/ECDS**. Current source also hosts eleven Delta methods, including VHDS/LEDS, with the separate T14 evidence linked above. Fetch remains unimplemented. Rate-limit configuration hosting, external authorization, rate-limit decisions and other generated services remain outside this host. Descriptors alone do not implement a service.
 
-Full root parity still needs remaining T13–T20 cache/protocol/fetch/client/helper work and broader interop/API-release gates. Automatic TTL/heartbeat scheduling is pending; matcher and broader contrib/legacy catalogs stay deferred. **Validation is not included:** preserved options and the viable 33-case source-adaptation proof do not establish T26/GV. [Update reports](../plan/T24-PREVIEW-READINESS.md) keep new/changed constraints unproven and never approve validator acceptance. Publishing packages requires a separate explicit instruction.
+Full root parity still needs remaining T15–T20 cache/fetch/client/helper work and broader interop/API-release gates. Automatic TTL/heartbeat scheduling is pending; matcher and broader contrib/legacy catalogs stay deferred. **Validation is not included:** preserved options and the viable 33-case source-adaptation proof do not establish T26/GV. [Update reports](../plan/T24-PREVIEW-READINESS.md) keep new/changed constraints unproven and never approve validator acceptance. Publishing packages requires a separate explicit instruction.
