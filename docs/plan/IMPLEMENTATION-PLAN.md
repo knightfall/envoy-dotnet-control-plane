@@ -367,6 +367,8 @@ Subtasks:
 
 **Acceptance:** V27 passes; preview-required name/reference helpers exist before T12. Each upstream helper is mapped, explicitly .NET-specific, or excluded with rationale in the compatibility report.
 
+Full helper inventory, conversions and exact source/native mapping: [T20 compatibility report](T20-HELPER-COMPATIBILITY.md).
+
 ## Epic E — verification and release engineering
 
 ### T21 — Build the Go/.NET differential harness
