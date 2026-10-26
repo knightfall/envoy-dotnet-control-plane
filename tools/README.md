@@ -120,7 +120,7 @@ The existing assertions and suite sizes were preserved. Linux/macOS/Windows CI i
 
 After binding generation, run `dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release -- transport verify` for functional checks or `transport benchmark` for those checks plus matched performance trials. Linux tests plaintext, TLS 1.2 and TLS 1.3; macOS tests plaintext and TLS 1.2. The commands use the non-packable transport host and a common Go driver from the pinned resource oracle module. They do not run the xDS engine.
 
-The [transport report](../docs/plan/GRPC-KESTREL-VALIDATION.md) describes workload controls and limitations. Reports, raw checks/trials and server logs are written under Protocol's `obj/upstream/results/transport/`. Test keys stay in a temporary directory and are removed. The [Linux workflow](../.github/workflows/transport-performance.yml) publishes evidence and gates functional failures without imposing performance thresholds.
+The [transport report](../docs/plan/GRPC-KESTREL-VALIDATION.md) describes workload controls and limitations. Reports, raw checks/trials and server logs are written under Protocol's `obj/upstream/results/transport/`. Test keys stay in a temporary directory and are removed. The [Linux baseline workflow](../.github/workflows/transport-performance.yml) is **manual-only after acceptance**, using `workflow_dispatch` on the selected branch/ref. It publishes evidence and gates functional failures without imposing performance thresholds. Pull requests retain ordinary build/package and HTTP/2 functional tests without running the performance baseline.
 
 ## Released Envoy interoperability
 

@@ -19,7 +19,7 @@ dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release -- t
 
 The first command checks behavior; the second also measures performance. Linux and macOS are supported. The C# host is registered in the solution and uses CPM, a dependency lock and Roslynator. The Go driver shares the existing oracle module/locks. No custom schema or separate reference checkout is needed.
 
-[The workflow](../../.github/workflows/transport-performance.yml) runs on relevant pull requests and supports manual dispatch once present on the default branch. It checks out the actual PR head, generates contracts through pinned Buf tooling and publishes a summary plus raw checks, trials, runtime/module details and process logs. Functional failures fail the job; performance has no numerical threshold.
+[The workflow](../../.github/workflows/transport-performance.yml) is **manual-only after acceptance** through `workflow_dispatch`; pull requests and pushes do not run the performance baseline. Choose the intended branch/ref when dispatching. It checks out that run's immutable SHA, generates contracts through pinned Buf tooling and publishes a summary plus raw checks, trials, runtime/module details and process logs. Functional failures fail the manual job; performance has no numerical threshold. Routine pull-request build/package verification and actual xDS HTTP/2 functional tests continue in the upstream-verification workflow.
 
 Results live under `src/Envoy.ControlPlane.Protocol/obj/upstream/results/transport/`. The owned temporary executable/certificate directory is removed afterward. Test private keys are not uploaded; private-CA fixtures are not a production revocation policy.
 
