@@ -315,12 +315,14 @@ Implementation and bounded source/native verification: [T16 evidence](T16-MUX-CA
 
 Subtasks:
 
-- T17.1 Encode SotW and Delta TTL resources, versions, normal payloads, and payload-free heartbeat representations.
+- T17.1 Preserve source-matching SotW TTL wrappers and payload-free heartbeats; retain raw Delta TTL omission and caller-owned pass-through TTL envelopes.
 - T17.2 Implement source-equivalent periodic SotW watch scanning/selection and one-shot completion with returned metadata retained.
 - T17.3 Implement timer enablement/interval validation, disposal, fake-clock cases, and no cache-side automatic TTL deletion.
 - T17.4 Document that automatic Delta heartbeat scheduling is outside the pinned source behavior.
 
 **Acceptance:** V21/V22/V29 pass, including prefix selection behavior actually observed in source and shutdown races. V33 later establishes real proxy refresh/expiry; fake-clock cases alone do not close interop.
+
+Implementation and source/native verification: [T17 evidence](T17-TTL-HEARTBEATS.md). The loop is caller-owned and uses the existing TimeProvider and channel ownership contracts.
 
 ### T18 — Implement unary Fetch and HTTP gateway
 

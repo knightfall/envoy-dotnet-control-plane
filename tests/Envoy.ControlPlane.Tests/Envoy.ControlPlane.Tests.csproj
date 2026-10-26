@@ -12,6 +12,7 @@
     <ProjectReference Include="../../src/Envoy.ControlPlane/Envoy.ControlPlane.csproj" />
     <PackageReference Include="xunit.v3.mtp-v2" />
     <PackageReference Include="coverlet.MTP" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" PrivateAssets="all" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
     <EmbeddedResource Include="Fixtures/sotw-subscription-cases.json" LogicalName="Envoy.ControlPlane.Tests.SotwCases.json" />
     <EmbeddedResource Include="Fixtures/delta-subscription-cases.json" LogicalName="Envoy.ControlPlane.Tests.DeltaCases.json" />
