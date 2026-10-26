@@ -293,6 +293,8 @@ Subtasks:
 
 **Acceptance:** V19/V30 pass for both modes, concurrent update/cancel and no-op operations. Fetch exposes the unsupported operation; a restart/version prefix scenario avoids pretending counter identity is globally stable.
 
+Implementation and source/native verification: [T15 evidence](T15-LINEAR-CACHE.md). Both channel-based modes, shared lazy serialization, collection mutations, index diagnostics and unsupported Fetch are implemented. Merge and CI evidence are recorded on the implementing PR.
+
 ### T16 — Implement MuxCache
 
 **Scope:** 1.0 / R15. **Depends on:** T07, T15. **Outputs:** classifier and child-cache routing APIs.

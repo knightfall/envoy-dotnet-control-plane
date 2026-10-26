@@ -52,6 +52,8 @@ func main() {
 		err = runDeltaSubscriptions(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "delta-cache" {
 		err = runDeltaCache(os.Args[2:])
+	} else if len(os.Args) > 1 && os.Args[1] == "linear-cache" {
+		err = runLinearCache(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "delta-stream" {
 		err = runDeltaStreams(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "stream" {
