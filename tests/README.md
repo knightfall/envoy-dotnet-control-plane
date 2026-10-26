@@ -183,3 +183,7 @@ The repository CLI runs the Go stream comparison as part of `repository verify` 
 ## Root differential gate
 
 Repository verification executes V05–V27 through 16 actual Go modes / 260 cases plus full helper symbols. DiscoveryTraceComparer retains stream-wide nonce associations in both protocols, with dedicated positive/negative tests. Nine shared Fetch traces compare hook/error/correlation behavior and gateway traces cover every route. Fifteen Go corruptions plus both stream-association negatives must fail. Root artifacts retain exact IDs, pins, diagnostics and .NET dispositions. [T21 root mapping](../docs/plan/T21-ROOT-DIFFERENTIAL.md) distinguishes T22/T23/T26 gates.
+
+## Root lifecycle verification
+
+[T22 root lifecycle](../docs/plan/T22-ROOT-LIFECYCLE.md) maps the remaining V14/V15/V28–V30 requirements to Delta cleanup, Delta/Fetch active-hook host shutdown, explicit heartbeat timer disposal and existing Linear/Mux/source progress tests. Seven new cases bring the solution to 474 (Core 264, Hosting 109). The finite Delta ADS run adds 64 streams/256 responses/384 requests and sixteen zero-watch memory samples; all three lifecycle reports are retained by repository verify. Process-memory samples are diagnostic, not an SLA or proof of unrestricted soak stability. Fresh package consumers run the same lifecycle suites. Released-proxy Delta/TTL remains T23.

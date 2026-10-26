@@ -71,11 +71,10 @@ internal static class RepositoryVerification
     {
         string output = Path.Combine(BindingPaths.InputsDirectory, "results", "lifecycle");
         Directory.CreateDirectory(output);
-        foreach (string mode in new[] { "ordered", "unordered" })
+        foreach (string name in new[] { "sotw-stress-ordered.json", "sotw-stress-unordered.json", "delta-stress.json" })
         {
-            string name = $"sotw-stress-{mode}.json";
             string source = Path.Combine("tests", "Envoy.ControlPlane.AspNetCore.Tests", "bin", "Release", "net10.0", name);
-            Require(File.Exists(source), "Missing SotW lifecycle report: " + source);
+            Require(File.Exists(source), "Missing discovery lifecycle report: " + source);
             File.Copy(source, Path.Combine(output, name), overwrite: true);
         }
     }

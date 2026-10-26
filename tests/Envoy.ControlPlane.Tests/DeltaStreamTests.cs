@@ -335,6 +335,74 @@ public sealed class DeltaStreamTests
         Assert.Equal(1, closes);
     }
 
+    [Fact]
+    public async Task ClosedResponseWriter_FailsUnavailableAndReleasesEveryOwnedResource()
+    {
+        await using var stream = new DeltaHarness();
+        int closes = 0;
+        stream.Callbacks.Close = (_, _) => { closes++; return ValueTask.CompletedTask; };
+        stream.Start(typeUrl: "");
+        stream.Input.Push(DeltaStreamFixtures.Request());
+        var first = await stream.NextWatch();
+        stream.Input.Push(DeltaStreamFixtures.Request(type: "type/B"));
+        var second = await stream.NextWatch();
+        Assert.True(first.Responses.TryComplete());
+
+        var failure = await Assert.ThrowsAsync<DeltaProtocolException>(() => Wait(stream.Running));
+        Assert.Equal(DeltaProtocolError.Unavailable, failure.Error);
+        Assert.Equal("resource channel closed", failure.Message);
+        Assert.Equal(1, first.Disposals);
+        Assert.Equal(1, second.Disposals);
+        Assert.Equal(1, stream.Input.Disposals);
+        Assert.Equal(1, closes);
+        Assert.True(stream.Running.IsCompleted);
+    }
+
+    [Fact]
+    public async Task CleanupFailures_RetainPrimaryErrorAndAttemptEveryOwnedReleaseOnce()
+    {
+        await using var stream = new DeltaHarness();
+        var primary = new InvalidOperationException("request rejected");
+        var firstFailure = new IOException("first watch release");
+        var secondFailure = new IOException("second watch release");
+        var inputFailure = new IOException("input release");
+        var closeFailure = new IOException("close callback");
+        var first = new FailingOwnedRegistration(firstFailure);
+        var second = new FailingOwnedRegistration(secondFailure);
+        stream.Watcher.Create = (request, _, _) => request.TypeUrl == "type/A" ? first : second;
+        stream.Input.DisposalFailure = inputFailure;
+        int closes = 0;
+        stream.Callbacks.Close = (_, _) => { closes++; return ValueTask.FromException(closeFailure); };
+        stream.Callbacks.Request = (_, request, _) => request.TypeUrl == "reject"
+            ? ValueTask.FromException(primary) : ValueTask.CompletedTask;
+        stream.Start(typeUrl: "");
+        stream.Input.Push(DeltaStreamFixtures.Request());
+        await stream.NextWatch();
+        stream.Input.Push(DeltaStreamFixtures.Request(type: "type/B"));
+        await stream.NextWatch();
+        stream.Input.Push(DeltaStreamFixtures.Request(type: "reject"));
+
+        var failure = await Assert.ThrowsAsync<AggregateException>(() => Wait(stream.Running));
+        Assert.Equal(new Exception[] { primary, firstFailure, secondFailure, inputFailure, closeFailure }, failure.InnerExceptions);
+        Assert.Equal(1, first.Disposals);
+        Assert.Equal(1, second.Disposals);
+        Assert.Equal(1, stream.Input.Disposals);
+        Assert.Equal(1, closes);
+        Assert.Equal(2, stream.Watcher.Registrations.Count);
+        Assert.True(stream.Running.IsCompleted);
+    }
+
+    private sealed class FailingOwnedRegistration(Exception failure) : IDisposable, IAsyncDisposable
+    {
+        internal int Disposals { get; private set; }
+        public void Dispose() => Assert.Fail("The stream must prefer asynchronous disposal");
+        public ValueTask DisposeAsync()
+        {
+            Disposals++;
+            return ValueTask.FromException(failure);
+        }
+    }
+
     private sealed class FailingDeltaResponse(DeltaDiscoveryRequest request, Exception failure) : IDeltaResponse
     {
         public DeltaDiscoveryRequest Request => request;

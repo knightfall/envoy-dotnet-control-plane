@@ -20,6 +20,7 @@ internal sealed class HostCallbacks : ISotwCallbacks, IDeltaCallbacks, IFetchCal
     internal Channel<ResponseContext> FetchContexts { get; } = Channel.CreateUnbounded<ResponseContext>();
     internal Func<ResponseContext, DiscoveryRequest, ValueTask>? FetchRequestHandler { get; set; }
     internal Action<DiscoveryResponse?>? FetchResponseHandler { get; set; }
+    internal Func<DiscoveryRequest, DiscoveryResponse?, ValueTask>? FetchResponseAsync { get; set; }
 
     public ValueTask OnFetchRequestAsync(ResponseContext context, DiscoveryRequest request)
     {
@@ -30,11 +31,12 @@ internal sealed class HostCallbacks : ISotwCallbacks, IDeltaCallbacks, IFetchCal
     public ValueTask OnFetchResponseAsync(DiscoveryRequest request, DiscoveryResponse? response)
     {
         FetchResponseHandler?.Invoke(response);
-        return ValueTask.CompletedTask;
+        return FetchResponseAsync?.Invoke(request, response) ?? ValueTask.CompletedTask;
     }
     internal Func<DiscoveryRequest, CancellationToken, ValueTask>? RequestHandler { get; set; }
     internal Func<DiscoveryResponse, CancellationToken, ValueTask>? ResponseHandler { get; set; }
     internal Func<DeltaDiscoveryRequest, CancellationToken, ValueTask>? DeltaRequestHandler { get; set; }
+    internal Func<DeltaDiscoveryResponse, CancellationToken, ValueTask>? DeltaResponseHandler { get; set; }
     internal ConcurrentQueue<long> StreamIds { get; } = new();
 
     public ValueTask OnStreamOpenAsync(ResponseContext context, long streamId, string typeUrl, CancellationToken cancellationToken)
@@ -74,6 +76,6 @@ internal sealed class HostCallbacks : ISotwCallbacks, IDeltaCallbacks, IFetchCal
         DeltaDiscoveryResponse response, CancellationToken cancellationToken)
     {
         DeltaResponses.Writer.TryWrite(response);
-        return ValueTask.CompletedTask;
+        return DeltaResponseHandler?.Invoke(response, cancellationToken) ?? ValueTask.CompletedTask;
     }
 }
