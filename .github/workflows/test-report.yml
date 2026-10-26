@@ -25,6 +25,7 @@ jobs:
           name: Offline tests ($1)
           path: '**/*.trx'
           reporter: dotnet-trx
+          use-actions-summary: false
           list-suites: failed
           list-tests: failed
           fail-on-empty: true
@@ -36,6 +37,7 @@ jobs:
           name: Repository and consumer tests ($1)
           path: '**/*.trx'
           reporter: dotnet-trx
+          use-actions-summary: false
           list-suites: failed
           list-tests: failed
           fail-on-empty: true
