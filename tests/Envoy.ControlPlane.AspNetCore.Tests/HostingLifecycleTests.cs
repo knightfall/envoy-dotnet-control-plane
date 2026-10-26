@@ -95,11 +95,7 @@ public sealed class HostingLifecycleTests
         using var call = Open(host.Channel, ResourceTypeUrls.Cluster, TestContext.Current.CancellationToken, headers);
         if (expected != StatusCode.OK)
         {
-            var rejected = await Assert.ThrowsAsync<RpcException>(async () =>
-            {
-                await call.RequestStream.WriteAsync(Request(), TestContext.Current.CancellationToken);
-                await Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken));
-            });
+            var rejected = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken)));
             Assert.Equal(expected, rejected.StatusCode);
             Assert.False(host.Cache.Created.Reader.TryRead(out _));
             Assert.False(host.Callbacks.Opened.Reader.TryRead(out _));
