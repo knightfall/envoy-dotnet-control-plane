@@ -1,6 +1,6 @@
 # Envoy.ControlPlane Core
 
-Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watches, SotW/Delta SnapshotCache responses, subscription state and transport-independent stream processing with optional ordered SotW ADS. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. The separate ASP.NET Core package supplies the nine SotW and eleven Delta service adapters. Heartbeat scheduling remains later work.
+Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watches, SotW/Delta SnapshotCache responses, subscription state and transport-independent stream processing with optional ordered SotW ADS. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. The separate ASP.NET Core package supplies the nine SotW and eleven Delta service adapters. Explicit SotW heartbeat scheduling is available.
 
 ```csharp
 using Envoy.Config.Listener.V3;
@@ -77,3 +77,9 @@ Both watch methods implement the existing channel-primary `IConfigWatcher` contr
 `MuxCache` accepts an indexed set of caller-owned `IConfigWatcher` children and separate SotW/Delta classifiers. Fetch uses the SotW classifier. The routing index is copied with ordinal keys; classifiers must support concurrent callers. Watch calls pass the original request, subscription and channel writer and return the child's cancellation registration directly. Children retain their own publication coordination and lifetime.
 
 `IConfigFetcher.FetchAsync(request, ResponseContext)` is an optional polling capability, separate from watching. The mux returns the selected child's task and preserves cancellation/state, responses and errors. Missing keys throw `KeyNotFoundException`; a watcher-only child reports unsupported Fetch. LinearCache implements the capability with its existing unsupported result and retains its token-based convenience method. SnapshotCache Fetch and polling/HTTP/gRPC processing remain T18. See `docs/plan/T16-MUX-CACHE.md` in the repository for the source/native mapping and fixed-table API difference.
+
+## TTL heartbeats
+
+`SnapshotCache.RunHeartbeatsAsync(interval, ResponseContext)` runs a caller-owned `PeriodicTimer` using the cache's TimeProvider. Start one loop for the cache, cancel its context and await the task during shutdown. The timer is disposed and the cache remains usable. The loop is opt-in, and runtime Core adds no timer/hosting package dependency.
+
+Heartbeats select pending SotW wildcard/exact TTL resources, retaining versions/returned metadata while omitting payloads and their serialization. A successful send releases the one-shot watch. Prefix-only selection and automatic Delta heartbeats are omitted at the pinned source revision; raw Delta TTL remains omitted, while prebuilt pass-through Delta envelopes retain caller fields. No cache-side expiry/deletion occurs. See `docs/plan/T17-TTL-HEARTBEATS.md` for lifecycle, interval constraints and source/native evidence; live TTL acceptance remains a separate proxy gate.

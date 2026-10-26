@@ -56,6 +56,8 @@ func main() {
 		err = runLinearCache(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "mux-cache" {
 		err = runMuxCache(os.Args[2:])
+	} else if len(os.Args) > 1 && os.Args[1] == "heartbeats" {
+		err = runHeartbeats(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "delta-stream" {
 		err = runDeltaStreams(os.Args[2:])
 	} else if len(os.Args) > 1 && os.Args[1] == "stream" {
