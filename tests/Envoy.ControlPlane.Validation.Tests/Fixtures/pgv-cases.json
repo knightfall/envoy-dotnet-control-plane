@@ -58,7 +58,7 @@
     "category": "string",
     "type": "envoy.config.core.v3.HeaderValue",
     "input": {
-      "key": "é"
+      "key": "\u00e9"
     },
     "valid": true
   },
@@ -316,6 +316,68 @@
     "type": "envoy.config.core.v3.KeyValueAppend",
     "input": {
       "entry": {}
+    },
+    "valid": true
+  },
+  {
+    "id": "extension-source-missing",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ExtensionConfigSource",
+    "input": {
+      "typeUrls": [
+        "type.googleapis.com/example.Filter"
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "extension-source-present-skips-nested",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ExtensionConfigSource",
+    "input": {
+      "configSource": {},
+      "typeUrls": [
+        "type.googleapis.com/example.Filter"
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "extension-source-ads",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ExtensionConfigSource",
+    "input": {
+      "configSource": {
+        "ads": {}
+      },
+      "typeUrls": [
+        "type.googleapis.com/example.Filter"
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "extension-source-empty-type-urls",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ExtensionConfigSource",
+    "input": {
+      "configSource": {}
+    },
+    "valid": false
+  },
+  {
+    "id": "config-source-direct-missing-specifier",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ConfigSource",
+    "input": {},
+    "valid": false
+  },
+  {
+    "id": "config-source-direct-ads",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ConfigSource",
+    "input": {
+      "ads": {}
     },
     "valid": true
   }

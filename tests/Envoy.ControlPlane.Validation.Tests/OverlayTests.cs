@@ -46,6 +46,24 @@ public sealed class OverlayTests
     }
 
     [Fact]
+    public void Overlay_AnyRulesOnMessage_PreservePresenceWithoutNestedValidation()
+    {
+        var field = ExtensionConfigSource.Descriptor.FindFieldByName("config_source");
+        Assert.Equal("envoy.config.core.v3.ConfigSource", field.MessageType.FullName);
+        Assert.True(field.GetOptions().GetExtension(Pgv.Rules).Any.Required);
+        var translated = field.GetOptions().GetExtension(Protovalidate.Field);
+        Assert.Equal(Buf.Validate.Ignore.Always, translated.Ignore);
+        Assert.Null(translated.Any);
+        Assert.False(translated.HasRequired);
+
+        var message = ExtensionConfigSource.Descriptor.GetOptions().GetExtension(Protovalidate.Message);
+        var presence = Assert.Single(message.Cel);
+        Assert.Equal("pgv.any.required", presence.Id);
+        Assert.Equal("has(this.config_source)", presence.Expression);
+        OverlayTransform.VerifyOriginalDescriptors(Read("catalog.pb"), Read("validation.catalog.pb"));
+    }
+
+    [Fact]
     public void Overlay_AllOriginalDescriptorsRemainEqual_ContractDriftIsRejected()
     {
         var original = Read("catalog.pb");

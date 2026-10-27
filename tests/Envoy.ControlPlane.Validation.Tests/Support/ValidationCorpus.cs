@@ -10,7 +10,8 @@ namespace Envoy.ControlPlane.Validation.Tests.Support;
 internal static class ValidationCorpus
 {
     private const string ResourceName = "Envoy.ControlPlane.Validation.Tests.PgvCases.json";
-    private static readonly TypeRegistry Registry = TypeRegistry.FromFiles(LoadFiles());
+    internal static IReadOnlyList<FileDescriptor> Files { get; } = LoadFiles();
+    private static readonly TypeRegistry Registry = TypeRegistry.FromFiles(Files);
 
     internal static ValidationCaseResult[] Evaluate(Validator validator)
     {

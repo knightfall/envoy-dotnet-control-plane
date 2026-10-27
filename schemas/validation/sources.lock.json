@@ -244,8 +244,8 @@
   },
   "corpus": {
     "path": "tests/Envoy.ControlPlane.Validation.Tests/Fixtures/pgv-cases.json",
-    "sha256": "d65996c87fbedc83bad927ec17b268f6d039e6318e6c4764f5e318016e2b1f52",
-    "caseCount": 33,
+    "sha256": "11a3190a036883a57244f2fec64c4473e62fe8a7b2d3e4a7e11461b6194f590d",
+    "caseCount": 39,
     "goVersion": "1.26.4"
   }
 }

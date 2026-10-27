@@ -16,8 +16,8 @@ public sealed class ValidationTests
     public void Corpus_ValidInvalidAndBoundaryCases_MatchIndependentPgvExpectations()
     {
         var results = ValidationCorpus.Evaluate(new Validator());
-        Assert.Equal(33, results.Length);
-        Assert.Equal(33, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(39, results.Length);
+        Assert.Equal(39, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
         foreach (var result in results)
         {
             Assert.True(result.ActualValid == result.ExpectedValid,
