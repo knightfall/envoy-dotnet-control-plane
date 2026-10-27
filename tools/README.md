@@ -51,7 +51,7 @@ After binding generation:
 dotnet run --project tools/Envoy.ControlPlane.Tools -- validation verify
 ```
 
-This checks materialized evaluator fingerprints, runs the validation suite and pinned Go oracle, packs the evaluator, then runs the full suite against fresh Annotations/Protocol/Validation packages. Validation stays explicit and optional. See [T03 evidence](../schemas/VALIDATION.md) for adaptations and remaining GV work.
+This checks materialized evaluator fingerprints and pinned conformance inputs, runs the validation suite and Go oracle, packs the evaluator, then repeats the full suite against fresh Annotations/Protocol/Validation packages. The suite includes 2,748 stable upstream conformance cases with seven explicit date-relative exclusions; the Envoy/Go PGV corpus is separate. Source hashes, generated fixture fingerprints, reports and licenses are retained. See [T26 progress](../docs/plan/T26-VALIDATION-CONFORMANCE.md) for current scope. Validation stays explicit and optional. See [T03 evidence](../schemas/VALIDATION.md) for adaptations and remaining GV work.
 
 The overlay writes `catalog.generation.pb` with upstream source comments for C#/gRPC generation and normalized `catalog.pb` for packaged contract comparison. Protocol and Annotations include generated XML documentation.
 

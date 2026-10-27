@@ -19,6 +19,7 @@ internal static class ValidationVerification
     internal static async Task VerifyInputsAsync()
     {
         VerifiedValidationSources.VerifyMaterialized();
+        ValidationConformance.VerifyOutputs();
         var bindingLock = JsonNode.Parse(File.ReadAllText(ValidationPaths.BindingsLock))!;
         Require(GetFileSha256(ValidationPaths.MetadataRoot + "/catalog.pb") == bindingLock["descriptorSetSha256"]!.GetValue<string>(),
             "Generate the locked validation metadata before verification");
@@ -39,6 +40,7 @@ internal static class ValidationVerification
 
     internal static async Task<int> CompareWithGoAsync()
     {
+        ValidationConformance.VerifyReport();
         var corpus = JsonNode.Parse(File.ReadAllText(ValidationPaths.SourcesLock))!["corpus"]!;
         const string report = "tests/Envoy.ControlPlane.Validation.Tests/bin/Release/net10.0/validation-corpus.json";
         var results = JsonNode.Parse(File.ReadAllText(report))!;

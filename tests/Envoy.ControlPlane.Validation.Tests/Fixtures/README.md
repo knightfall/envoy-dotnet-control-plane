@@ -1,0 +1,11 @@
+# Validation fixture provenance
+
+`pgv-cases.json` contains independently declared Envoy/Go PGV expectations. The maintained oracle validates the exact protobuf bytes produced from these inputs using the selected Go module. The corpus hash and Go toolchain are recorded in `schemas/validation/sources.lock.json`.
+
+The separate conformance check reuses the **35 unchanged Buf schemas and exported result set** bundled in TELUS ProtoValidate commit `88e9c909e82c569bba7d6d722dd5c6b76ba9e965`, under `tests/ProtoValidate.Conformance`. Source retrieval verifies the pinned archive, every selected file and imported schema, the exported binary and the generated C# set. [The conformance lock](../../../schemas/validation/conformance.lock.json) records hashes, counts and exclusions. Original source is available at [the pinned upstream tree](https://github.com/telus-labs/protovalidate-net/tree/88e9c909e82c569bba7d6d722dd5c6b76ba9e965/tests/ProtoValidate.Conformance).
+
+The fixtures retain their Buf/TELUS Apache-2.0 copyright notices. The original upstream license is copied alongside materialized test inputs and retained with the CI report. Only test inputs are reused; no NUnit, Grpc.Tools or second annotation provider is introduced. The ordinary pinned Buf CLI and official C# plugin generate test-only types, with authoritative shared annotation and Google.Protobuf ownership.
+
+Assertions use the exported `wanted` outcomes, rule IDs and full structured diagnostic field paths. Stored `got` values, historical success counts and expected-failure flags are ignored. Error text and violation ordering are not asserted. Every stable case runs, including expected compiler/runtime errors; an expected fault is never represented as successful message validation.
+
+Seven timestamp cases use dates relative to the original export time. Their exact identities and reasons are locked from the upstream loader's exclusions, and the report labels them **excluded**, not passed. The other **2,748 cases** must match. Timestamp rules are absent from the selected Envoy PGV inventory; these exclusions do not establish relative-clock conformance. Official fixture conformance and Envoy PGV migration equivalence remain separate gates.
