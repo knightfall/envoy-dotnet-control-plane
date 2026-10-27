@@ -20,7 +20,8 @@ internal static class ValidationCorpus
         {
             var result = validator.Validate(message, failFast: false);
             results.Add(new ValidationCaseResult(item.Id, item.Type, item.Valid,
-                result.IsSuccess, result.Violations.Count, Convert.ToBase64String(message.ToByteArray())));
+                item.GoValid ?? item.Valid, item.Difference, result.IsSuccess, result.Violations.Count,
+                Convert.ToBase64String(message.ToByteArray())));
         }
         return results.ToArray();
     }
@@ -52,7 +53,7 @@ internal static class ValidationCorpus
     }
 }
 
-internal sealed record ValidationCase(string Id, string Type, JsonElement Input, bool Valid);
+internal sealed record ValidationCase(string Id, string Type, JsonElement Input, bool Valid, bool? GoValid, string? Difference);
 
 internal sealed record ValidationCaseResult(
-    string Id, string Type, bool ExpectedValid, bool ActualValid, int Violations, string Data);
+    string Id, string Type, bool ExpectedValid, bool ExpectedGoValid, string? Difference, bool ActualValid, int Violations, string Data);

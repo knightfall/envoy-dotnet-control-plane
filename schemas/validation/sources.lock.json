@@ -244,8 +244,22 @@
   },
   "corpus": {
     "path": "tests/Envoy.ControlPlane.Validation.Tests/Fixtures/pgv-cases.json",
-    "sha256": "11a3190a036883a57244f2fec64c4473e62fe8a7b2d3e4a7e11461b6194f590d",
-    "caseCount": 39,
-    "goVersion": "1.26.4"
+    "sha256": "10fe016f14c5560884dbec2318c7b346145a1511aa197ac90fbc1e2392f6dea2",
+    "caseCount": 52,
+    "goVersion": "1.26.4",
+    "acceptedDifferences": [
+      {
+        "id": "nan-range-rejection",
+        "reason": "Protovalidate deliberately rejects NaN for floating-point range constraints; Go PGV comparison-based checks accept it. Approved as an intentional stricter outcome.",
+        "dotnetValid": false,
+        "goValid": true,
+        "cases": [
+          "percent-nan",
+          "fill-rate-nan",
+          "float-wrapper-nan",
+          "histogram-nan"
+        ]
+      }
+    ]
   }
 }

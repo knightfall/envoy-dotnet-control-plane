@@ -13,11 +13,11 @@ namespace Envoy.ControlPlane.Validation.Tests;
 public sealed class ValidationTests
 {
     [Fact]
-    public void Corpus_ValidInvalidAndBoundaryCases_MatchIndependentPgvExpectations()
+    public void Corpus_ValidInvalidAndBoundaryCases_MatchDeclaredOutcomes()
     {
         var results = ValidationCorpus.Evaluate(new Validator());
-        Assert.Equal(39, results.Length);
-        Assert.Equal(39, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(52, results.Length);
+        Assert.Equal(52, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
         foreach (var result in results)
         {
             Assert.True(result.ActualValid == result.ExpectedValid,
@@ -27,6 +27,16 @@ public sealed class ValidationTests
         string output = Path.Combine(AppContext.BaseDirectory, "validation-corpus.json");
         var report = new { Results = results };
         File.WriteAllText(output, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }) + "\n");
+    }
+
+    [Fact]
+    public void NaN_RangeViolation_IdentifiesFieldAndRule()
+    {
+        var result = new Validator().Validate(new Percent { Value = double.NaN }, failFast: false);
+        Assert.False(result.IsSuccess);
+        var violation = Assert.Single(result.Violations);
+        Assert.Equal("value", violation.Field.GetPath());
+        Assert.Equal("double.gte_lte", violation.RuleId);
     }
 
     [Fact]

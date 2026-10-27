@@ -13,7 +13,7 @@ internal static class ValidationVerification
         await PackageVerification.BuildPackageAsync();
         await PackageVerification.PackAsync(ValidationPaths.EvaluatorProject);
         await PackageVerification.VerifyCleanConsumerAsync(ValidationPaths.TestsProject, "validation-consumer");
-        Console.WriteLine($"Source-built ProtoValidate matched Go PGV for all {cases} declared cases; full T26/GV coverage remains separate.");
+        Console.WriteLine($"Verified {cases} cases against separate declared .NET and Go PGV outcomes, including locked accepted differences; full T26/GV coverage remains separate.");
     }
 
     internal static async Task VerifyInputsAsync()
@@ -49,18 +49,52 @@ internal static class ValidationVerification
             row!["ActualValid"]!.GetValue<bool>() == row["ExpectedValid"]!.GetValue<bool>()), "Source evaluator differs from the independent fixture contract");
         var fixtures = JsonNode.Parse(File.ReadAllText(corpus["path"]!.GetValue<string>()))!.AsArray()
             .ToDictionary(row => row!["id"]!.GetValue<string>(), StringComparer.Ordinal);
+        VerifyDeclaredDifferences(corpus, fixtures.Values.ToArray());
         Require(rows.Select(row => row!["Id"]!.GetValue<string>()).Order(StringComparer.Ordinal)
             .SequenceEqual(fixtures.Keys.Order(StringComparer.Ordinal)), "Source report omitted or duplicated a corpus case");
         foreach (var row in rows)
         {
             var fixture = fixtures[row!["Id"]!.GetValue<string>()]!;
+            bool expectedGo = fixture["goValid"]?.GetValue<bool>() ?? fixture["valid"]!.GetValue<bool>();
             Require(row["Type"]!.GetValue<string>() == fixture["type"]!.GetValue<string>()
-                && row["ExpectedValid"]!.GetValue<bool>() == fixture["valid"]!.GetValue<bool>(), "Source report changed the declared fixture contract");
+                && row["ExpectedValid"]!.GetValue<bool>() == fixture["valid"]!.GetValue<bool>()
+                && row["ExpectedGoValid"]!.GetValue<bool>() == expectedGo
+                && row["Difference"]?.GetValue<string>() == fixture["difference"]?.GetValue<string>(),
+                "Source report changed the declared fixture contract");
         }
         string oracle = Path.GetFullPath(BindingPaths.InputsDirectory + "/results/validation/go-results.json");
         Directory.CreateDirectory(Path.GetDirectoryName(oracle)!);
         await BuildProcess.RunAsync("go", ["run", "-mod=readonly", ".", Path.GetFullPath(report), oracle], "tests/validation/GoOracle");
 
         return rows.Count;
+    }
+
+    internal static void VerifyDeclaredDifferences(JsonNode corpus, IReadOnlyList<JsonNode?> fixtures)
+    {
+        var differences = corpus["acceptedDifferences"]!.AsArray()
+            .ToDictionary(item => item!["id"]!.GetValue<string>(), StringComparer.Ordinal);
+        foreach (var fixture in fixtures)
+        {
+            bool expected = fixture!["valid"]!.GetValue<bool>();
+            bool expectedGo = fixture["goValid"]?.GetValue<bool>() ?? expected;
+            string? differenceId = fixture["difference"]?.GetValue<string>();
+            if (expected == expectedGo)
+            {
+                Require(differenceId is null, "An equivalent case cannot declare an accepted difference");
+                continue;
+            }
+            Require(differenceId is not null && differences.ContainsKey(differenceId), "Unapproved validation difference");
+            var difference = differences[differenceId!];
+            Require(!string.IsNullOrWhiteSpace(difference!["reason"]?.GetValue<string>())
+                && difference["dotnetValid"]!.GetValue<bool>() == expected
+                && difference["goValid"]!.GetValue<bool>() == expectedGo, "Accepted difference changed its declared outcomes");
+        }
+        foreach (var (id, difference) in differences)
+        {
+            var actual = fixtures.Where(item => item!["difference"]?.GetValue<string>() == id)
+                .Select(item => item!["id"]!.GetValue<string>()).Order(StringComparer.Ordinal);
+            var declared = difference!["cases"]!.AsArray().Select(item => item!.GetValue<string>()).Order(StringComparer.Ordinal).ToArray();
+            Require(declared.Length > 0 && actual.SequenceEqual(declared), "Accepted difference case inventory changed");
+        }
     }
 }

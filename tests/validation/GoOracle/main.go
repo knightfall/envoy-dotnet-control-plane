@@ -7,7 +7,9 @@ import (
 	"os"
 
 	_ "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	_ "github.com/envoyproxy/go-control-plane/envoy/config/metrics/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
+	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/load_balancing_policies/client_side_weighted_round_robin/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -15,10 +17,11 @@ import (
 )
 
 type validationCase struct {
-	ID            string `json:"Id"`
-	Type          string `json:"Type"`
-	Data          string `json:"Data"`
-	ExpectedValid bool   `json:"ExpectedValid"`
+	ID              string `json:"Id"`
+	Type            string `json:"Type"`
+	Data            string `json:"Data"`
+	ExpectedValid   bool   `json:"ExpectedValid"`
+	ExpectedGoValid *bool  `json:"ExpectedGoValid"`
 }
 
 type result struct {
@@ -74,8 +77,12 @@ func run() error {
 			actual.Error = validationError.Error()
 		}
 		results = append(results, actual)
-		if actual.Valid != item.ExpectedValid {
-			return fmt.Errorf("%s: expected valid=%t, got valid=%t: %s", item.ID, item.ExpectedValid, actual.Valid, actual.Error)
+		expected := item.ExpectedValid
+		if item.ExpectedGoValid != nil {
+			expected = *item.ExpectedGoValid
+		}
+		if actual.Valid != expected {
+			return fmt.Errorf("%s: expected valid=%t, got valid=%t: %s", item.ID, expected, actual.Valid, actual.Error)
 		}
 	}
 	output, err := json.MarshalIndent(results, "", "  ")

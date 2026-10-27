@@ -380,5 +380,146 @@
       "ads": {}
     },
     "valid": true
+  },
+  {
+    "id": "percent-nan",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.type.v3.Percent",
+    "input": {
+      "value": "NaN"
+    },
+    "valid": false,
+    "goValid": true,
+    "difference": "nan-range-rejection"
+  },
+  {
+    "id": "percent-positive-infinity",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.type.v3.Percent",
+    "input": {
+      "value": "Infinity"
+    },
+    "valid": false
+  },
+  {
+    "id": "percent-negative-infinity",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.type.v3.Percent",
+    "input": {
+      "value": "-Infinity"
+    },
+    "valid": false
+  },
+  {
+    "id": "fill-rate-nan",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.core.v3.RateLimitSettings",
+    "input": {
+      "fillRate": "NaN"
+    },
+    "valid": false,
+    "goValid": true,
+    "difference": "nan-range-rejection"
+  },
+  {
+    "id": "fill-rate-zero",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.core.v3.RateLimitSettings",
+    "input": {
+      "fillRate": 0
+    },
+    "valid": false
+  },
+  {
+    "id": "fill-rate-positive",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.core.v3.RateLimitSettings",
+    "input": {
+      "fillRate": 1
+    },
+    "valid": true
+  },
+  {
+    "id": "fill-rate-positive-infinity",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.core.v3.RateLimitSettings",
+    "input": {
+      "fillRate": "Infinity"
+    },
+    "valid": true
+  },
+  {
+    "id": "float-wrapper-nan",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.extensions.load_balancing_policies.client_side_weighted_round_robin.v3.ClientSideWeightedRoundRobin",
+    "input": {
+      "errorUtilizationPenalty": "NaN"
+    },
+    "valid": false,
+    "goValid": true,
+    "difference": "nan-range-rejection"
+  },
+  {
+    "id": "float-wrapper-negative",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.extensions.load_balancing_policies.client_side_weighted_round_robin.v3.ClientSideWeightedRoundRobin",
+    "input": {
+      "errorUtilizationPenalty": -1
+    },
+    "valid": false
+  },
+  {
+    "id": "float-wrapper-positive-infinity",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.extensions.load_balancing_policies.client_side_weighted_round_robin.v3.ClientSideWeightedRoundRobin",
+    "input": {
+      "errorUtilizationPenalty": "Infinity"
+    },
+    "valid": true
+  },
+  {
+    "id": "histogram-nan",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.metrics.v3.HistogramBucketSettings",
+    "input": {
+      "match": {
+        "prefix": "x"
+      },
+      "buckets": [
+        "NaN"
+      ]
+    },
+    "valid": false,
+    "goValid": true,
+    "difference": "nan-range-rejection"
+  },
+  {
+    "id": "histogram-zero",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.metrics.v3.HistogramBucketSettings",
+    "input": {
+      "match": {
+        "prefix": "x"
+      },
+      "buckets": [
+        0
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "histogram-duplicate",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.metrics.v3.HistogramBucketSettings",
+    "input": {
+      "match": {
+        "prefix": "x"
+      },
+      "buckets": [
+        1,
+        1
+      ]
+    },
+    "valid": false
   }
 ]
