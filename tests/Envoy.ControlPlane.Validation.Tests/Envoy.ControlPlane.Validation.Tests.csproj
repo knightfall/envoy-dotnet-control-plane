@@ -24,5 +24,9 @@
     <Compile Include="obj/conformance/generated/**/*.cs" />
     <EmbeddedResource Include="obj/conformance/conformance.pbbin" LogicalName="Envoy.ControlPlane.Validation.Tests.Conformance.bin" />
     <EmbeddedResource Include="obj/conformance/conformance.lock.json" LogicalName="Envoy.ControlPlane.Validation.Tests.ConformanceManifest.json" />
+    <Compile Include="obj/pgv-conformance/generated/**/*.cs" />
+    <EmbeddedResource Include="obj/pgv-conformance/cases.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvUpstreamCases.json" />
+    <EmbeddedResource Include="obj/pgv-conformance/pgv-conformance.lock.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvUpstreamManifest.json" />
+    <EmbeddedResource Include="obj/pgv-conformance/rules.recognized.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvRecognizedRules.json" />
   </ItemGroup>
 </Project>

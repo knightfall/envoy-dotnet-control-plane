@@ -137,6 +137,8 @@ jobs:
             src/Envoy.ControlPlane.Protocol/bin/packages/
             src/Envoy.ControlPlane.Protocol/obj/validation/catalog.report.json
             tests/Envoy.ControlPlane.Validation.Tests/bin/Release/net10.0/validation-conformance.json
+            tests/Envoy.ControlPlane.Validation.Tests/bin/Release/net10.0/validation-pgv-conformance.json
+            tests/Envoy.ControlPlane.Validation.Tests/obj/pgv-conformance/LICENSE.upstream
             tests/Envoy.ControlPlane.Validation.Tests/obj/conformance/LICENSE.upstream
           if-no-files-found: warn
           retention-days: 14

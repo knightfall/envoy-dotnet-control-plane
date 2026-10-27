@@ -16,7 +16,9 @@ internal static class ConformanceCorpus
     internal static IReadOnlyList<FileDescriptor> Files { get; } = typeof(ResultSet).Assembly.GetTypes()
         .SelectMany(type => type.GetProperties(BindingFlags.Public | BindingFlags.Static))
         .Where(property => property.PropertyType == typeof(FileDescriptor))
-        .Select(property => (FileDescriptor)property.GetValue(null)!).OrderBy(file => file.Name, StringComparer.Ordinal).ToArray();
+        .Select(property => (FileDescriptor)property.GetValue(null)!)
+        .Where(file => file.Name.StartsWith("buf/validate/conformance/", StringComparison.Ordinal))
+        .OrderBy(file => file.Name, StringComparer.Ordinal).ToArray();
 
     internal static ConformanceReport Evaluate()
     {

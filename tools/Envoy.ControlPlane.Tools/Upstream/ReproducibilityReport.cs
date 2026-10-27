@@ -26,7 +26,7 @@ internal static class ReproducibilityReport
             var descriptors = Read(scratch);
             var inputs = new JsonObject();
             foreach (string path in new[] { "upstream-baseline.json", "schemas/upstream.lock.json", "schemas/catalog.json", "schemas/bindings.lock.json",
-                "schemas/validation/bindings.lock.json", "schemas/validation/sources.lock.json", "schemas/validation/conformance.lock.json", "schemas/validation/rules.recognized.json",
+                "schemas/validation/bindings.lock.json", "schemas/validation/sources.lock.json", "schemas/validation/conformance.lock.json", "schemas/validation/rules.recognized.json", "schemas/validation/pgv-conformance.lock.json",
                 "global.json", "tests/resources/envoy-images.lock.json" })
             {
                 inputs.Add(path, Read(path));
@@ -96,7 +96,10 @@ internal static class ReproducibilityReport
             if (!Directory.Exists(root)) continue;
             var files = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
                          .Where(file => extensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase)
-                             || file.EndsWith(".csproj.template", StringComparison.OrdinalIgnoreCase))
+                             || file.EndsWith(".csproj.template", StringComparison.OrdinalIgnoreCase)
+                             || file.EndsWith(".go.template", StringComparison.OrdinalIgnoreCase)
+                             || file.EndsWith(".mod.template", StringComparison.OrdinalIgnoreCase)
+                             || file.EndsWith(".sum.template", StringComparison.OrdinalIgnoreCase))
                          .Select(file => (SourcePath: file, RelativePath: Path.GetRelativePath(repository, file).Replace('\\', '/')))
                          .Where(file => !file.RelativePath.Split('/').Any(segment => segment is "bin" or "obj"))
                          .OrderBy(file => file.RelativePath, StringComparer.Ordinal);

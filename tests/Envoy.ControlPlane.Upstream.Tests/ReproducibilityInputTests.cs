@@ -15,7 +15,8 @@ public sealed class ReproducibilityInputTests
         string[] paths = ["src/Runtime.cs", "src/Runtime.csproj", "src/Directory.Build.props", "src/Build.targets",
             "src/NestedZ.cs", "src/Nested/Source.cs", "tests/Case.cs", "tests/resources/corpus.json",
             "tests/resources/GoOracle/main.go", "tests/resources/GoOracle/go.mod", "tests/resources/GoOracle/go.sum",
-            "tests/consumers/Core/Consumer.csproj.template", "tests/consumers/AspNetCore/Consumer.csproj.template",
+            "tests/validation/PgvConformance/main.go.template", "tests/validation/PgvConformance/go.mod.template",
+            "tests/validation/PgvConformance/go.sum.template", "tests/consumers/Core/Consumer.csproj.template", "tests/consumers/AspNetCore/Consumer.csproj.template",
             "tools/Tool.cs", "examples/Example.cs", ".github/workflows/check.yml", ".config/coverlet.mtp.appsettings.json"];
         foreach (string path in paths) Write(path, "first\r\nsecond\r\n");
         Write("src/obj/Generated.cs", "generated");

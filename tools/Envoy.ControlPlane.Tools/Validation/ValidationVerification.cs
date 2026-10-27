@@ -20,6 +20,7 @@ internal static class ValidationVerification
     {
         VerifiedValidationSources.VerifyMaterialized();
         ValidationConformance.VerifyOutputs();
+        PgvConformance.VerifyOutputs();
         await BuildProcess.RunAsync("dotnet", ["run", "--project", "tools/Envoy.ControlPlane.SchemaTools", "--configuration", "Release", "--no-restore",
             "--", "rules-check", BindingPaths.InputsDirectory + "/catalog.pb", "schemas/validation/rules.recognized.json"]);
         var bindingLock = JsonNode.Parse(File.ReadAllText(ValidationPaths.BindingsLock))!;
@@ -43,6 +44,7 @@ internal static class ValidationVerification
     internal static async Task<int> CompareWithGoAsync()
     {
         ValidationConformance.VerifyReport();
+        PgvConformance.VerifyReport();
         var corpus = JsonNode.Parse(File.ReadAllText(ValidationPaths.SourcesLock))!["corpus"]!;
         const string report = "tests/Envoy.ControlPlane.Validation.Tests/bin/Release/net10.0/validation-corpus.json";
         var results = JsonNode.Parse(File.ReadAllText(report))!;

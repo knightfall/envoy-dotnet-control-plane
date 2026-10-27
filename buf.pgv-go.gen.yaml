@@ -1,0 +1,14 @@
+version: v2
+managed:
+  enabled: false
+plugins:
+  - remote: buf.build/protocolbuffers/go:v1.36.12
+    revision: 1
+    out: tests/Envoy.ControlPlane.Validation.Tests/obj/pgv-conformance/go
+    opt:
+      - module=github.com/envoyproxy/protoc-gen-validate/tests
+  - remote: buf.build/bufbuild/validate-go:v1.3.3
+    revision: 1
+    out: tests/Envoy.ControlPlane.Validation.Tests/obj/pgv-conformance/go
+    opt:
+      - module=github.com/envoyproxy/protoc-gen-validate/tests

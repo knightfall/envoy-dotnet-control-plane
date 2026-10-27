@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "sourceId": "protoc-gen-validate",
+  "sourceCommit": "92b9a7df69ca9f71bfc492f7a90adf4d36eab569",
+  "executorPath": "tests/harness/executor/cases.go",
+  "executorSha256": "1985bbc6948721f26c02033fa5cc4194409c3512939918beff4e82bbe9831b53",
+  "schemas": [
+    {
+      "path": "tests/harness/cases/bool.proto",
+      "sha256": "732f376f8053e4cd4abb14bf966b80ef97499764c05b36b3732c16efef1d94e5"
+    },
+    {
+      "path": "tests/harness/cases/bytes.proto",
+      "sha256": "2b0b8dbbee88c55a6bed6ebf41e437690449fea28db40791005346248f70ceb5"
+    },
+    {
+      "path": "tests/harness/cases/enums.proto",
+      "sha256": "12628817d38ab0ea2beae41ae0c705a4dd08e199ca0f3311e8399dfab31482b6"
+    },
+    {
+      "path": "tests/harness/cases/filename-with-dash.proto",
+      "sha256": "dd3c039be19c9dcb032655ef2a2d8d51febbfcd76106be5095e1f5cab9ff9ff8"
+    },
+    {
+      "path": "tests/harness/cases/kitchen_sink.proto",
+      "sha256": "569774def7ef304fc3aa939b426be43ab3a15d876d3c00676a89e5d91d92ecd4"
+    },
+    {
+      "path": "tests/harness/cases/maps.proto",
+      "sha256": "15c2f5bb3aaa819875aff194cb4e0577087cb1bb83fc015cc09a7758889b389d"
+    },
+    {
+      "path": "tests/harness/cases/messages.proto",
+      "sha256": "c448230eab3f346f6ad49ae80a58ce1b1af181922fc800962808858703e7c845"
+    },
+    {
+      "path": "tests/harness/cases/numbers.proto",
+      "sha256": "d7b04aac73e21189b40595b6d4cd7642483153bed3a2abcea3237b6a9da587a7"
+    },
+    {
+      "path": "tests/harness/cases/oneofs.proto",
+      "sha256": "63dfea74559bf627aad081ac689317db944d02d6d567dace0f598994de1c8eb0"
+    },
+    {
+      "path": "tests/harness/cases/other_package/embed.proto",
+      "sha256": "c8cc127e745601ac2fbfcad38b13e8d6cedc4bd34cb71d1aec2216d21600881f"
+    },
+    {
+      "path": "tests/harness/cases/repeated.proto",
+      "sha256": "7679492d851942ece845e590f1cf263819e386cba27e83386ec42b15b2e28806"
+    },
+    {
+      "path": "tests/harness/cases/sort/sort.proto",
+      "sha256": "a4ca8c0d83e9c59edd32772cf03c8c47c6dc8ede477ba41de49fbb1d41778759"
+    },
+    {
+      "path": "tests/harness/cases/strings.proto",
+      "sha256": "76876a1b0fe5432a92075f507fd97ae69686573576c981f142a2e3479cff389a"
+    },
+    {
+      "path": "tests/harness/cases/subdirectory/in_subdirectory.proto",
+      "sha256": "b8b0cca7ee53e68b637744c64f55a958f38886b3c2a9eac09435b44d52d4cdc2"
+    },
+    {
+      "path": "tests/harness/cases/wkt_any.proto",
+      "sha256": "47f6a463a0893be11fa322ce849db263f7ab80a56855a2326dae4438595f9f5e"
+    },
+    {
+      "path": "tests/harness/cases/wkt_duration.proto",
+      "sha256": "09029baa523a06bbc67cc00092274f7608a5eaa81139a16de711d3658f3d4c6d"
+    },
+    {
+      "path": "tests/harness/cases/wkt_nested.proto",
+      "sha256": "284048f72f0355b7a11ce62245b3ebb0691d77a8d8752f8c317c354a65f1caf3"
+    },
+    {
+      "path": "tests/harness/cases/wkt_timestamp.proto",
+      "sha256": "903b36a21f1ad9eb10fdacb83a478b034dc3694c1679ccb1f121e656fbca4a8c"
+    },
+    {
+      "path": "tests/harness/cases/wkt_wrappers.proto",
+      "sha256": "546a655d87b90f356e11964943bfb6178449b2e9249d8d42da091f6fe8f9378e"
+    },
+    {
+      "path": "tests/harness/cases/yet_another_package/embed.proto",
+      "sha256": "98fb4a4b69bdd7ef111b3649a574fc0f2c3d40e1c3dc0705d49cb1b499c6da76"
+    }
+  ],
+  "goCaseCount": 1053,
+  "selectedCaseCount": 373,
+  "selectedIdsSha256": "dc713b7926b16e7921f9ef31e70e8b7d026b1070db5cecbf4ec702af606eab4a",
+  "generatedGoCount": 40,
+  "generatedGoSha256": "e99748de6c3318e92ace9b2a23b752a1c302aded79c240b2b850208c27ca259b",
+  "generatedCsharpCount": 20,
+  "generatedCsharpSha256": "a7bc1a174a7c45723c14dd849ececf2fed0b252c6dc49f386ca05fb5033b1da5",
+  "configurationSha256": {
+    "buf.pgv-go.gen.yaml": "29e89298038ce3a7c98db0e5a3a47686f5ac37406a9fa8db702e4a30d3afa6b0",
+    "buf.pgv-csharp.gen.yaml": "d6071efe72b4f283b60f0f9943822234cb9c5f8a8d7afbae549e184596d33930",
+    "tests/validation/PgvConformance/main.go.template": "cc2d5425692fa19bc97c594be41a7529c255d24df8de476154932f14f7be93de",
+    "tests/validation/PgvConformance/go.mod.template": "ef9429e03e88ebe4af0f870d6115295ba73fa91462d69425682dcdd3228d9468",
+    "tests/validation/PgvConformance/go.sum.template": "66523f25fbd2ae920e70b16c2cd76edb3b4bac670ab8a21dde9bd90b796da9d8"
+  },
+  "excludedFixtureMetadata": "The two migrated disabled-message options are removed only to compile fixtures outside the selected Envoy rule scope; cases using disabled or ignored message metadata are excluded before evaluation."
+}

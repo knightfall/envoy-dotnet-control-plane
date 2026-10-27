@@ -55,6 +55,7 @@ internal static class ValidationGeneration
         Require(PatchBindings.Run([BindingPaths.GeneratedDirectory, ValidationPaths.BindingsLock]) == 0,
             "Derived generated-code correction failed");
         VerifyOutputs();
+        await PgvConformance.GenerateAsync(cache, buf, tool);
     }
 
     internal static void VerifyOutputs()
