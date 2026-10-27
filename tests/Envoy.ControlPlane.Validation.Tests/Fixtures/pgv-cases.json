@@ -508,6 +508,20 @@
     "valid": false
   },
   {
+    "id": "histogram-positive",
+    "category": "repeated/double-gt",
+    "type": "envoy.config.metrics.v3.HistogramBucketSettings",
+    "input": {
+      "match": {
+        "prefix": "x"
+      },
+      "buckets": [
+        1
+      ]
+    },
+    "valid": true
+  },
+  {
     "id": "histogram-duplicate",
     "category": "floating-point/Go-PGV",
     "type": "envoy.config.metrics.v3.HistogramBucketSettings",
