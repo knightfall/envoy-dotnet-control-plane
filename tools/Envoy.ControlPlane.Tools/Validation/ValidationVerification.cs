@@ -20,6 +20,8 @@ internal static class ValidationVerification
     {
         VerifiedValidationSources.VerifyMaterialized();
         ValidationConformance.VerifyOutputs();
+        await BuildProcess.RunAsync("dotnet", ["run", "--project", "tools/Envoy.ControlPlane.SchemaTools", "--configuration", "Release", "--no-restore",
+            "--", "rules-check", BindingPaths.InputsDirectory + "/catalog.pb", "schemas/validation/rules.recognized.json"]);
         var bindingLock = JsonNode.Parse(File.ReadAllText(ValidationPaths.BindingsLock))!;
         Require(GetFileSha256(ValidationPaths.MetadataRoot + "/catalog.pb") == bindingLock["descriptorSetSha256"]!.GetValue<string>(),
             "Generate the locked validation metadata before verification");

@@ -26,7 +26,7 @@ internal static class ReproducibilityReport
             var descriptors = Read(scratch);
             var inputs = new JsonObject();
             foreach (string path in new[] { "upstream-baseline.json", "schemas/upstream.lock.json", "schemas/catalog.json", "schemas/bindings.lock.json",
-                "schemas/validation/bindings.lock.json", "schemas/validation/sources.lock.json", "schemas/validation/conformance.lock.json",
+                "schemas/validation/bindings.lock.json", "schemas/validation/sources.lock.json", "schemas/validation/conformance.lock.json", "schemas/validation/rules.recognized.json",
                 "global.json", "tests/resources/envoy-images.lock.json" })
             {
                 inputs.Add(path, Read(path));
