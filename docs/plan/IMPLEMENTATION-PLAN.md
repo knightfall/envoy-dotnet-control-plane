@@ -420,7 +420,7 @@ Subtasks:
 
 ### T24 — Complete packaging, CI, and upstream-update tooling
 
-Preview implementation and update-report scope: [T24 preview readiness](T24-PREVIEW-READINESS.md). Full root coverage and T26/GV remain separate.
+Preview implementation and update-report scope: [T24 preview readiness](T24-PREVIEW-READINESS.md). The [T24 root readiness](T24-ROOT-READINESS.md) deliverable records runtime/test/example/workflow/corpus inputs and conservatively selects the complete current root verification plan, preserving exact rule deltas and the separate T26/GV denial.
 
 **Scope:** preview subset then 1.0 / R25. **Depends on for completion:** T23. **Outputs:** package/regeneration/update scripts, CI jobs, clean-consumer and compatibility manifests.
 

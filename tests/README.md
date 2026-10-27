@@ -191,3 +191,7 @@ Repository verification executes V05–V27 through 16 actual Go modes / 260 case
 ## Root released-Envoy verification
 
 [T23 root evidence](../docs/plan/T23-ROOT-ENVOY.md) extends envoy verify to 35 checks: retained twenty SotW checks, nine actual Delta/ADS checks and six explicit Delta TTL checks. CI runs the same immutable Envoy 1.40.1/SDK images on Linux amd64 and arm64. Delta verifies four-family traffic/admin state, removal/re-addition and reconnect initial versions. The TTL producer is test-only and uses existing passthrough envelopes; it adds no automatic Delta scheduler. The default proxy's SotW CDS heartbeat incompatibility is recorded as a limitation. Eight additional offline report-verifier cases bring solution discovery to 482, with actual proxy/CI results reported separately.
+
+## Root update-report verification
+
+[T24 root readiness](../docs/plan/T24-ROOT-READINESS.md) adds two focused cases for exact authored-input/corpus/workflow fingerprints and conservative full-root verification selection. It covers build-output exclusion, normalized path/LF identity, real source changes, all sixteen current Go/.NET groups, explicit commands and the distinction between selection and passing evidence. Existing rule deltas/original metadata, package graph and notice tests remain authoritative. Solution discovery is 484 (tooling/provenance 79); validation acceptance remains false until T26/GV.
