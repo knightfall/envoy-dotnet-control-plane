@@ -49,7 +49,7 @@
         "resolved": "7.0.0",
         "contentHash": "sFbY65N/5GdsHx7nkdHFHUG+5Ar4W0w6Aks7Y2X+Q4NOTw6XyX2Il7jm+4tPkc//4mA3nG0RdxI8gKgoJitdLw=="
       },
-      "envoy.controlplane.validation.annotations": {
+      "Knightfall.Envoy.ControlPlane.Validation.Annotations": {
         "type": "Project",
         "dependencies": {
           "Google.Protobuf": "[3.35.1, )"

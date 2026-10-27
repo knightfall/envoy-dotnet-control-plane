@@ -1,5 +1,7 @@
 # Envoy.ControlPlane.AspNetCore
 
+NuGet candidate: `Knightfall.Envoy.ControlPlane.AspNetCore` 1.0.0-rc.1 (root candidate). The assembly remains `Envoy.ControlPlane.AspNetCore`.
+
 Hosts the Core SotW and Delta engines through the authoritative generated gRPC contracts and Kestrel. ADS and CDS, EDS, LDS, RDS, SRDS, SDS, RTDS and ECDS support both streaming modes. VHDS and LEDS add their Delta-only RPCs. The eight standard services also support unary Fetch. Rate-limit configuration supports dedicated SotW `StreamRlsConfigs` and unary `FetchRlsConfigs`, with no dedicated Delta RPC. The HTTP gateway is opt-in.
 
 ```csharp

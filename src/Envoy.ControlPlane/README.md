@@ -1,5 +1,7 @@
 # Envoy.ControlPlane Core
 
+NuGet candidate: `Knightfall.Envoy.ControlPlane` 1.0.0-rc.1 (root candidate). The assembly remains `Envoy.ControlPlane`.
+
 Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watches, SotW/Delta SnapshotCache responses, subscription state and transport-independent stream processing with optional ordered SotW ADS. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. The separate ASP.NET Core package supplies ten SotW, eleven Delta and nine unary Fetch service methods. Explicit caller-owned SotW heartbeat scheduling is available.
 
 ```csharp

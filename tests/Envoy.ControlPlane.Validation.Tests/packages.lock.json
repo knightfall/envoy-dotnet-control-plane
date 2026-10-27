@@ -230,23 +230,23 @@
           "xunit.v3.runner.common": "[4.0.2]"
         }
       },
-      "envoy.controlplane.protocol": {
+      "Knightfall.Envoy.ControlPlane.Protocol": {
         "type": "Project",
         "dependencies": {
-          "Envoy.ControlPlane.Validation.Annotations": "[0.1.0-t03, )",
           "Google.Protobuf": "[3.35.1, )",
-          "Grpc.Core.Api": "[2.84.0, )"
+          "Grpc.Core.Api": "[2.84.0, )",
+          "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.1, )"
         }
       },
-      "envoy.controlplane.validation": {
+      "Knightfall.Envoy.ControlPlane.Validation": {
         "type": "Project",
         "dependencies": {
           "Cel": "[0.3.3, )",
-          "Envoy.ControlPlane.Validation.Annotations": "[0.1.0-t03, )",
+          "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.1, )",
           "Microsoft.Extensions.Options": "[8.0.2, )"
         }
       },
-      "envoy.controlplane.validation.annotations": {
+      "Knightfall.Envoy.ControlPlane.Validation.Annotations": {
         "type": "Project",
         "dependencies": {
           "Google.Protobuf": "[3.35.1, )"

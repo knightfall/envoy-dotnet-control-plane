@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <PackageId>Knightfall.Envoy.ControlPlane.AspNetCore</PackageId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Description>ASP.NET Core gRPC hosting for the Envoy.ControlPlane SotW engine.</Description>
+    <Description>ASP.NET Core hosting for Envoy SotW/Delta discovery, unary Fetch and an optional HTTP gateway.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Envoy.ControlPlane/Envoy.ControlPlane.csproj" />

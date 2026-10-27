@@ -3,8 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>14.0</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageId>Envoy.ControlPlane.Protocol</PackageId>
-    <Version>0.1.0-t03</Version>
+    <PackageId>Knightfall.Envoy.ControlPlane.Protocol</PackageId>
     <Description>Candidate generated bindings for the pinned Envoy control-plane schema catalog.</Description>
     <Authors>knightfall</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

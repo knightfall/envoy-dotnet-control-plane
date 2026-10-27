@@ -1,6 +1,6 @@
 # Root 1.0 compatibility report
 
-**Status: T25 release preparation in progress, 27 October 2026.** This report reconciles the implemented root surface at merged commit `4f58a9d576979564afa9b435839c9d21cb5e368a`. It is not an immutable T25 candidate pass. Package identity, candidate packaging and exact-head CI/automatic PR review remain pending in the [release checklist](../releases/root-1.0.md). **Validation not included:** full optional-validator T26/GV acceptance is incomplete.
+**Status: T25 release preparation in progress, 27 October 2026.** This report reconciles the implemented root surface at merged commit `4f58a9d576979564afa9b435839c9d21cb5e368a`. It is not an immutable T25 candidate pass. Package identity is resolved as `Knightfall.Envoy.ControlPlane.*`, preserving CLR/protobuf names. Local candidate packaging/consumption passed; exact-head CI/automatic PR review remain pending in the [release checklist](../releases/root-1.0.md). **Validation not included:** full optional-validator T26/GV acceptance is incomplete.
 
 The scope is the selected v3 root library, not every service or submodule in the source repository. The [parity matrix](../plan/PARITY-MATRIX.md) and [traceability catalog](../plan/TRACEABILITY.md) define the requirements. The earlier [SotW preview manifest](../preview/compatibility.json) is historical evidence for a smaller surface.
 
@@ -74,7 +74,7 @@ The opt-in HTTP gateway maps `/v3/discovery:endpoints`, `clusters`, `listeners`,
 | R21–R22: hosting, source comparison, resilience/proxy | Implemented in the advertised matrix. [T21](../plan/T21-ROOT-DIFFERENTIAL.md), [T22](../plan/T22-ROOT-LIFECYCLE.md), [T23](../plan/T23-ROOT-ENVOY.md). Source/native/HTTP2/proxy proof remains distinct. |
 | R23: bounded validator feasibility | Implemented as T03 research: 33 Go PGV cases, preserved metadata and source-built candidate. This is not GV. |
 | R24: optional semantic validator | Incomplete T26/GV. Outside the root release candidate; unsupported and unevaluated rules remain exposed. |
-| R25: packaging/CI/updates/docs | T24 implemented; [T25 checklist](../releases/root-1.0.md) still requires candidate identity, concrete packages and exact-head verification/review. |
+| R25: packaging/CI/updates/docs | T24 implemented; [T25 checklist](../releases/root-1.0.md) records the selected package identity, locally verified packages and pending exact-head CI/review. |
 | R26: standalone matcher / broader contrib and legacy catalogs | Deferred T27/T28; explicit scope decision required. No v2 runtime or whole-repository parity claim. |
 
 ## Released Envoy matrix and operational limits
@@ -119,3 +119,11 @@ dotnet run --project tools/Envoy.ControlPlane.Tools -- envoy verify
 ```
 
 Retain the generated fingerprints, packages, consumer locks and reports. Linux/macOS/Windows CI establishes its own native/package results; the proxy workflow establishes Linux amd64/arm64 results. Exact-head automatic Codex PR review is the review gate. The [release checklist](../releases/root-1.0.md) must record the candidate's observed results and outstanding items before claiming G5 or closing T25. Source provenance/binding proof remains G0/G1, implemented root coverage G3, tested interop/lifecycle G4, final package/docs/API readiness G5, and optional conformance GV. Candidate preparation alone authorizes neither NuGet publication nor a GitHub release.
+
+## T25 candidate execution
+
+Local macOS arm64 verification of the candidate working tree passed after the owner selected `Knightfall.Envoy.ControlPlane.*`. The four root packages use `1.0.0-rc.1`; the separate experimental evaluator uses `0.1.0-t03`. Package contents verify exact NuGet IDs/versions while retaining the original Envoy.ControlPlane assembly filenames, XML documentation, symbols and notices. Clean executable consumers load those original assembly identities from the newly named packages and enforce exact dependency/shared-framework ownership. External locked dependencies are unchanged.
+
+`repository verify` passed **484 solution tests / 0 failed / 0 skipped**, all sixteen Go modes / 260 root cases, fifteen semantic corruptions plus both nonce negatives, five package/symbol pairs, fresh suites **14/18/264/109**, both executable graphs and original/derived fingerprint/reproducibility checks. Compiler and Roslynator reported zero warnings/errors; packing retained the three existing notices for non-packable executable projects. The bounded 33 PGV cases also matched, without establishing GV. Reports are under Protocol's `obj/upstream/results/`.
+
+This local run tested uncommitted candidate changes; its reproducibility snapshot deliberately reports the prior commit and `workingTreeDirty: true`. It is supporting evidence, not an exact-commit release pass. [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72) must establish the committed candidate's platform/proxy checks and automatic Codex review before merge. No NuGet package, tag or GitHub release has been published.

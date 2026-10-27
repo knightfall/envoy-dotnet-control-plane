@@ -4,7 +4,17 @@ T25 prepares a concrete root candidate and its review evidence. Publication need
 
 ## Candidate identity and version
 
-The intended four candidate assemblies are Protocol, Validation.Annotations, Core and ASP.NET Core, all targeting net10.0 at proposed package version `1.0.0-rc.1`. Their current development IDs/versions remain in project metadata until the owner chooses the final package identity. Public NuGet already contains `Envoy.ControlPlane`; package-ID ownership must be resolved rather than inferred from a repository name or an absent search result. Changing NuGet IDs must preserve existing C# namespaces, assembly names and protobuf identities. The source-built optional evaluator retains its experimental version and is not promoted with the root graph.
+The owner selected the `Knightfall.Envoy.ControlPlane` NuGet family. Assembly names, C# namespaces and protobuf identities retain their existing names. All packages target net10.0.
+
+| Package ID | Version | Release scope |
+|---|---|---|
+| Knightfall.Envoy.ControlPlane.Protocol | 1.0.0-rc.1 | Root candidate |
+| Knightfall.Envoy.ControlPlane.Validation.Annotations | 1.0.0-rc.1 | Root candidate, annotations only |
+| Knightfall.Envoy.ControlPlane | 1.0.0-rc.1 | Root candidate |
+| Knightfall.Envoy.ControlPlane.AspNetCore | 1.0.0-rc.1 | Root candidate |
+| Knightfall.Envoy.ControlPlane.Validation | 0.1.0-t03 | Experimental research; excluded from root candidate |
+
+The distinct prefix avoids reusing the existing public `Envoy.ControlPlane` ID. Choosing a name does not reserve it or prove publishing rights. Confirm final repository branding/visibility and publishing rights through the separate publication checklist below. Package-content and executable consumer checks verify new IDs/versions with unchanged assembly names and dependency ownership.
 
 ## Candidate release notes
 
@@ -18,9 +28,9 @@ Known limits include stable caller-owned messages, source SnapshotCache prefix/r
 
 - [x] Reconcile the implemented service/cache/helper matrix, necessary C# adaptations and optional validation boundary in the root compatibility report.
 - [x] Record public API defaults, ownership, cancellation, error and migration contracts with links to their implementation/evidence.
-- [ ] Resolve NuGet identities and ownership with the repository owner; set four coherent root candidate package versions without changing assembly/protobuf identities.
-- [ ] Build/pack the concrete candidate, inspect symbols/docs/notices/dependency ownership and run clean package-consumer suites and both executable graphs.
-- [ ] Verify unchanged binding/descriptor fingerprints and run the required source/native/lifecycle/update checks against the candidate.
+- [x] Select the owner-approved NuGet prefix and set four coherent root candidate package versions without changing assembly/protobuf identities. Confirm actual publishing rights only before authorized publication.
+- [x] Locally build/pack the concrete candidate, inspect IDs/versions/retained assemblies/symbols/docs/notices/dependency ownership, and run fresh package-consumer suites and both executable graphs. Exact committed-head CI remains below.
+- [x] Locally verify unchanged binding/descriptor fingerprints and run required source/native/lifecycle/update checks against the candidate working tree; retain its dirty-tree status accurately.
 - [ ] Record current-head Linux/macOS/Windows and Linux amd64/arm64 proxy results; retain artifacts and list any unexecuted scenarios.
 - [ ] Address automatic Codex PR findings, confirm all current-head CI/review gates and record the immutable verified head and merge commit.
 - [ ] Close T25 only after its engineering acceptance is supported by that evidence. Keep T26/GV separate.

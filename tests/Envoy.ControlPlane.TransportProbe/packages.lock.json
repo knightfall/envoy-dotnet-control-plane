@@ -25,15 +25,15 @@
           "Grpc.Core.Api": "2.84.0"
         }
       },
-      "envoy.controlplane.protocol": {
+      "Knightfall.Envoy.ControlPlane.Protocol": {
         "type": "Project",
         "dependencies": {
-          "Envoy.ControlPlane.Validation.Annotations": "[0.1.0-t03, )",
           "Google.Protobuf": "[3.35.1, )",
-          "Grpc.Core.Api": "[2.84.0, )"
+          "Grpc.Core.Api": "[2.84.0, )",
+          "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.1, )"
         }
       },
-      "envoy.controlplane.validation.annotations": {
+      "Knightfall.Envoy.ControlPlane.Validation.Annotations": {
         "type": "Project",
         "dependencies": {
           "Google.Protobuf": "[3.35.1, )"
