@@ -12,28 +12,34 @@ internal static class PackageContentsVerification
     {
         var versions = XDocument.Load("Directory.Packages.props").Descendants("PackageVersion")
             .ToDictionary(item => item.Attribute("Include")!.Value, item => item.Attribute("Version")!.Value, StringComparer.Ordinal);
-        string[] packages = ["Envoy.ControlPlane", "Envoy.ControlPlane.AspNetCore", "Envoy.ControlPlane.Protocol",
+        string[] assemblies = ["Envoy.ControlPlane", "Envoy.ControlPlane.AspNetCore", "Envoy.ControlPlane.Protocol",
             "Envoy.ControlPlane.Validation.Annotations", "Envoy.ControlPlane.Validation"];
-        foreach (string package in packages)
+        foreach (string assembly in assemblies)
         {
-            string path = Path.Combine(BindingPaths.PackageDirectory, package + "." + versions[package]);
+            string packageId = "Knightfall." + assembly;
+            string version = versions[packageId];
+            string path = Path.Combine(BindingPaths.PackageDirectory, packageId + "." + version);
             using var archive = ZipFile.OpenRead(path + ".nupkg");
-            foreach (string file in new[] { $"lib/net10.0/{package}.dll", "README.md", "licenses/LICENSE" })
+            foreach (string file in new[] { $"lib/net10.0/{assembly}.dll", "README.md", "licenses/LICENSE" })
             {
-                Require(archive.GetEntry(file) is not null, "Missing package content: " + package + "/" + file);
+                Require(archive.GetEntry(file) is not null, "Missing package content: " + packageId + "/" + file);
             }
             // The fingerprinted evaluator source retains its upstream documentation policy.
-            if (package != "Envoy.ControlPlane.Validation")
+            if (assembly != "Envoy.ControlPlane.Validation")
             {
-                Require(archive.GetEntry($"lib/net10.0/{package}.xml") is not null, "Missing XML documentation: " + package);
+                Require(archive.GetEntry($"lib/net10.0/{assembly}.xml") is not null, "Missing XML documentation: " + packageId);
             }
             using var manifest = archive.Entries.Single(entry => entry.FullName.EndsWith(".nuspec", StringComparison.Ordinal)).Open();
             var metadata = XDocument.Load(manifest);
+            Require(metadata.Descendants().Single(element => element.Name.LocalName == "id").Value == packageId,
+                "Unexpected package identity: " + packageId);
+            Require(metadata.Descendants().Single(element => element.Name.LocalName == "version").Value == version,
+                "Unexpected package version: " + packageId);
             Require(metadata.Descendants().Single(element => element.Name.LocalName == "license").Value == "Apache-2.0",
-                "Unexpected package license: " + package);
-            VerifyNotices(archive, package);
+                "Unexpected package license: " + packageId);
+            VerifyNotices(archive, assembly);
             using var symbols = ZipFile.OpenRead(path + ".snupkg");
-            Require(symbols.GetEntry($"lib/net10.0/{package}.pdb") is not null, "Missing portable symbols: " + package);
+            Require(symbols.GetEntry($"lib/net10.0/{assembly}.pdb") is not null, "Missing portable symbols: " + packageId);
         }
         Console.WriteLine("All five package archives contain their assembly, readme, exact locked notices and separate symbols; authored/generated contracts include XML documentation.");
     }

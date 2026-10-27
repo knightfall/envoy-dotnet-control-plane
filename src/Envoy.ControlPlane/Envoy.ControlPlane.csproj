@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <PackageId>Knightfall.Envoy.ControlPlane</PackageId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Description>Envoy control-plane resources, snapshots, SotW caches, subscriptions, stream processing and callbacks.</Description>
+    <Description>Envoy control-plane snapshots, SotW/Delta caches and streams, Fetch, client and resource helpers.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Envoy.ControlPlane.Protocol/Envoy.ControlPlane.Protocol.csproj" />

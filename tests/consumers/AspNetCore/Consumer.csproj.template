@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Envoy.ControlPlane.AspNetCore" />
+    <PackageReference Include="Knightfall.Envoy.ControlPlane.AspNetCore" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
   </ItemGroup>
 </Project>

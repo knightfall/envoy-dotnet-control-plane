@@ -1,6 +1,8 @@
 # Envoy.ControlPlane Core
 
-Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watches, SotW/Delta SnapshotCache responses, subscription state and transport-independent stream processing with optional ordered SotW ADS. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. The separate ASP.NET Core package supplies the nine SotW and eleven Delta service adapters. Explicit SotW heartbeat scheduling is available.
+NuGet candidate: `Knightfall.Envoy.ControlPlane` 1.0.0-rc.1 (root candidate). The assembly remains `Envoy.ControlPlane`.
+
+Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watches, SotW/Delta SnapshotCache responses, subscription state and transport-independent stream processing with optional ordered SotW ADS. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. The separate ASP.NET Core package supplies ten SotW, eleven Delta and nine unary Fetch service methods. Explicit caller-owned SotW heartbeat scheduling is available.
 
 ```csharp
 using Envoy.Config.Listener.V3;
@@ -56,7 +58,7 @@ The server carries Node values, preserves callback order, replaces one-shot watc
 
 Call and host cancellation stop the owned input and release watches; inputs, writers and hooks must cooperate with cancellation. Close runs once, including after rejected open. EOF/receive errors end normally. Protocol failures use `SotwProtocolException`; ordinary operation failures retain their original exceptions. Ordered main-queue response failures use `Unavailable` with the original exception retained as the inner cause; failures while draining retain their original exception, matching the source. Multiple processing/cleanup failures are aggregated with the processing error first. No discovery endpoint is registered by Core; see the repository T09/T10 evidence for acceptance and hosting boundaries.
 
-`WellKnownFilterNames` supplies the HCM and router labels used by the preview HTTP graph. Extension identity comes from the typed-config protobuf URL. The upstream well-known-name package is deprecated; this preview exposes only those two useful labels. Continue using generated descriptors/`Any` for typed extensions. The sample constructs its graph from the existing name/type/reference helpers; full message/Struct conversion remains later work.
+`WellKnownFilterNames` retains the HCM and router aliases used by the original preview HTTP graph. `WellKnownNames` now supplies the complete selected conventional-name inventory; see the conversion/helper section below. Extension identity comes from the typed-config protobuf URL. The upstream well-known-name package is deprecated. Continue using generated descriptors/`Any` for typed extensions.
 
 `DeltaSubscription` supplies stream-owned incremental exact/prefix/wildcard and returned-version state. Construct it once for a new type with initial resource versions; later `UpdateResourceSubscriptions` calls apply additions before removals without re-seeding. `SetReturnedResources` replaces owned metadata. Read-only collection/dictionary inputs fit generated requests and preserve caller ownership. Legacy unsubscribe-only behavior, wildcard/name removal markers and prefix metadata retention match the pinned source. `DeltaServer` now owns initialization and updates; these primitives do not register an endpoint. See `docs/plan/T13-DELTA-SUBSCRIPTIONS.md` for source traces and initialization boundaries.
 
@@ -82,7 +84,7 @@ Both watch methods implement the existing channel-primary `IConfigWatcher` contr
 
 `SnapshotCache.RunHeartbeatsAsync(interval, ResponseContext)` runs a caller-owned `PeriodicTimer` using the cache's TimeProvider. Start one loop for the cache, cancel its context and await the task during shutdown. The timer is disposed and the cache remains usable. The loop is opt-in, and runtime Core adds no timer/hosting package dependency.
 
-Heartbeats select pending SotW wildcard/exact TTL resources, retaining versions/returned metadata while omitting payloads and their serialization. A successful send releases the one-shot watch. Prefix-only selection and automatic Delta heartbeats are omitted at the pinned source revision; raw Delta TTL remains omitted, while prebuilt pass-through Delta envelopes retain caller fields. No cache-side expiry/deletion occurs. See `docs/plan/T17-TTL-HEARTBEATS.md` for lifecycle, interval constraints and source/native evidence; live TTL acceptance remains a separate proxy gate.
+Heartbeats select pending SotW wildcard/exact TTL resources, retaining versions/returned metadata while omitting payloads and their serialization. A successful send releases the one-shot watch. Prefix-only selection and automatic Delta heartbeats are omitted at the pinned source revision; raw Delta TTL remains omitted, while prebuilt pass-through Delta envelopes retain caller fields. No cache-side expiry/deletion occurs. See `docs/plan/T17-TTL-HEARTBEATS.md` for lifecycle, interval constraints and source/native evidence. `docs/plan/T23-ROOT-ENVOY.md` records explicit caller-supplied Delta TTL refresh/expiry and the default released Envoy SotW CDS heartbeat limitation; the built-in SotW loop is not advertised as interoperable for that configuration.
 
 ## Fetch
 

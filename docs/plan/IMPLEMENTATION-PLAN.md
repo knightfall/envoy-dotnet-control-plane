@@ -435,6 +435,8 @@ Subtasks:
 
 ### T25 — Review scope and prepare the 1.0 release
 
+Release preparation is implemented in [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72), with exact-head CI and automatic review results recorded in that PR. The [root report](../compatibility/root-1.0.md), [public API contracts](../public-api.md), [usage/migration](../usage.md) and [release checklist](../releases/root-1.0.md) record the selected Knightfall package family, locally verified 1.0.0-rc.1 root candidates, retained CLR/protobuf identities and separate T26/GV boundary. No publication is authorized.
+
 **Scope:** 1.0 / R01, R22, R25. **Depends on:** T12, T24. **Outputs:** final API review, usage/migration docs, compatibility report, release checklist and candidate packages.
 
 Subtasks:

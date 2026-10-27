@@ -1,88 +1,64 @@
-# .NET control plane — architecture and implementation plan
+# .NET Envoy control plane
 
-Status: **T01–T11 and tooling migration merged; preview helpers, differential/lifecycle verification, released-Envoy proof and package/update tooling merged; T12 preview acceptance merged; T13–T14 Delta subscriptions/cache/streams/hosting implemented; T15 LinearCache, T16 MuxCache, T17 SotW heartbeats, T18 Fetch/HTTP gateway, T19 focused SotW ADS client, T20 complete helpers, T21 root differential matrix, T22 root lifecycle, T23 root proxy harness and T24 root package/update tooling implemented**, updated 27 October 2026. This repository is building a standalone .NET library with behavioral parity for the maintained v3 root library in go-control-plane. The [T03 evidence](schemas/VALIDATION.md) describes separate annotation ownership, a pinned evaluator source build and 33 Go PGV comparison cases. The bounded source arrangement is recorded in merged PR #35; full optional-validator conformance remains T26/GV work. [T05](docs/plan/T05-RESOURCES-AND-SNAPSHOTS.md) adds resource entries, partial snapshots, explicit EDS/RDS consistency checks and lazy Delta versions. [T06](docs/plan/T06-WATCHES.md) adds one-shot watch completion/cancellation and custom watcher/response contracts. [T07](docs/plan/T07-SNAPSHOT-CACHE.md) adds the SotW SnapshotCache, node hashing, live status and lazy normal responses. [T08](docs/plan/T08-SOTW-SUBSCRIPTIONS.md) adds source-equivalent SotW subscriptions and legacy-wildcard settings. [T09](docs/plan/T09-SOTW-STREAM-ENGINE.md) adds the transport-independent SotW loop and callbacks. [T10](docs/plan/T10-ORDERED-ADS.md) adds channel-based SotW delivery and optional ordered ADS independently of cache readiness. [T11](docs/plan/T11-ASP-NET-HOST.md) adds the nine preview SotW service adapters, ordinary hosting registration/endpoint APIs and actual HTTP/2 tests. Core Delta cache/stream processing and all eleven Delta gRPC adapters are implemented; SnapshotCache polling, all nine unary Fetch methods, rate-limit SotW streaming and the opt-in eight-route HTTP gateway are implemented; see [T18 evidence](docs/plan/T18-FETCH-GATEWAY.md). Explicit SotW heartbeat scheduling is implemented. T14 evidence is documented below. [T23](docs/plan/T23-PREVIEW-ENVOY.md) records the released-Envoy preview graph proof separately from broader interoperability.
+A .NET library for building xDS management servers, with behavioral parity for the selected v3 root-library surface of Envoy's Go control plane. Applications supply configuration and own rollout policy, persistence and authentication. The library supplies caches, subscriptions, protocol engines, generated messages and ASP.NET Core transports.
 
-**Feature availability stops at Go parity.** Match the selected upstream behavior and defaults with the smallest suitable .NET implementation. The scope covers root-library v3 behavior and optional schema validation. Preserve upstream validation annotations from the first binding release, assess validation feasibility before freezing the bindings, and gate validation claims separately. Use idiomatic C# APIs and coordination to preserve observable behavior, rather than copying Go's implementation structure. The stable-resource convention remains; matcher and broader catalogs remain deferred.
+The selected root implementation and T25 candidate preparation are implemented in [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72), which records exact-head CI and automatic review. **T26 optional-validator conformance remains separate. No package publication is authorized by the current work.** Read the [root compatibility report](docs/compatibility/root-1.0.md) for the exact implemented scope, source pins, observed evidence and remaining release gates. The [SotW preview report](docs/preview/README.md) records the earlier, narrower milestone.
 
-The remote behavior reference is recorded in [the baseline](upstream-baseline.json). Its reviewed commit is **67c5345367582741334e34ffc66a561b0ce32946**; the Envoy schema source is **82a4424f760b6ba3ffc9f2911389d061656f35c8**. See the [baseline](upstream-baseline.json), [source lock](schemas/upstream.lock.json), [catalog](schemas/catalog.json), and [T01 provenance evidence](schemas/PROVENANCE.md). Retrieval and inspection use the [project-based repository CLI](tools/README.md).
+## What is implemented
 
-The [T02 binding proof](schemas/BINDINGS.md) uses **Buf CLI**, pinned official C#/gRPC plugins and unchanged upstream schemas. T03 adds an explicit derived validation-metadata layer while retaining original PGV options. Protocol targets **net10.0**. Its three generated C# naming corrections and exact compatibility evidence are documented there. The `bindings` command runs the repeatable generation, pack and clean-consumer proof. The `validation` command verifies the optional source evaluator and Go comparisons. The [command map](tools/README.md) explains the generation phases and pins.
+- SnapshotCache, LinearCache and MuxCache; stable resource snapshots, explicit reference consistency, status and one-shot channel-based watches.
+- SotW and Delta, separate services and ADS, optional ordered SotW ADS, callbacks, cancellation and host cleanup.
+- All **30 selected gRPC methods**: ten SotW, eleven Delta and nine unary Fetch methods. The opt-in HTTP gateway supplies the eight upstream discovery routes.
+- Resource names/type URLs, reference extraction, message/Struct conversion, conventional extension names and a focused SotW ADS client.
+- TTL response envelopes and caller-owned SotW heartbeat scheduling. The [released-Envoy report](docs/plan/T23-ROOT-ENVOY.md) documents the default Envoy SotW CDS heartbeat limitation and the separately proven explicit Delta refresh/expiry path.
 
-Start with the [SotW preview guide](docs/preview/README.md) and [compatibility manifest](docs/preview/compatibility.json) for the implemented subset, exact pins, runnable commands and limits. The original proposal remains a dated design baseline.
+Generated Protocol types cover the pinned standard schema catalog, including commonly used extension messages. Broader contrib/legacy catalogs and the standalone xDS matcher remain deferred. Original PGV options are preserved; **semantic validation is explicit and optional, with full T26/GV conformance still pending**. Publishing a snapshot invokes neither a validator nor a consistency check.
 
-## Read in this order
+## Run the example
 
-1. [Proposal and release scope](PARITY-PLAN.md).
-2. [Detailed architecture](docs/architecture/ARCHITECTURE.md): package boundaries, contracts, state machines, concurrency, hosting, and source limitations.
-3. [Architecture decisions](docs/architecture/DECISIONS.md): rationale, alternatives, and unresolved proof gates.
-4. [Optional schema validation](docs/architecture/VALIDATION.md): early binding/metadata proof, candidate assessment, rule equivalence, and the separate validation gate.
-5. [Implementation plan](docs/plan/IMPLEMENTATION-PLAN.md): ordered tasks, subtasks, dependencies, outputs, and acceptance criteria.
-6. [Requirements and verification traceability](docs/plan/TRACEABILITY.md): release gates and named scenarios.
+Use the SDK in [global.json](global.json). A fresh checkout must generate bindings before building the example. Choose a writable cache directory outside this checkout:
 
-## Supporting evidence
+```sh
+dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache <source-cache>
+dotnet run --project examples/Envoy.ControlPlane.Example
+```
 
-- [Parity matrix](docs/plan/PARITY-MATRIX.md): exact service and library coverage.
-- [T17 TTL heartbeats](docs/plan/T17-TTL-HEARTBEATS.md): caller-owned TimeProvider scheduling, payload-free TTL wrappers, fake-time lifecycle cases and thirteen actual Go comparisons.
-- [T16 MuxCache](docs/plan/T16-MUX-CACHE.md): separate classifiers, direct child delegation, Fetch capability boundaries and twelve actual Go comparisons.
-- [T15 LinearCache](docs/plan/T15-LINEAR-CACHE.md): node-independent collections, indexed SotW/Delta watches, shared lazy payloads and 31 actual Go comparisons.
-- [T13 Delta subscriptions](docs/plan/T13-DELTA-SUBSCRIPTIONS.md): incremental state and initial/returned versions, with twelve actual Go state comparisons; Delta delivery remains T14.
-- [T14 Delta cache foundation](docs/plan/T14-DELTA-CACHE.md): channel watches, raw/pass-through envelopes and fourteen actual Go cache comparisons; stream proof is recorded separately.
-- [T14 Delta streams](docs/plan/T14-DELTA-STREAMS.md): shared channel processing, Delta callback/nonce/version behavior and ten actual Go traces.
-- [T14 Delta gRPC](docs/plan/T14-DELTA-GRPC.md): eleven generated service adapters, actual Kestrel HTTP/2, reconnect/removal and ordinary hosting/lifecycle evidence.
-- [T24 root readiness](docs/plan/T24-ROOT-READINESS.md): complete root package graphs and authored-input/corpus/workflow drift with explicit verification selection.
-- [T24 preview readiness](docs/plan/T24-PREVIEW-READINESS.md): exact packaged notices, clean consumption and source/schema/rule update reports with explicit validation gaps.
-- [T23 root Envoy](docs/plan/T23-ROOT-ENVOY.md): Delta removal/reconnect, explicit Delta TTL refresh/expiry and Linux amd64/arm64; documents the default proxy's SotW CDS heartbeat limitation.
-- [T23 released Envoy](docs/plan/T23-PREVIEW-ENVOY.md): immutable proxy images, live traffic updates, NACK/repair and same-process reconnect in both ADS modes.
-- [T22 root lifecycle](docs/plan/T22-ROOT-LIFECYCLE.md): Delta cleanup and transport repetition, active Delta/Fetch host cancellation, timer disposal and reused Linear/Mux progress evidence.
-- [T22 preview lifecycle](docs/plan/T22-PREVIEW-LIFECYCLE.md): cancellation at blocked writers/callbacks, direct host-lifetime proof and seeded HTTP/2 cleanup reports.
-- [T21 preview differential harness](docs/plan/T21-PREVIEW-DIFFERENTIAL.md): actual Go observations, relationship-preserving nonce comparison and injected-mismatch proof.
-- [T20 preview helpers](docs/plan/T20-PREVIEW-HELPERS.md): source-to-C# mapping, narrow extension labels, typed HTTP graph and helper comparison.
-- [T11 ASP.NET Core host](docs/plan/T11-ASP-NET-HOST.md): generated service adapters, host ownership, authorization, actual HTTP/2 and clean package-consumer proof.
-- [T10 ordered ADS](docs/plan/T10-ORDERED-ADS.md): channel delivery, asynchronous publication, independent readiness/order and upstream comparison evidence.
-- [T09 stream engine](docs/plan/T09-SOTW-STREAM-ENGINE.md): callback/nonce behavior, ownership, cleanup and independent Go stream comparisons.
-- [T09 investigation](docs/plan/T09-SOTW-STREAM-INVESTIGATION.md): source findings, xDS package boundaries and the accepted transport direction.
-- [gRPC/Kestrel transport validation](docs/plan/GRPC-KESTREL-VALIDATION.md): functional comparison, controlled Linux performance workflow and transport-setting differences.
-- [Proposal review](docs/plan/REVIEW-2026-10-24.md): upstream refresh, inventory, and research.
-- [Design audit](docs/plan/DESIGN-AUDIT-2026-10-24.md): document consistency and provenance checks, with execution limits.
-- [Upstream architecture map](docs/codebase/ARCHITECTURE.md): source orientation; the seven documents in that directory describe the reference repository and proposed mapping.
-- [Original draft](docs/plan/archive/PARITY-PLAN-2026-10-12.md): historical proposal, superseded by the current design.
+Generation retrieves immutable sources and pinned Buf/official C# plugins; initial generation and dependency restore need network access. Built-package consumers do not need Go or Buf. The example listens on loopback port 18000 with cleartext HTTP/2, publishes a complete listener/route/cluster/endpoint graph for node `node`, and reloads backend configuration. See its [instructions](examples/Envoy.ControlPlane.Example/README.md) and the [usage and migration guide](docs/usage.md).
 
-Runtime packages target .NET 10 provisionally. A SotW/SnapshotCache preview precedes the complete root-library v3 scope. T03 is an early binding-design task; T26 delivers the optional validation package after its own conformance gate. Full validation does not block the streaming preview or root-runtime claim. T27/T28 remain deferred. Package names and public signatures remain proposals until their binding and behavioral proofs pass.
+## Packages and contracts
 
-C# tooling and projects use **Roslynator.Analyzers 5.0.1**, warnings as errors, and the root [.editorconfig](.editorconfig). [Directory.Packages.props](Directory.Packages.props) centrally manages dependencies, including the two tooling projects. [T04](docs/plan/T04-BUILD-FOUNDATION.md) applies shared build/package policy and adds the Core/ASP.NET foundation projects.
+All maintained libraries target **net10.0**. The four root candidates use **1.0.0-rc.1** under the owner-selected `Knightfall.Envoy.ControlPlane` package family. Assembly names, C# namespaces and protobuf identities retain their existing names. These are locally built candidates, not published NuGet packages; see the [release checklist](docs/releases/root-1.0.md).
 
-[AGENTS.md](AGENTS.md) records repository-specific development and review instructions. The [command map](tools/README.md) explains the project-based commands and their supporting code.
+| NuGet package | Responsibility |
+|---|---|
+| [Knightfall.Envoy.ControlPlane.Protocol](src/Envoy.ControlPlane.Protocol/Envoy.ControlPlane.Protocol.csproj) | Authoritative generated messages, descriptors, original PGV definitions and gRPC contracts |
+| [Knightfall.Envoy.ControlPlane.Validation.Annotations](src/Envoy.ControlPlane.Validation.Annotations/Envoy.ControlPlane.Validation.Annotations.csproj) | Shared derived Protovalidate annotation definitions; no evaluator |
+| [Knightfall.Envoy.ControlPlane](src/Envoy.ControlPlane/README.md) | Caches, snapshots, protocol engines, Fetch, client and helpers |
+| [Knightfall.Envoy.ControlPlane.AspNetCore](src/Envoy.ControlPlane.AspNetCore/README.md) | Kestrel/gRPC adapters, DI, endpoint mapping and optional HTTP gateway |
+| [Knightfall.Envoy.ControlPlane.Validation](src/Envoy.ControlPlane.Validation/Envoy.ControlPlane.Validation.csproj) | Experimental source-built optional evaluator; outside the root release candidate |
 
-[Envoy.ControlPlane.slnx](Envoy.ControlPlane.slnx) contains all fifteen maintained projects. The [project-based tests](tests/README.md) use xUnit/Microsoft Testing Platform and locked dependencies. T02's merged CI passed 24 offline CLI/fingerprint tests, eight binding tests and eight clean NuGet consumer tests on Linux/macOS/Windows. T03 expands Protocol to **12 tests** and adds an **18-test source validation suite** plus **33 Go comparison cases**. T04 discovers all **54 tests** through the solution, packages all five libraries with symbols, and adds executable Core/ASP.NET package-graph consumers. T05 added **38 Core tests** and **19 independent Go snapshot comparisons**. T06 added **10 watch/contract cases**. T07 added **21 native cases** and a **22-trace Go SnapshotCache comparison corpus**. T08 adds **12 native cases** and **14 Go subscription traces**, bringing Core to **81** and solution discovery to **135 tests**; the full Core suite runs in a fresh package consumer. [CI](.github/workflows/upstream-verification.yml) runs generation and complete repository verification on Linux/macOS/Windows; implementing-PR results distinguish remote evidence from local proof. Full T26/GV and live Envoy acceptance are separate evidence.
+Use [public API and lifetime contracts](docs/public-api.md) when implementing a custom cache, response or callback. Behavioral parity uses idiomatic C# channels, asynchronous ownership, `CancellationToken`, `TimeProvider` and ordinary ASP.NET Core APIs. It does not require identical Go APIs, hash bytes, error text or synchronization internals.
 
-T09 adds 37 Core stream/callback cases and six independent Go traces, bringing Core to **118** and solution discovery to **173** tests. The full Core suite also runs in the fresh package consumer. These are core-loop checks; service adapters and actual xDS HTTP/2 acceptance remain T11/T12/T22.
+## Verify and maintain
 
-T10 adds **26 native cases**, bringing Core to **144** and solution discovery to **199** tests. The Go stream corpus expands to **16 traces**, including ordered variants, buffered producer order, replacement draining and response-channel closure. Both ordinary and ordered streams consume channels directly; a task convenience adapter serves await-one callers. See [T10 evidence](docs/plan/T10-ORDERED-ADS.md).
+After generation, the maintained CLI builds, tests and packs the solution, runs the pinned Go comparison corpora, and executes consumers of the newly built packages:
 
-T11 adds **23 hosting tests**, bringing solution discovery to **222 tests**. The same 23 tests run against freshly packed NuGet packages with real ephemeral-loopback HTTP/2. [The example](examples/Envoy.ControlPlane.Example/README.md) supplies an application configuration/update source. Only the nine advertised SotW methods are implemented; generated Delta/Fetch defaults remain unimplemented.
+```sh
+dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify
+dotnet run --project tools/Envoy.ControlPlane.Tools -- envoy verify
+```
 
-The preview subset of T20 adds the complete listener/HCM/router/route/cluster/endpoint example graph using existing helpers and generated bindings. Five added native cases bring the solution to **227 tests** (Core **147**, Hosting **25**). Eight declared HCM/Any cases plus labels/API version and the example graph are compared with the actual pinned Go helpers. Full message/Struct conversion and remaining helper inventory stay in the 1.0 task. See [preview helper evidence](docs/plan/T20-PREVIEW-HELPERS.md).
+The second command requires Docker and runs the locked released-Envoy graph probe. Source comparisons, generated-client HTTP/2 tests and released-proxy interoperability establish different forms of evidence. The [test guide](tests/README.md) and [command map](tools/README.md) explain commands, artifacts and platform requirements. Normal CI verifies Linux/macOS/Windows; the Envoy workflow uses Linux amd64 and arm64. The accepted gRPC performance baseline runs only by manual dispatch.
 
-The preview subset of T21 expands the Go cache corpus to **23** and stream corpus to **22** traces, capturing callback rejection and missing ADS type behavior in both modes. A stream-wide nonce mapping preserves ACK, send and cross-type uniqueness relationships while keeping caller versions exact. Seventeen offline comparer cases bring tooling to **42** and the solution to **244 tests**. See [preview differential evidence](docs/plan/T21-PREVIEW-DIFFERENTIAL.md) for exact test mapping and separate native/source/proxy proof.
+| Evidence | Scope |
+|---|---|
+| [Provenance](schemas/PROVENANCE.md), [bindings](schemas/BINDINGS.md), [validation feasibility](schemas/VALIDATION.md) | Immutable inputs, generated ownership/fingerprints and bounded optional-validator research |
+| [Parity matrix](docs/plan/PARITY-MATRIX.md), [traceability](docs/plan/TRACEABILITY.md) | Required root surface, scenarios and release gates |
+| [T21 differential](docs/plan/T21-ROOT-DIFFERENTIAL.md) | Actual pinned Go comparisons and corruption-detection checks |
+| [T22 lifecycle](docs/plan/T22-ROOT-LIFECYCLE.md) | Deterministic cleanup/progress and repeated HTTP/2 sessions |
+| [T23 Envoy](docs/plan/T23-ROOT-ENVOY.md) | One released proxy, four-family traffic graph, updates/removals/reconnect and explicit Delta TTL |
+| [T24 packaging and updates](docs/plan/T24-ROOT-READINESS.md) | Clean consumption, package boundaries, reproducibility and verification selection |
 
-The preview subset of T22 adds eight cases, bringing Core to **149**, Hosting to **31** and the solution to **252 tests**. The new boundaries cover cancellation during a blocked writer and active request/response callbacks before a host shutdown deadline. Seeded real HTTP/2 runs exercise **128 streams / 512 responses** across both modes, assert watch and close counts, and retain process-memory diagnostics. See [preview lifecycle evidence](docs/plan/T22-PREVIEW-LIFECYCLE.md) for limits and existing race/failure coverage.
+Source/tool locks, catalog and descriptor manifests are authoritative. The behavior reference is Go commit `67c5345367582741334e34ffc66a561b0ce32946`; the schema source is Envoy commit `82a4424f760b6ba3ffc9f2911389d061656f35c8`. See [upstream-baseline.json](upstream-baseline.json), [schemas/upstream.lock.json](schemas/upstream.lock.json) and the compatibility report for the independent proxy axis.
 
-The preview subset of T23 adds a separate non-packable real-Envoy executable and the maintained `envoy verify` command. The locally observed Linux arm64 run passes **20 V31 checks** with Envoy **1.40.1**, including traffic, endpoint/route changes, explicit NACK/repair and reconnect. Six offline report-validation cases bring tooling to **48** and the solution to **258 tests**. The Linux amd64 workflow records its own execution evidence; see [released-Envoy proof](docs/plan/T23-PREVIEW-ENVOY.md) for exact pins and limits.
-
-The preview subset of T24 adds `upstream report`/`upstream diff`, preserves old/new schema/rule values, reports unproven optional-validator coverage, verifies exact packaged notices and retains every clean-consumer lock in CI evidence. Eleven offline and two real-catalog cases bring tooling to **59**, Protocol to **14** and the solution to **271 tests**. [Preview readiness](docs/plan/T24-PREVIEW-READINESS.md) describes reproduction and scope; T12 remains the preview acceptance gate.
-
-T13 adds `DeltaSubscription` and twelve shared source-state traces, with three native cases bringing Core to **152** and the solution to **274 tests**. Initial versions seed construction only; later incremental updates and delivered metadata remain stream-owned. This does not add Delta cache, server or proxy support or expand the historical SotW preview claim.
-
-The first T14 increment adds Delta SnapshotCache responses and channel-based watches with an await-one adapter, lazy raw envelopes, pass-through responses and separate status. Thirteen added cases bring Core to **165** and the solution to **287 tests**; fourteen cache outcomes match actual pinned Go. The source's SnapshotCache prefix-selection and raw Delta TTL limits are explicit. Delta stream/gRPC/proxy support remains separate; issue #20 is not complete.
-
-The second T14 increment adds transport-independent Delta stream processing and callbacks. Sixteen added cases bring Core to **181** and the solution to **303 tests**; ten actual Go stream traces match exact callback, subscription, nonce, send and cleanup outcomes. Both per-type and ADS use a shared bounded channel. Delta gRPC adapters and real HTTP/2 proof remain T14.4; the issue remains open and the historical SotW preview claim is unchanged.
-
-The final T14 increment adds eleven Delta gRPC methods while retaining the nine SotW methods and deferred Fetch behavior. Twenty-two added HTTP/2 cases bring Hosting to **53** and solution discovery to **325 tests**. Core remains **181**. See the [Delta transport evidence](docs/plan/T14-DELTA-GRPC.md) for exact method/assertion mapping; released-Envoy Delta acceptance remains V32/full-root T23 work.
-
-T15 adds `LinearCache` for one arbitrary type URL with caller-named resources, update/delete/bulk/replace operations, version prefixes and exact/prefix/wildcard indexes. Eleven native cases bring Core to **192** and solution discovery to **336 tests**; all 31 shared cache cases match the actual pinned Go implementation. The existing channel producer and async-disposal contracts remain authoritative. See [T15 evidence](docs/plan/T15-LINEAR-CACHE.md) for counter/hash behavior, unsupported Fetch, the intentional diagnostic disposal difference and package verification.
-
-T16 adds `MuxCache` and the separate `IConfigFetcher` capability. Nineteen native cases bring Core to **211** and solution discovery to **355 tests**; twelve actual pinned Go cases compare mixed children, classification, cancellation, responses and Fetch/error delegation. The mux copies its ordinal routing table and retains caller-owned children. SnapshotCache polling and Fetch transports remain T18. See [T16 evidence](docs/plan/T16-MUX-CACHE.md).
-
-T17 adds caller-owned `SnapshotCache.RunHeartbeatsAsync` with the existing TimeProvider and channel registrations. Nine native cases bring Core to **220** and solution discovery to **364 tests**; thirteen actual Go cases compare normal/heartbeat TTL payloads, versions, metadata, selection and counts. Raw Delta TTL omission and the source prefix-selection limit remain explicit; real proxy TTL refresh/expiry stays T23/V33. See [T17 evidence](docs/plan/T17-TTL-HEARTBEATS.md).
-
-The released-Envoy TTL proof uses explicit caller-supplied Delta envelopes. The default Envoy 1.40.1 SotW mux removes CDS resources on payload-free heartbeat responses; the source-equivalent SotW scheduler is not advertised as interoperable for that configuration. See [T23 scope and limitation](docs/plan/T23-ROOT-ENVOY.md).
+[AGENTS.md](AGENTS.md) describes contribution rules, centralized dependencies, Roslynator and verification. [The implementation plan](docs/plan/IMPLEMENTATION-PLAN.md) tracks remaining work. The [architecture](docs/architecture/ARCHITECTURE.md), [decisions](docs/architecture/DECISIONS.md) and [original proposal](PARITY-PLAN.md) supply design context; plans do not establish implementation or interoperability proof.

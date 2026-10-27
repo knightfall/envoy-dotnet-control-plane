@@ -1,9 +1,9 @@
-# Envoy.ControlPlane.Protocol candidate
+# Knightfall.Envoy.ControlPlane.Protocol candidate
 
 Candidate net10.0 bindings generated through Buf CLI and pinned official
 C#/gRPC plugins from the original upstream catalog. T03 adds derived
 Protovalidate options while preserving all original PGV options. The binding
-and source-provider arrangement remains subject to G1/release review.
+and source-provider arrangement passed bounded G1 proof; final candidate verification/review remains T25. The NuGet ID has the Knightfall prefix; the assembly remains Envoy.ControlPlane.Protocol.
 
 The assembly owns the selected Envoy, xDS/UDPA, ratelimit, CEL, Google API/RPC,
 PGV, OpenTelemetry and Prometheus messages and annotation definitions.

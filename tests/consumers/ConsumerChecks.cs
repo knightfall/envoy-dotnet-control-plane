@@ -18,12 +18,12 @@ internal static class ConsumerChecks
 
         var expected = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Envoy.ControlPlane", "Envoy.ControlPlane.Protocol", "Envoy.ControlPlane.Validation.Annotations",
+            "Knightfall.Envoy.ControlPlane", "Knightfall.Envoy.ControlPlane.Protocol", "Knightfall.Envoy.ControlPlane.Validation.Annotations",
             "Google.Protobuf", "Grpc.Core.Api", "Roslynator.Analyzers",
         };
         if (hosting)
         {
-            expected.Add("Envoy.ControlPlane.AspNetCore");
+            expected.Add("Knightfall.Envoy.ControlPlane.AspNetCore");
             expected.Add("Grpc.AspNetCore.Server");
             expected.Add("Grpc.Net.Common");
         }

@@ -14,7 +14,7 @@ The [earlier candidate assessment](validation/assessment-2026-10-25.md) and its 
 
 Protocol has no evaluator or CEL dependency. The evaluator accepts `IMessage` and does not depend on Protocol. Generated Envoy types, annotation types and well-known types each have one owner. Core/cache/hosting implementation remains future work; validation is explicitly invoked, with no automatic validation on publication.
 
-All three local candidate packages use version **0.1.0-t03**, target **net10.0**, and use central package management. The annotation and evaluator packages carry the original Apache-2.0 license and source manifest. Generated annotation types are produced by Buf, not Grpc.Tools.
+The original T03 proof used three local candidates at **0.1.0-t03**. T25 selects the `Knightfall.Envoy.ControlPlane` package family and promotes Protocol/Annotations to **1.0.0-rc.1**, retaining CLR/protobuf identities; the optional evaluator stays **0.1.0-t03**. All target **net10.0** and use central package management. The [current root report](../docs/compatibility/root-1.0.md) tracks candidate verification separately from this bounded research. The annotation and evaluator packages carry the original Apache-2.0 license and source manifest. Generated annotation types are produced by Buf, not Grpc.Tools.
 
 ## Pinned source and adaptations
 
