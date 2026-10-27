@@ -89,3 +89,7 @@ T20 imports actual `pkg/conversion` MessageToStruct/StructToMessage and every st
 ## T21 root matrix and negative comparisons
 
 T21 retains the prior drivers and adds actual rest.NewServer.Fetch comparison through a thin custom producer/response fixture (Copyright 2020 / Apache-2.0). A deliberate hook panic is normalized only in the test adapter to the documented .NET exception policy. Gateway coverage expands to every standard route with authoritative SDS descriptor registration. Delta emits actual traces for the shared CLI nonce-association comparer. The negative mode reuses source runners and requires exact mismatch diagnostics for 15 meaningful outcome corruptions, retaining mutated reports. [T21 root evidence](../../docs/plan/T21-ROOT-DIFFERENTIAL.md) maps V05–V27, 260 cases/16 modes, source pins and explicit adaptations. Original licenses/attribution remain.
+
+## T22 root lifecycle
+
+T22 reuses the attributed source-derived cache/stream suites above and adds only native .NET ownership/host-lifetime proof. No upstream algorithm, test source or dependency is copied for the new timer tracking, active Delta/Fetch callback cancellation, custom-producer cleanup or seeded Delta HTTP/2 run. [T22 mapping](../../docs/plan/T22-ROOT-LIFECYCLE.md) identifies existing Linear/Mux/Delta/heartbeat proof and retained diagnostic artifacts. The Microsoft fake-clock dependency and original licenses remain unchanged.

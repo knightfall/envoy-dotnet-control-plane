@@ -390,7 +390,7 @@ Full root evidence and dispositions: [T21 root report](T21-ROOT-DIFFERENTIAL.md)
 
 ### T22 — Exercise concurrency, callbacks, and cleanup
 
-Preview implementation and bounded V14/V15/V28–V30 evidence: [T22 preview lifecycle](T22-PREVIEW-LIFECYCLE.md). Full Delta/Linear/Mux and timer concurrency remain in the separate 1.0 deliverable.
+Preview implementation and bounded V14/V15/V28–V30 evidence: [T22 preview lifecycle](T22-PREVIEW-LIFECYCLE.md). The remaining root deliverable is implemented in [T22 root lifecycle](T22-ROOT-LIFECYCLE.md): Delta cleanup, active Delta/Fetch host cancellation, explicit timer disposal, reused Linear/Mux progress cases and retained Delta transport repetition. Exact-head CI/review results belong to the implementing PR.
 
 **Scope:** preview subset then 1.0 / R06, R10, R11, R21, R22. **Depends on for completion:** T21. **Outputs:** deterministic schedule fixtures and lifecycle/stress evidence.
 

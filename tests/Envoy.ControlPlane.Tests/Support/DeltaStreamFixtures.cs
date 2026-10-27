@@ -28,6 +28,7 @@ internal sealed class DeltaInput : IAsyncEnumerable<DeltaDiscoveryRequest>, IAsy
     private readonly Channel<DeltaDiscoveryRequest> requests = Channel.CreateUnbounded<DeltaDiscoveryRequest>();
     private CancellationToken cancellationToken;
     internal int Disposals { get; private set; }
+    internal Exception? DisposalFailure { get; set; }
     public DeltaDiscoveryRequest Current { get; private set; } = null!;
     internal void Push(DeltaDiscoveryRequest request) => Assert.True(requests.Writer.TryWrite(request));
     internal void Complete(Exception? failure = null) => requests.Writer.TryComplete(failure);
@@ -51,7 +52,7 @@ internal sealed class DeltaInput : IAsyncEnumerable<DeltaDiscoveryRequest>, IAsy
     public ValueTask DisposeAsync()
     {
         Disposals++;
-        return ValueTask.CompletedTask;
+        return DisposalFailure is null ? ValueTask.CompletedTask : ValueTask.FromException(DisposalFailure);
     }
 }
 

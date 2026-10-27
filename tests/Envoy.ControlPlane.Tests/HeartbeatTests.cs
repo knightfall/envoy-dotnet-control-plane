@@ -127,7 +127,7 @@ public sealed class HeartbeatTests
     [Fact]
     public async Task BlockedHeartbeat_StopRetainsWatchAndAllowsNormalPublication()
     {
-        var clock = new FakeTimeProvider();
+        var clock = new TrackingTimeProvider();
         var cache = new SnapshotCache(timeProvider: clock);
         await cache.SetSnapshotAsync("node", Routes("v1", Entry("a", TimeSpan.FromSeconds(5))));
         var channel = Channel.CreateBounded<ISotwResponse>(1);
@@ -137,11 +137,13 @@ public sealed class HeartbeatTests
         await using var registration = (IAsyncDisposable)cache.CreateWatch(Request(ResourceTypeUrls.Route, "v1"), Known("a"), observed);
         using var stop = new CancellationTokenSource();
         Task loop = cache.RunHeartbeatsAsync(Interval, new ResponseContext(stop.Token));
+        Assert.Equal(1, clock.ActiveTimers);
         clock.Advance(Interval);
         await Wait(observed.Started.Task);
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
         stop.Cancel();
         await Wait(loop);
+        Assert.Equal(0, clock.ActiveTimers);
         Assert.Same(marker, await channel.Reader.ReadAsync(TestContext.Current.CancellationToken));
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
         await cache.SetSnapshotAsync("node", Routes("v2", Entry("a", TimeSpan.FromSeconds(5))));
