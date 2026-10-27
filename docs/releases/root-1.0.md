@@ -31,9 +31,9 @@ Known limits include stable caller-owned messages, source SnapshotCache prefix/r
 - [x] Select the owner-approved NuGet prefix and set four coherent root candidate package versions without changing assembly/protobuf identities. Confirm actual publishing rights only before authorized publication.
 - [x] Locally build/pack the concrete candidate, inspect IDs/versions/retained assemblies/symbols/docs/notices/dependency ownership, and run fresh package-consumer suites and both executable graphs. Exact committed-head CI remains below.
 - [x] Locally verify unchanged binding/descriptor fingerprints and run required source/native/lifecycle/update checks against the candidate working tree; retain its dirty-tree status accurately.
-- [ ] Record current-head Linux/macOS/Windows and Linux amd64/arm64 proxy results; retain artifacts and list any unexecuted scenarios.
-- [ ] Address automatic Codex PR findings, confirm all current-head CI/review gates and record the immutable verified head and merge commit.
-- [ ] Close T25 only after its engineering acceptance is supported by that evidence. Keep T26/GV separate.
+- [x] Record Linux/macOS/Windows and Linux amd64/arm64 proxy results for runtime/package commit `eebfe5783cae67c840f29c86a1a347f83962402e`; link immutable workflow runs and retain scope limits in the compatibility report.
+
+Final signoff is recorded in [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72) and [issue #31](https://github.com/knightfall/envoy-dotnet-control-plane/issues/31): address automatic Codex findings, verify all CI/review gates on the final head and record its immutable merge result before closing T25. The earlier runtime/package pass does not waive verification of a later documentation head. Keep T26/GV separate.
 
 ## Publication checklist — separate authorization required
 

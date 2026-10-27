@@ -58,6 +58,7 @@ Delta drains queued responses before request mutation and runs the request hook 
 
 | Failure | Observable contract |
 |---|---|
+| End-of-input / receive error | The selected source ends processing normally; cleanup can still fail. Writer, hook, materialization and protocol failures follow the separate contracts below. |
 | Missing snapshot / mux key | `KeyNotFoundException`; mux delegates child errors directly. |
 | Unchanged Fetch | `SkipFetchException`; HTTP gateway maps it, including ordinary wrapping, to empty 304. |
 | Unsupported Fetch | `NotSupportedException` for LinearCache or a selected watch-only child. Hosting keeps streaming available. |
