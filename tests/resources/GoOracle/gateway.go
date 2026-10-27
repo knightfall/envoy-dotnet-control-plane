@@ -17,6 +17,7 @@ import (
 
 	cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	_ "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3" // Registers the concrete SDS fixture.
 	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	cache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
@@ -24,6 +25,8 @@ import (
 	resource "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	server "github.com/envoyproxy/go-control-plane/pkg/server/v3"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -31,6 +34,7 @@ import (
 
 type gatewayInput struct {
 	ID, Path, Body, CallbackError        string
+	TypeURL                              string
 	ReadFailure, BrokenAny, MalformedAny bool
 	TtlNanoseconds                       *int64
 }
@@ -55,8 +59,8 @@ func runGateway(args []string) error {
 	if err := json.Unmarshal(data, &cases); err != nil {
 		return err
 	}
-	if len(cases) != 23 {
-		return fmt.Errorf("expected twenty-three gateway cases, got %d", len(cases))
+	if len(cases) != 30 {
+		return fmt.Errorf("expected thirty gateway cases, got %d", len(cases))
 	}
 	seen := make(map[string]bool)
 	for index, fixture := range cases {
@@ -98,11 +102,28 @@ func observeGateway(input gatewayInput) (gatewayObservation, error) {
 		ClusterDiscoveryType: &cluster.Cluster_Type{Type: cluster.Cluster_STRICT_DNS},
 		Metadata:             &core.Metadata{FilterMetadata: map[string]*structpb.Struct{"settings": metadata}},
 	}}
+	if input.TypeURL != resource.ClusterType {
+		messageType, err := protoregistry.GlobalTypes.FindMessageByURL(input.TypeURL)
+		if err != nil {
+			return gatewayObservation{}, err
+		}
+		message := messageType.New()
+		name := protoreflect.Name("name")
+		if input.TypeURL == resource.EndpointType {
+			name = "cluster_name"
+		}
+		field := message.Descriptor().Fields().ByName(name)
+		if field == nil {
+			return gatewayObservation{}, fmt.Errorf("fixture has no resource name: %s", input.TypeURL)
+		}
+		message.Set(field, protoreflect.ValueOfString("a"))
+		entry.Resource = message.Interface()
+	}
 	if input.TtlNanoseconds != nil {
 		ttl := time.Duration(*input.TtlNanoseconds)
 		entry.TTL = &ttl
 	}
-	snapshot, err := cache.NewSnapshotWithTTLs("v1", map[string][]types.ResourceWithTTL{resource.ClusterType: {entry}})
+	snapshot, err := cache.NewSnapshotWithTTLs("v1", map[string][]types.ResourceWithTTL{input.TypeURL: {entry}})
 	if err != nil {
 		return gatewayObservation{}, err
 	}

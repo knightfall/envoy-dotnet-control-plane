@@ -179,3 +179,7 @@ The repository CLI runs the Go stream comparison as part of `repository verify` 
 ## Full helper inventory and conversions
 
 `MessageConversionsTests` directly covers return-new protobuf/Struct conversion, proto names, defaults/presence/enum/uint64, registered HCM/router Any in the existing example, nulls/unknown/malformed inputs and descriptor/WKT boundaries. Its corpus exports 17 independently expected cases and 74 symbol values to `conversion-corpus.json`; `repository verify` calls actual Go helpers/constants and compares semantic results. Existing ResourceCatalog/ResourceReferences/ResourceSerialization/preview tests remain the evidence for their unchanged behavior. [T20 compatibility](../docs/plan/T20-HELPER-COMPATIBILITY.md) contains every source mapping and scoped .NET adaptation.
+
+## Root differential gate
+
+Repository verification executes V05–V27 through 16 actual Go modes / 260 cases plus full helper symbols. DiscoveryTraceComparer retains stream-wide nonce associations in both protocols, with dedicated positive/negative tests. Nine shared Fetch traces compare hook/error/correlation behavior and gateway traces cover every route. Fifteen Go corruptions plus both stream-association negatives must fail. Root artifacts retain exact IDs, pins, diagnostics and .NET dispositions. [T21 root mapping](../docs/plan/T21-ROOT-DIFFERENTIAL.md) distinguishes T22/T23/T26 gates.

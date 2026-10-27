@@ -25,7 +25,7 @@ internal static class SotwStreamVerification
         {
             string id = row!["id"]!.GetValue<string>();
             var reference = references.Single(item => item!["id"]!.GetValue<string>() == id)!;
-            SotwTraceComparer.Compare(id, row["observed"]!.AsObject(), reference["observed"]!.AsObject());
+            DiscoveryTraceComparer.Compare(id, row["observed"]!.AsObject(), reference["observed"]!.AsObject());
         }
         VerifyStaleAssociationIsRejected(rows, references);
         var baseline = JsonNode.Parse(File.ReadAllText("upstream-baseline.json"))!;
@@ -50,7 +50,7 @@ internal static class SotwStreamVerification
         candidate["events"]![5] = "request|type/A|stale||1|ignored|false";
         try
         {
-            SotwTraceComparer.Compare(id, candidate, reference);
+            DiscoveryTraceComparer.Compare(id, candidate, reference);
         }
         catch (InvalidDataException)
         {

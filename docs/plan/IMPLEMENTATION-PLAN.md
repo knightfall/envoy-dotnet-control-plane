@@ -386,6 +386,8 @@ Subtasks:
 
 **Acceptance:** Required V05–V27 cases compare successfully or have an accepted intentional .NET departure. A self-consistent .NET-only trace cannot substitute for the Go driver. No unresolved material protocol divergence passes G3/G4.
 
+Full root evidence and dispositions: [T21 root report](T21-ROOT-DIFFERENTIAL.md).
+
 ### T22 — Exercise concurrency, callbacks, and cleanup
 
 Preview implementation and bounded V14/V15/V28–V30 evidence: [T22 preview lifecycle](T22-PREVIEW-LIFECYCLE.md). Full Delta/Linear/Mux and timer concurrency remain in the separate 1.0 deliverable.

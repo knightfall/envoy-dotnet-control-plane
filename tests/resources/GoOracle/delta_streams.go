@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -190,9 +189,6 @@ func runDeltaStreams(args []string) error {
 		if err != nil {
 			return fmt.Errorf("%s: %w", fixture.ID, err)
 		}
-		if !reflect.DeepEqual(actual, fixture.Observed) {
-			return fmt.Errorf("%s: Delta trace mismatch\nGo: %+v\nC#: %+v", fixture.ID, actual, fixture.Observed)
-		}
 		fixture.Observed = actual
 	}
 	output, err := json.MarshalIndent(cases, "", "  ")
@@ -202,7 +198,7 @@ func runDeltaStreams(args []string) error {
 	if err := os.WriteFile(args[1], append(output, '\n'), 0o644); err != nil {
 		return err
 	}
-	fmt.Printf("Go Delta streams: %d actual callback, subscription, send and cleanup traces matched.\n", len(cases))
+	fmt.Printf("Go Delta streams: captured %d actual callback, subscription, send and cleanup traces.\n", len(cases))
 	return nil
 }
 

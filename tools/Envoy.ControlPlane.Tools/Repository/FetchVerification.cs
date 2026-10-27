@@ -8,7 +8,8 @@ internal static class FetchVerification
     internal static async Task CompareWithGoAsync()
     {
         await CompareAsync("fetch", "Envoy.ControlPlane.Tests", 14);
-        await CompareAsync("gateway", "Envoy.ControlPlane.AspNetCore.Tests", 23);
+        await CompareAsync("fetch-engine", "Envoy.ControlPlane.Tests", 9);
+        await CompareAsync("gateway", "Envoy.ControlPlane.AspNetCore.Tests", 30);
     }
 
     private static async Task CompareAsync(string mode, string project, int count)

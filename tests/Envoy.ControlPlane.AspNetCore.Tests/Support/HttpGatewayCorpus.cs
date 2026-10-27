@@ -37,6 +37,13 @@ internal static class HttpGatewayCorpus
         new("invalid-enum") { Body = """{"node":{"id":"node","listening_addresses":[{"socket_address":{"protocol":"not-an-enum"}}]}}""", ExpectedStatus = 400 },
         new("struct-and-presence") { Body = """{"node":{"id":"node","user_agent_version":"","metadata":{"enabled":true,"number":1.5,"list":[null,"value"]}}}""", ExpectedStatus = 200 },
         new("null-fields") { Body = """{"node":{"id":"node","metadata":null},"resource_names":null}""", ExpectedStatus = 200 },
+        new("route-endpoints") { Path = ResourceFetchPaths.Endpoints, TypeUrl = ResourceTypeUrls.Endpoint, ExpectedStatus = 200 },
+        new("route-listeners") { Path = ResourceFetchPaths.Listeners, TypeUrl = ResourceTypeUrls.Listener, ExpectedStatus = 200 },
+        new("route-routes") { Path = ResourceFetchPaths.Routes, TypeUrl = ResourceTypeUrls.Route, ExpectedStatus = 200 },
+        new("route-scoped-routes") { Path = ResourceFetchPaths.ScopedRoutes, TypeUrl = ResourceTypeUrls.ScopedRoute, ExpectedStatus = 200 },
+        new("route-secrets") { Path = ResourceFetchPaths.Secrets, TypeUrl = ResourceTypeUrls.Secret, ExpectedStatus = 200 },
+        new("route-runtime") { Path = ResourceFetchPaths.Runtime, TypeUrl = ResourceTypeUrls.Runtime, ExpectedStatus = 200 },
+        new("route-extension-configs") { Path = ResourceFetchPaths.ExtensionConfigs, TypeUrl = ResourceTypeUrls.ExtensionConfig, ExpectedStatus = 200 },
     ];
 
     internal static async Task<GatewayResult> EvaluateAsync(GatewayInput input)
@@ -60,14 +67,18 @@ internal static class HttpGatewayCorpus
                 });
             }
         }, mapEndpoints: app => app.MapEnvoyControlPlaneHttpGateway());
-        var resource = new Cluster
+        IMessage resource = new Cluster
         {
             Name = "a", ConnectTimeout = Duration.FromTimeSpan(TimeSpan.FromSeconds(3)), Type = Cluster.Types.DiscoveryType.StrictDns,
             Metadata = new Metadata { FilterMetadata = { ["settings"] = new Struct { Fields = { ["enabled"] = Value.ForBool(true), ["number"] = Value.ForNumber(1.5) } } } },
         };
+        if (input.TypeUrl != ResourceTypeUrls.Cluster)
+        {
+            resource = DiscoveryCalls.Message(input.TypeUrl, "a");
+        }
         await host.Cache.Inner.SetSnapshotAsync("node", new Snapshot("v1", new Dictionary<string, IEnumerable<ResourceEntry>>
         {
-            [ResourceTypeUrls.Cluster] = [new(resource, input.TtlNanoseconds is { } ns ? TimeSpan.FromTicks(ns / 100) : null)],
+            [input.TypeUrl] = [new(resource, input.TtlNanoseconds is { } ns ? TimeSpan.FromTicks(ns / 100) : null)],
         }));
         var context = await InvokeAsync(host, input.Path, input.Body, input.ReadFailure);
         await using var output = context.Response.Body;
@@ -78,6 +89,7 @@ internal static class HttpGatewayCorpus
             output.Position = 0;
             json = await JsonSerializer.DeserializeAsync<JsonElement>(output, cancellationToken: TestContext.Current.CancellationToken);
             Assert.Equal("v1", json.Value.GetProperty("version_info").GetString());
+            Assert.Equal(input.TypeUrl, json.Value.GetProperty("type_url").GetString());
         }
         else
         {
@@ -93,6 +105,7 @@ internal static class HttpGatewayCorpus
 
 internal sealed record GatewayInput(string Id)
 {
+    public string TypeUrl { get; init; } = ResourceTypeUrls.Cluster;
     public string Path { get; init; } = "/v3/discovery:clusters";
     public string Body { get; init; } = """{"node":{"id":"node"}}""";
     public bool ReadFailure { get; init; }
