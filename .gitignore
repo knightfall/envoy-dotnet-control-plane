@@ -23,6 +23,9 @@ mono_crash.*
 [Rr]elease/
 [Rr]eleases/
 
+# Authored release notes are repository documentation.
+!/docs/releases/
+
 [Dd]ebug/x64/
 [Dd]ebugPublic/x64/
 [Rr]elease/x64/

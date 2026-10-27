@@ -44,7 +44,7 @@ The transport forwards the framework asynchronous request reader and serial writ
 
 `ILogger` records stream open/close and protocol status at debug level, without resource payloads. Configure logging providers and gRPC logging through the host. Protocol/Core keep their existing dependency boundary, and no optional validation/CEL dependency is introduced.
 
-The repository's `examples/Envoy.ControlPlane.Example` shows a configuration-driven HTTP graph update source with listener/HCM/router/route/cluster/endpoint resources. `docs/plan/T11-ASP-NET-HOST.md` records the original SotW HTTP/2 tests and package-consumer evidence; `docs/plan/T14-DELTA-GRPC.md` records all eleven Delta RPCs and their transport tests. The separately verified SotW released-Envoy graph does not establish Delta proxy acceptance, full xDS parity or new performance measurements. The accepted transport performance baseline runs only by manual dispatch.
+The repository's `examples/Envoy.ControlPlane.Example` shows a configuration-driven HTTP graph update source with listener/HCM/router/route/cluster/endpoint resources. `docs/plan/T11-ASP-NET-HOST.md` records the original SotW HTTP/2 tests and package-consumer evidence; `docs/plan/T14-DELTA-GRPC.md` records all eleven Delta RPCs and their transport tests. `docs/plan/T23-ROOT-ENVOY.md` separately records released-Envoy SotW/Delta traffic, removal/reconnect and explicit Delta TTL proof on Linux amd64/arm64, with its four-family graph and known SotW CDS heartbeat limitation. These checks establish no new performance measurements. The accepted transport performance baseline runs only by manual dispatch.
 
 ## Fetch and optional HTTP gateway
 

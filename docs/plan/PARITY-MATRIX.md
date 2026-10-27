@@ -1,6 +1,6 @@
 # v3 parity matrix
 
-Reviewed 24 October 2026 against Go commit 67c5345367582741334e34ffc66a561b0ce32946. Paths below refer to the pinned remote source tree. This table defines the complete target surface. The [preview guide](../preview/README.md) and [compatibility manifest](../preview/compatibility.json) identify the implemented subset and its observed evidence.
+Reviewed 27 October 2026 against Go commit 67c5345367582741334e34ffc66a561b0ce32946. Paths below refer to the pinned remote source tree. This table defines the complete selected root surface. The [root compatibility report](../compatibility/root-1.0.md) maps its implementation, observed evidence and release limits. The [preview guide](../preview/README.md) and [preview manifest](../preview/compatibility.json) retain the historical SotW milestone.
 
 ## Discovery transports
 
@@ -18,7 +18,7 @@ The rate-limit service descriptor declares only StreamRlsConfigs and FetchRlsCon
 
 HTTP paths are the eight constants in pkg/resource/v3/resource.go, implemented by pkg/server/v3/gateway.go. Preserve path-to-type-URL selection and the existing unchanged-result 304, invalid-input 400, unknown-route 404, and fetch-error 500 behavior, subject to explicitly documented host-layer limits.
 
-Current implementation: ten SotW methods (including rate-limit), all eleven Delta methods and all nine unary Fetch methods have generated-client HTTP/2 evidence; see [T14](T14-DELTA-GRPC.md) and [T18](T18-FETCH-GATEWAY.md). The eight-route HTTP gateway has native transport and pinned-Go JSON/status evidence. Full proxy acceptance remains separate.
+Current implementation: ten SotW methods (including rate-limit), all eleven Delta methods and all nine unary Fetch methods have generated-client HTTP/2 evidence; see [T14](T14-DELTA-GRPC.md) and [T18](T18-FETCH-GATEWAY.md). The eight-route HTTP gateway has native transport and pinned-Go JSON/status evidence. [T23](T23-ROOT-ENVOY.md) separately proves the advertised four-family graph on released Envoy; it does not run every proxy workload.
 
 All implemented methods above belong in recommended 1.0 scope. The preview covers the eight standard SotW per-type services and SotW ADS with SnapshotCache; ratelimit configuration joins the complete 1.0 surface. The Go reference does not supply runtime implementations for every other generated Envoy service, such as external authorization, rate-limit decisions, or load reporting.
 
@@ -36,7 +36,7 @@ Evidence: pkg/server/v3/server.go:44-61,186-357; pkg/server/v3/gateway.go:38-98;
 | Stream options | Ordered ADS option and default false; legacy wildcard enabled by default, global/per-type deactivation | 1.0; relevant SotW defaults in preview |
 | Callbacks | Open/request/response/close order; error rejection; node identity; in-path completion | Both |
 | Cache status | Node identity, watch counts, last request times | Both |
-| TTL / heartbeats | SotW/Delta resource wrapping; source automatic SotW heartbeat refresh without payload; cancellation/disposal | 1.0 |
+| TTL / heartbeats | SotW TTL wrappers and caller-owned heartbeat loop; raw Delta omits TTL like the source, while explicit pass-through Delta envelopes may carry TTL; cancellation/disposal | Implemented for 1.0; [T17](T17-TTL-HEARTBEATS.md) and released-proxy limitation in [T23](T23-ROOT-ENVOY.md) |
 | Fetch handlers | Unary service adapters and common cache-fetch semantics | 1.0 |
 | HTTPGateway | Eight routes; Protobuf JSON/Any; status behavior | 1.0 |
 | SotW ADSClient | Initialization, initial request, receive, ACK/NACK based on last accepted/received state, connection-error classification | Implemented; [T19 evidence](T19-SOTW-ADS-CLIENT.md) |
@@ -51,13 +51,13 @@ Evidence: pkg/cache/types/types.go; pkg/cache/v3/cache.go; simple.go; snapshot.g
 
 | Area | Recommendation | Compatibility statement |
 |---|---|---|
-| Standard Envoy schema catalog | Pinned generated package including usable extension messages and required imports | Publish an input/exclusion manifest; exact coverage awaits a compile proof |
+| Standard Envoy schema catalog | Pinned generated package including usable extension messages and required imports | [Catalog](../../schemas/catalog.json), [binding proof](../../schemas/BINDINGS.md) and clean package consumers establish the selected compiled surface |
 | Discovery envelope dependencies only | Insufficient by themselves for typical typed configuration | Any hides extension references from the static envelope import graph |
 | Custom resources/extensions | IMessage/Any and descriptor registration extension points | Do not require modifying the core assembly for every consumer extension |
-| ratelimit schema module | Include configuration and discovery types for root server methods | Resolve the original schema source revision during the first checkpoint |
+| ratelimit schema module | Configuration/discovery types and root methods are implemented | [Source lock](../../schemas/upstream.lock.json) pins original schemas; descriptor/consumer and T18 transport evidence remain distinct |
 | contrib and legacy API catalogs | Deferred; explicit scope decision required | No v2 control-plane runtime in the current root library |
 | Schema validation metadata | Preserve original upstream options and definitions from the first binding release | T02/T03 prove accessibility and one descriptor owner before G1 |
-| Optional explicit semantic validation | Active T03 feasibility and T26 package; Protovalidate is a candidate | GV proves declared rule coverage against Go PGV; no Core evaluator dependency or publication decorator |
+| Optional explicit semantic validation | T03 source-built Protovalidate feasibility is implemented; full T26 conformance remains open | Bounded 33-case research is not GV; declared rule coverage still requires conformance, with no Core evaluator dependency or publication decorator |
 | PGV Validate/ValidateAll API shape | Exact method shape/error text/order is not part of semantic parity by default | Standard C# generation does not recreate validators; claim only outcomes and diagnostics proven at GV |
 | vtprotobuf | No C# API clone | Go-specific generated performance API; compare .NET behavior/performance instead |
 | xdsmatcher | Deferred; explicit scope decision required | Match-tree evaluation, registry, legacy conversion need their own cases |
@@ -71,7 +71,7 @@ The [detailed architecture](../architecture/ARCHITECTURE.md) describes state/lif
 - ADS readiness and ordering do not provide a cross-type atomic application transaction.
 - Preserve wildcard option defaults and transitions; do not enable ordered ADS by default just because the option exists.
 - Preserve mode-specific nonce/callback behavior. Delta's reviewed loop does not use SotW's stale-nonce rejection or an ACK-committed version ledger.
-- The SnapshotCache timer scans SotW watches; Delta TTL encoding does not imply an automatic Delta heartbeat scheduler.
+- The caller-owned SnapshotCache heartbeat loop scans SotW watches; raw Delta TTL omission is source-matched. Explicit Delta envelopes do not imply an automatic Delta scheduler. The default released Envoy SotW CDS mux has the [documented payload-free heartbeat limitation](T23-ROOT-ENVOY.md).
 - Compare nonce and version relationships; different concrete opaque strings can be valid. Do not require universal byte-for-byte protobuf serialization or cross-language hash identity.
 - LinearCache's unsupported Fetch remains an observable limitation; extending it requires a separate scope decision.
 - Protocol schema support and released Envoy runtime compatibility need separate manifests and evidence.
