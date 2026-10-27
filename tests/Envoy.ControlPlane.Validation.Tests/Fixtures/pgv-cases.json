@@ -521,5 +521,178 @@
       ]
     },
     "valid": false
+  },
+  {
+    "id": "tlv-boundaries",
+    "category": "repeated/uint32-lt",
+    "type": "envoy.config.core.v3.ProxyProtocolPassThroughTLVs",
+    "input": {
+      "tlvType": [
+        0,
+        255
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "tlv-above",
+    "category": "repeated/uint32-lt",
+    "type": "envoy.config.core.v3.ProxyProtocolPassThroughTLVs",
+    "input": {
+      "tlvType": [
+        256
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "ports-boundaries",
+    "category": "repeated/uint32-range",
+    "type": "envoy.config.listener.v3.FilterChainMatch",
+    "input": {
+      "sourcePorts": [
+        1,
+        65535
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "ports-below",
+    "category": "repeated/uint32-range",
+    "type": "envoy.config.listener.v3.FilterChainMatch",
+    "input": {
+      "sourcePorts": [
+        0
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "ports-above",
+    "category": "repeated/uint32-range",
+    "type": "envoy.config.listener.v3.FilterChainMatch",
+    "input": {
+      "sourcePorts": [
+        65536
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "sni-header-empty",
+    "category": "string/ignore-empty-header-name",
+    "type": "envoy.config.core.v3.UpstreamHttpProtocolOptions",
+    "input": {
+      "overrideAutoSniHeader": ""
+    },
+    "valid": true
+  },
+  {
+    "id": "sni-header-valid",
+    "category": "string/ignore-empty-header-name",
+    "type": "envoy.config.core.v3.UpstreamHttpProtocolOptions",
+    "input": {
+      "overrideAutoSniHeader": "x-envoy-test"
+    },
+    "valid": true
+  },
+  {
+    "id": "sni-header-invalid",
+    "category": "string/ignore-empty-header-name",
+    "type": "envoy.config.core.v3.UpstreamHttpProtocolOptions",
+    "input": {
+      "overrideAutoSniHeader": "bad header"
+    },
+    "valid": false
+  },
+  {
+    "id": "host-remove-header-valid",
+    "category": "repeated/string-header-name",
+    "type": "envoy.config.route.v3.VirtualHost",
+    "input": {
+      "name": "example",
+      "domains": [
+        "example.com"
+      ],
+      "requestHeadersToRemove": [
+        "x-custom"
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "host-remove-header-empty",
+    "category": "repeated/string-header-name",
+    "type": "envoy.config.route.v3.VirtualHost",
+    "input": {
+      "name": "example",
+      "domains": [
+        "example.com"
+      ],
+      "requestHeadersToRemove": [
+        ""
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "host-remove-header-newline",
+    "category": "repeated/string-header-name",
+    "type": "envoy.config.route.v3.VirtualHost",
+    "input": {
+      "name": "example",
+      "domains": [
+        "example.com"
+      ],
+      "requestHeadersToRemove": [
+        "x\ny"
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "spki-boundary",
+    "category": "repeated/string-runes-and-bytes",
+    "type": "envoy.extensions.transport_sockets.tls.v3.CertificateValidationContext",
+    "input": {
+      "verifyCertificateSpki": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "spki-too-short",
+    "category": "repeated/string-runes-and-bytes",
+    "type": "envoy.extensions.transport_sockets.tls.v3.CertificateValidationContext",
+    "input": {
+      "verifyCertificateSpki": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "spki-too-long",
+    "category": "repeated/string-runes-and-bytes",
+    "type": "envoy.extensions.transport_sockets.tls.v3.CertificateValidationContext",
+    "input": {
+      "verifyCertificateSpki": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "spki-utf8-byte-limit",
+    "category": "repeated/string-runes-and-bytes",
+    "type": "envoy.extensions.transport_sockets.tls.v3.CertificateValidationContext",
+    "input": {
+      "verifyCertificateSpki": [
+        "\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9"
+      ]
+    },
+    "valid": false
   }
 ]

@@ -17,8 +17,8 @@ public sealed class ValidationTests
     public void Corpus_ValidInvalidAndBoundaryCases_MatchDeclaredOutcomes()
     {
         var results = ValidationCorpus.Evaluate(new Validator());
-        Assert.Equal(52, results.Length);
-        Assert.Equal(52, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(67, results.Length);
+        Assert.Equal(67, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
         foreach (var result in results)
         {
             Assert.True(result.ActualValid == result.ExpectedValid,
