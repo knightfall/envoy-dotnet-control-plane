@@ -94,7 +94,8 @@ internal static class ReproducibilityReport
             string root = Path.Combine(repository, directory);
             if (!Directory.Exists(root)) continue;
             var files = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
-                         .Where(file => extensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase))
+                         .Where(file => extensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase)
+                             || file.EndsWith(".csproj.template", StringComparison.OrdinalIgnoreCase))
                          .Select(file => (SourcePath: file, RelativePath: Path.GetRelativePath(repository, file).Replace('\\', '/')))
                          .Where(file => !file.RelativePath.Split('/').Any(segment => segment is "bin" or "obj"))
                          .OrderBy(file => file.RelativePath, StringComparer.Ordinal);
