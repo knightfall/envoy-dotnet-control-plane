@@ -90,7 +90,7 @@ internal static class ReproducibilityReport
     internal static void RecordMaintainedInputs(JsonObject inputs, string repository)
     {
         string[] extensions = [".cs", ".csproj", ".props", ".targets", ".proto", ".json", ".go", ".mod", ".sum", ".yaml", ".yml"];
-        foreach (string directory in new[] { "src", "tests", "tools", "examples", ".github/workflows" })
+        foreach (string directory in new[] { "src", "tests", "tools", "examples", ".github/workflows", ".config" })
         {
             string root = Path.Combine(repository, directory);
             if (!Directory.Exists(root)) continue;
