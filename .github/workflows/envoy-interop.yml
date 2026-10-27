@@ -31,9 +31,17 @@ env:
 
 jobs:
   envoy:
-    name: Envoy v1.40.1 SotW and ADS (Linux amd64)
-    runs-on: ubuntu-24.04
+    name: Envoy v1.40.1 SotW, Delta and TTL (Linux ${{ matrix.architecture }})
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            architecture: amd64
+          - runner: ubuntu-24.04-arm
+            architecture: arm64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -58,13 +66,13 @@ jobs:
         run: dotnet restore tools/Envoy.ControlPlane.Tools --locked-mode
       - name: Generate verified discovery contracts through Buf
         run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- bindings generate --cache ../upstream-sources
-      - name: Verify released Envoy traffic, NACK and reconnect in both ADS modes
+      - name: Verify released Envoy SotW, Delta reconnect/removal and TTL refresh/expiry
         run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- envoy verify
       - name: Upload proxy pins, traffic/config evidence and logs
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: envoy-interop-linux-amd64-${{ github.event.pull_request.head.sha || github.sha }}
+          name: envoy-interop-linux-${{ matrix.architecture }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: src/Envoy.ControlPlane.Protocol/obj/upstream/results/envoy/
           if-no-files-found: warn
           retention-days: 14
