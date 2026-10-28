@@ -8,6 +8,61 @@ namespace Envoy.ControlPlane.Tools;
 
 internal static class OverlayTransform
 {
+    internal static string[] PreserveNonStrictHeaderNames(FileDescriptorSet original, FileDescriptorSet derived)
+    {
+        var files = derived.File.ToDictionary(file => file.Name, StringComparer.Ordinal);
+        var changes = new List<string>();
+        foreach (var file in original.File)
+        {
+            var target = files[file.Name];
+            foreach (var (name, message) in EnumerateMessages(file.Package, file.MessageType))
+            {
+                var targetMessage = EnumerateMessages(target.Package, target.MessageType).Single(item => item.Name == name).Message;
+                foreach (var field in message.Field)
+                {
+                    var rules = field.Options?.GetExtension(Pgv.Rules);
+                    if (rules is null)
+                    {
+                        continue;
+                    }
+                    var translated = targetMessage.Field.Single(item => item.Number == field.Number).Options?.GetExtension(Protovalidate.Field);
+                    Preserve(rules, translated, name + "." + field.Name);
+                    if (rules.Repeated?.Items is { } items)
+                    {
+                        Preserve(items, translated?.Repeated?.Items, name + "." + field.Name + "[]");
+                    }
+                }
+            }
+        }
+        return changes.Order(StringComparer.Ordinal).ToArray();
+
+        void Preserve(Validate.FieldRules originalRules, Buf.Validate.FieldRules? translated, string name)
+        {
+            var text = originalRules.String;
+            if (text?.HasStrict != true || text.Strict || text.WellKnownRegex != Validate.KnownRegex.HttpHeaderName
+                || text.MinLen > 0)
+            {
+                return;
+            }
+            string[] supported = ["min_len", "max_len", "max_bytes", "well_known_regex", "strict", "ignore_empty"];
+            if (PgvRuleInventory.EnumerateRulePaths(text, "").Any(path => !supported.Contains(path, StringComparer.Ordinal)))
+            {
+                throw new InvalidOperationException("Unsupported non-strict header-name combination: " + name);
+            }
+            if (translated is null)
+            {
+                throw new InvalidOperationException("Missing derived header-name rule: " + name);
+            }
+            if (translated.Ignore == Buf.Validate.Ignore.IfZeroValue)
+            {
+                return;
+            }
+            // PGV's non-strict regex accepts empty names. Other supported constraints also accept empty.
+            translated.Ignore = Buf.Validate.Ignore.IfZeroValue;
+            changes.Add(name);
+        }
+    }
+
     internal static string[] PreserveAnyRulesOnMessages(FileDescriptorSet original, FileDescriptorSet derived)
     {
         var files = derived.File.ToDictionary(file => file.Name, StringComparer.Ordinal);
@@ -157,6 +212,7 @@ internal static class OverlayTransform
         var derived = Read(migratedPath);
         string[] changes = PreserveConditionalOneofRequirements(original, derived);
         string[] presenceOnly = PreserveAnyRulesOnMessages(original, derived);
+        string[] headerNames = PreserveNonStrictHeaderNames(original, derived);
         VerifyOriginalDescriptors(original, derived);
         // Code generation needs upstream comments; the packaged contract image does not.
         File.WriteAllBytes(Path.ChangeExtension(outputPath, "generation.pb"), derived.ToByteArray());
@@ -170,6 +226,7 @@ internal static class OverlayTransform
             OriginalFilesCompared = original.File.Count,
             ConditionalOneofRequirements = changes,
             PresenceOnlyMessageRules = presenceOnly,
+            NonStrictHeaderNames = headerNames,
         };
         File.WriteAllText(Path.ChangeExtension(outputPath, ".report.json"),
             JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }) + "\n");

@@ -81,6 +81,30 @@
         "before": "            if (messageDescriptor.Parser == null)\n            {\n                return;\n            }",
         "after": "            if (messageDescriptor.Parser == null)\n            {\n                throw new CompilationException($\"No CLR parser available for {messageDescriptor.FullName}.\");\n            }",
         "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "var messageRules = RuleResolver.ResolveMessageRules(messageDescriptor);",
+        "after": "var messageRules = RuleResolver.ResolveMessageRules(messageDescriptor);\n            AnnotationGuard.RequireSupported(messageRules, messageDescriptor.FullName, Extensions);",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "var oneofRules = RuleResolver.ResolveOneofRules(oneofDesc);",
+        "after": "var oneofRules = RuleResolver.ResolveOneofRules(oneofDesc);\n            AnnotationGuard.RequireSupported(oneofRules, oneofDesc.FullName, Extensions);",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "var fieldRules = RuleResolver.ResolveFieldRules(fieldDescriptor);",
+        "after": "var fieldRules = RuleResolver.ResolveFieldRules(fieldDescriptor);\n            AnnotationGuard.RequireSupported(fieldRules, fieldDescriptor.FullName, Extensions);",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "        return EvaluatorMap.GetOrAdd(messageDescriptor, _ => Build(messageDescriptor));",
+        "after": "        try\n        {\n            return EvaluatorMap.GetOrAdd(messageDescriptor, _ => Build(messageDescriptor));\n        }\n        catch (Exception error) when (error is not CompilationException && error is not OutOfMemoryException)\n        {\n            throw new CompilationException($\"Failed to compile validator for {messageDescriptor.FullName}.\", error);\n        }",
+        "occurrences": 1
       }
     ],
     "csharpSources": [
@@ -162,7 +186,7 @@
       {
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
         "sourceSha256": "9c5ec20238d3e7f9cebbce637bea1b7644886dcffd9f2e80aed20389812d27e4",
-        "adaptedSha256": "298f65cc63b7df0974cd245329d1048c2c3351e69c09446748c75952aa940bb0"
+        "adaptedSha256": "dc2d670ee6daa7e10f4268335d85420a24aa207f1922478cc8bf889b399de039"
       },
       {
         "path": "Internal/Evaluator/FieldEvaluator.cs",

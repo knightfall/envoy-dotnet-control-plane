@@ -11,6 +11,20 @@ namespace Envoy.ControlPlane.Validation.Tests;
 public sealed class OverlayTests
 {
     [Fact]
+    public void Overlay_NonStrictHeaderNames_AllowEmptyWithoutWeakeningMinimumLength()
+    {
+        var header = Envoy.Extensions.Filters.Http.ApiKeyAuth.V3.Forwarding.Descriptor.FindFieldByName("header");
+        Assert.Equal(Buf.Validate.Ignore.IfZeroValue, header.GetOptions().GetExtension(Protovalidate.Field).Ignore);
+        Assert.False(header.GetOptions().GetExtension(Pgv.Rules).String.Strict);
+        var repeated = Envoy.Config.Route.V3.RouteConfiguration.Descriptor.FindFieldByName("internal_only_headers");
+        Assert.Equal(Buf.Validate.Ignore.IfZeroValue, repeated.GetOptions().GetExtension(Protovalidate.Field).Repeated.Items.Ignore);
+        var requiredName = HeaderValue.Descriptor.FindFieldByName("key").GetOptions().GetExtension(Protovalidate.Field);
+        Assert.NotEqual(Buf.Validate.Ignore.IfZeroValue, requiredName.Ignore);
+        Assert.Equal(1UL, requiredName.String.MinLen);
+        OverlayTransform.VerifyOriginalDescriptors(Read("catalog.pb"), Read("validation.catalog.pb"));
+    }
+
+    [Fact]
     public void Overlay_OptionalOneofMemberRequirement_IsConditional_OriginalPgvRemains()
     {
         var original = Read("catalog.pb");

@@ -41,8 +41,8 @@ internal static class ReproducibilityDiff
                 ["performanceBaseline"] = "Manual only; not selected",
             },
             ["requiredVerification"] = changed
-                ? "Regenerate and run repository verify, including every declared Go/.NET validation case. Changed/new constraints remain unproven until T26/GV establishes their coverage; this report cannot approve validator claims."
-                : "No recorded input or descriptor/rule change. Existing evidence remains scoped to its original commit, cases and platform; T26/GV is still incomplete.",
+                ? "Regenerate and run repository verify, including every declared Go/.NET validation case. Changed/new constraints remain unproven until current-input GV evidence establishes their coverage; this report cannot approve validator claims."
+                : "No recorded input or descriptor/rule change. Existing evidence remains scoped to its original inputs, cases and platform; this diff does not execute or approve validation.",
         };
     }
 

@@ -51,7 +51,7 @@ After binding generation:
 dotnet run --project tools/Envoy.ControlPlane.Tools -- validation verify
 ```
 
-This checks materialized evaluator fingerprints and pinned conformance inputs, runs the validation suite and Go oracle, packs the evaluator, then repeats the full suite against fresh Annotations/Protocol/Validation packages. The suite includes 2,748 stable upstream conformance cases with seven explicit date-relative exclusions; the Envoy/Go PGV corpus is separate. Source hashes, generated fixture fingerprints, reports and licenses are retained. See [T26 progress](../docs/plan/T26-VALIDATION-CONFORMANCE.md) for current scope. Validation stays explicit and optional. See [T03 evidence](../schemas/VALIDATION.md) for adaptations and remaining GV work.
+This checks materialized evaluator fingerprints and pinned conformance inputs, runs the validation suite and Go oracle, packs the evaluator, then repeats the full suite against fresh Annotations/Protocol/Validation packages. The suite includes 2,748 stable upstream conformance cases with seven explicit date-relative exclusions; the Envoy/Go PGV corpus is separate. Source hashes, generated fixture fingerprints, reports and licenses are retained. See [T26 conformance](../docs/plan/T26-VALIDATION-CONFORMANCE.md) for current scope. Validation stays explicit and optional. See [T03 evidence](../schemas/VALIDATION.md) for the original feasibility decision.
 
 The overlay writes `catalog.generation.pb` with upstream source comments for C#/gRPC generation and normalized `catalog.pb` for packaged contract comparison. Protocol and Annotations include generated XML documentation.
 
@@ -93,7 +93,7 @@ The upstream suite references the main project and exercises its actual CLI in s
 
 The earlier provider experiments and orchestration under [scripts/](../scripts/README.md) are retained historical research, outside both active projects and CI. Their removal remains deferred.
 
-`upstream report` runs after generation and records source/tool pins, schema fingerprints, original PGV rules, derived options and unproven validation coverage. It does not fetch newer sources or approve changed locks. `upstream diff` needs no generated Protocol and retains exact added/changed/removed values. Save baselines outside `obj/upstream`, which generation replaces. [T24 readiness](../docs/plan/T24-PREVIEW-READINESS.md) documents update and verification gates. `repository verify` retains its snapshot and every consumer lock under `obj/upstream/results/` for CI upload.
+`upstream report` runs after generation and records source/tool pins, schema fingerprints, original PGV rules, derived options and validation coverage. Verified coverage is reused only when its descriptor, source, test and configuration fingerprints still match; otherwise coverage remains unproven. It does not fetch newer sources or approve changed locks. `upstream diff` needs no generated Protocol and retains exact added/changed/removed values. Save baselines outside `obj/upstream`, which generation replaces. [T24 readiness](../docs/plan/T24-PREVIEW-READINESS.md) documents update and verification gates. `repository verify` retains its snapshot and every consumer lock under `obj/upstream/results/` for CI upload.
 
 ## Migration verification
 

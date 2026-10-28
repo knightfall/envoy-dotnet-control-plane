@@ -21,6 +21,7 @@
     <Compile Include="../../tools/Envoy.ControlPlane.Tools/Validation/ValidationPaths.cs" Link="Support/ValidationPaths.cs" />
     <Compile Include="../../tools/Envoy.ControlPlane.Tools/Bindings/BindingIntegrity.cs" Link="Support/BindingIntegrity.cs" />
     <EmbeddedResource Include="Fixtures/pgv-cases.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvCases.json" />
+    <EmbeddedResource Include="Fixtures/field-cases.json" LogicalName="Envoy.ControlPlane.Validation.Tests.FieldCases.json" />
     <Compile Include="obj/conformance/generated/**/*.cs" />
     <EmbeddedResource Include="obj/conformance/conformance.pbbin" LogicalName="Envoy.ControlPlane.Validation.Tests.Conformance.bin" />
     <EmbeddedResource Include="obj/conformance/conformance.lock.json" LogicalName="Envoy.ControlPlane.Validation.Tests.ConformanceManifest.json" />

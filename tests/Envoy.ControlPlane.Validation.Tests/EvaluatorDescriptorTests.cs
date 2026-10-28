@@ -1,4 +1,5 @@
 using Envoy.Type.V3;
+using Envoy.ControlPlane.Validation.Tests.Support;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using ProtoValidate;
@@ -117,17 +118,9 @@ public sealed class EvaluatorDescriptorTests
 
     private static FileDescriptor ClrBackedPercentFile(double upperBound)
     {
-        var file = Percent.Descriptor.File.ToProto();
-        file.MessageType[0].Field[0].Options.GetExtension(Protovalidate.Field).Double.Lte = upperBound;
         // Rebind only test metadata to the existing CLR types; no second message owner is generated.
-        var types = new GeneratedClrTypeInfo(null, null,
-        [
-            new(typeof(Percent), Percent.Parser, [nameof(Percent.Value)], null, null, null, null),
-            new(typeof(FractionalPercent), FractionalPercent.Parser,
-                [nameof(FractionalPercent.Numerator), nameof(FractionalPercent.Denominator)], null,
-                [typeof(FractionalPercent.Types.DenominatorType)], null, null),
-        ]);
-        return FileDescriptor.FromGeneratedCode(file.ToByteArray(), Percent.Descriptor.File.Dependencies.ToArray(), types);
+        return DescriptorFixtures.PercentFile(file =>
+            file.MessageType[0].Field[0].Options.GetExtension(Protovalidate.Field).Double.Lte = upperBound);
     }
 
     private sealed class DescriptorMessage(IMessage message, MessageDescriptor descriptor) : IMessage

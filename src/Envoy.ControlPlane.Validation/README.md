@@ -12,4 +12,6 @@ This is a missing-migration check, not a runtime PGV translator or a proof that 
 
 Ordinary message descriptors must have a CLR parser. Metadata-only descriptor graphs throw `CompilationException` instead of returning a successful result without evaluating constraints. Evaluator caches and recursive compilation use descriptor identity, so a different descriptor with the same protobuf name cannot replace a generated message's rules or satisfy its closed-set registration.
 
-T03 establishes bounded feasibility for the selected catalog. Full PGV equivalence, upstream evaluator conformance and validation-package publication remain gated by T26/GV. This candidate is not a complete validation-parity release.
+T26 verifies the pinned catalog's 59 populated PGV rule paths and 86 path combinations using real Envoy field boundaries, whole-message cases, selected PGV fixtures and stable Protovalidate conformance. Four declared NaN range differences and seven relative-time exclusions qualify that evidence. Opaque Any payloads are not unpacked automatically. See the repository T26 report for exact pins, coverage and acceptance results. This experimental candidate is not a universal PGV replacement; publication remains a separate release step.
+
+Unknown encoded Protovalidate constraints and unsupported metadata enum values fail compilation. Malformed CEL and rule/type mismatches are compilation faults; causes are retained. Registered predefined CEL extensions remain supported. These checks prevent unsupported metadata from being silently reported as valid.

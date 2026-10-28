@@ -27,7 +27,7 @@ internal static class ReproducibilityReport
             var inputs = new JsonObject();
             foreach (string path in new[] { "upstream-baseline.json", "schemas/upstream.lock.json", "schemas/catalog.json", "schemas/bindings.lock.json",
                 "schemas/validation/bindings.lock.json", "schemas/validation/sources.lock.json", "schemas/validation/conformance.lock.json", "schemas/validation/rules.recognized.json", "schemas/validation/pgv-conformance.lock.json",
-                "global.json", "tests/resources/envoy-images.lock.json" })
+                ValidationCoverage.ManifestPath, "global.json", "tests/resources/envoy-images.lock.json" })
             {
                 inputs.Add(path, Read(path));
             }
@@ -47,9 +47,10 @@ internal static class ReproducibilityReport
                 inputs.Add(Path.GetFileName(path), GetFileSha256(path));
             }
             RecordMaintainedInputs(inputs, Path.GetFullPath("."));
-            var coverage = new JsonObject
+            var verifiedCoverage = ValidationCoverage.ReadCurrent();
+            var coverage = verifiedCoverage ?? new JsonObject
             {
-                ["gate"] = "T26/GV incomplete",
+                ["gate"] = "GV current-input evidence unavailable",
                 ["catalogWideConformance"] = false,
                 ["unsupportedConstraints"] = "not-assessed",
                 ["messageOneofAndDerivedConformance"] = "unproven",
@@ -58,7 +59,11 @@ internal static class ReproducibilityReport
             var rules = new JsonObject();
             foreach (var rule in descriptors["rulePathCounts"]!.AsObject())
             {
-                rules.Add(rule.Key, new JsonObject { ["occurrences"] = rule.Value!.DeepClone(), ["conformance"] = "unproven" });
+                rules.Add(rule.Key, new JsonObject
+                {
+                    ["occurrences"] = rule.Value!.DeepClone(),
+                    ["conformance"] = verifiedCoverage is null ? "unproven" : "verified within declared catalog scope",
+                });
             }
             coverage.Add("pgvRulePaths", rules);
             Write(output, new JsonObject

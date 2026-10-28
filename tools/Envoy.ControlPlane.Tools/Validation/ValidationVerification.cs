@@ -13,7 +13,7 @@ internal static class ValidationVerification
         await PackageVerification.BuildPackageAsync();
         await PackageVerification.PackAsync(ValidationPaths.EvaluatorProject);
         await PackageVerification.VerifyCleanConsumerAsync(ValidationPaths.TestsProject, "validation-consumer");
-        Console.WriteLine($"Verified {cases} cases against separate declared .NET and Go PGV outcomes, including locked accepted differences; full T26/GV coverage remains separate.");
+        Console.WriteLine($"Verified {cases} whole-message cases plus the declared field-rule coverage against Go PGV, including locked accepted differences.");
     }
 
     internal static async Task VerifyInputsAsync()
@@ -21,6 +21,7 @@ internal static class ValidationVerification
         VerifiedValidationSources.VerifyMaterialized();
         ValidationConformance.VerifyOutputs();
         PgvConformance.VerifyOutputs();
+        ValidationCoverage.VerifyInputs();
         await BuildProcess.RunAsync("dotnet", ["run", "--project", "tools/Envoy.ControlPlane.SchemaTools", "--configuration", "Release", "--no-restore",
             "--", "rules-check", BindingPaths.InputsDirectory + "/catalog.pb", "schemas/validation/rules.recognized.json"]);
         var bindingLock = JsonNode.Parse(File.ReadAllText(ValidationPaths.BindingsLock))!;
@@ -69,6 +70,8 @@ internal static class ValidationVerification
         string oracle = Path.GetFullPath(BindingPaths.InputsDirectory + "/results/validation/go-results.json");
         Directory.CreateDirectory(Path.GetDirectoryName(oracle)!);
         await BuildProcess.RunAsync("go", ["run", "-mod=readonly", ".", Path.GetFullPath(report), oracle], "tests/validation/GoOracle");
+
+        await ValidationCoverage.VerifyAsync();
 
         return rows.Count;
     }

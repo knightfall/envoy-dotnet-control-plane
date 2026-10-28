@@ -179,6 +179,9 @@ coverage*.json
 coverage*.xml
 coverage*.info
 
+# Authored validation evidence manifest, not a coverage measurement.
+!/tests/Envoy.ControlPlane.Validation.Tests/Fixtures/coverage.lock.json
+
 # Visual Studio code coverage results
 *.coverage
 *.coveragexml
