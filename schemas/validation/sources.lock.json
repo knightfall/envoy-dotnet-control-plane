@@ -33,6 +33,12 @@
         "before": "EvaluatorBuilder.Load(nestedTypeMessageDescriptor);",
         "after": "EvaluatorBuilder.LoadOrBuildDescriptor(nestedTypeMessageDescriptor);",
         "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "    public IEvaluator Load(MessageDescriptor messageDescriptor)\n    {",
+        "after": "    public IEvaluator Load(MessageDescriptor messageDescriptor)\n    {\n        PgvMetadataGuard.RequireMigrated(messageDescriptor);",
+        "occurrences": 1
       }
     ],
     "csharpSources": [
@@ -114,7 +120,7 @@
       {
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
         "sourceSha256": "9c5ec20238d3e7f9cebbce637bea1b7644886dcffd9f2e80aed20389812d27e4",
-        "adaptedSha256": "86534e1e750591fc35bdb3d583973121bba479fa1bf06a2a2f1dc363d1727038"
+        "adaptedSha256": "aeecc8d9593507f546d0163af52269537643fab5f6552a2223cd8594e69db9a6"
       },
       {
         "path": "Internal/Evaluator/FieldEvaluator.cs",

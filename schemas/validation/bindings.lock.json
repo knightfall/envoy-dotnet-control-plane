@@ -9,7 +9,7 @@
   "configurationSha256": {
     "buf.annotations.gen.yaml": "9e6d47e1cde0a185ce1365194b3febeb92fda347fd465fd5b5fafba112a30079",
     "buf.validation.gen.yaml": "5971ad8829b48a31d25e677ca36ec1109daed0f1a8b72f81050862ae032fddcc",
-    "schemas/validation/sources.lock.json": "5ceda40706505a0217c9eed1e6e2bbcd6736678a98f46b5e978ae0f3682bc513",
+    "schemas/validation/sources.lock.json": "4c68675b56cece8513e497700930972531838bb6b511d12dbe706c7c194af01c",
     "tools/Envoy.ControlPlane.SchemaTools/OverlayTransform.cs": "97c33c17f9bcbd5f3a396e4c69ced467a7b49e6e8d7500db50646fcfba4446b6",
     "tools/Envoy.ControlPlane.Tools/Validation/MigrationCorrections.cs": "4e7ef6d4a487c37a51122628287053c76765e5afe5eef5fb30ba2ebad6440d5d"
   },
