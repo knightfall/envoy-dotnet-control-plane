@@ -452,6 +452,8 @@ Subtasks:
 
 ### T26 — Implement explicit schema validation and conformance
 
+**Status:** Implemented in [PR #73](https://github.com/knightfall/envoy-dotnet-control-plane/pull/73), pending current-head CI/review and merge. [The conformance report](T26-VALIDATION-CONFORMANCE.md) records all 59 populated paths / 86 combinations, actual Go comparisons, 2,748 stable native cases, four accepted NaN differences, explicit exclusions and current-input update acceptance. Package publishing remains a separate step.
+
 **Scope:** optional package / R24. **Depends on:** T03, T04. **Outputs:** isolated validation package, rule-coverage manifest, comparison corpus, and equivalence report. This work can proceed alongside the root runtime; its GV gate is separate.
 
 Subtasks:

@@ -1,0 +1,852 @@
+[
+  {
+    "field": "envoy.config.core.v3.Pipe.path",
+    "rulePaths": ["string.min_len"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.RuntimeFeatureFlag.default_value",
+    "rulePaths": ["message.required"],
+    "cases": [
+      {"id": "absent", "value": null, "valid": false},
+      {"id": "present", "value": false, "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.config.cluster.v3.Cluster.type",
+    "rulePaths": ["enum.defined_only"],
+    "cases": [
+      {"id": "defined", "value": 0, "valid": true},
+      {"id": "undefined", "value": 999, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.ExtensionConfigSource.type_urls",
+    "rulePaths": ["repeated.min_items"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": false},
+      {"id": "at-minimum", "value": ["type.googleapis.com/example.Filter"], "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.config.accesslog.v3.ResponseFlagFilter.flags",
+    "rulePaths": ["repeated.items.string.in"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": true},
+      {"id": "valid-item", "value": ["LH"], "valid": true},
+      {"id": "unlisted-item", "value": ["not-listed"], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.HealthStatusSet.statuses",
+    "rulePaths": ["repeated.items.enum.defined_only"],
+    "cases": [
+      {"id": "defined", "value": [0], "valid": true},
+      {"id": "undefined", "value": [999], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.bootstrap.v3.Bootstrap.stats_flush_interval",
+    "rulePaths": ["duration.gte", "duration.lt"],
+    "cases": [
+      {"id": "valid", "value": "0.001s", "valid": true},
+      {"id": "below-lower", "value": "0.000999999s", "valid": false},
+      {"id": "below-upper", "value": "299.999999999s", "valid": true},
+      {"id": "at-exclusive-upper", "value": "300s", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.listener.v3.ListenerFilterChainMatchPredicate.any_match",
+    "rulePaths": ["bool.const"],
+    "cases": [
+      {"id": "matches", "value": true, "valid": true},
+      {"id": "differs", "value": false, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.type.http.v3.Cookie.ttl",
+    "rulePaths": ["duration.gte"],
+    "cases": [
+      {"id": "valid", "value": "0s", "valid": true},
+      {"id": "below-lower", "value": "-0.000000001s", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.HeaderMatcher.name",
+    "rulePaths": ["string.min_len", "string.strict", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "nonstrict-space", "value": "bad header", "valid": true},
+      {"id": "unicode-header", "value": "é", "valid": true},
+      {"id": "newline", "value": "bad\nheader", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.cluster.v3.Cluster.connect_timeout",
+    "rulePaths": ["duration.gt"],
+    "cases": [
+      {"id": "valid", "value": "0.000000001s", "valid": true},
+      {"id": "at-exclusive-lower", "value": "0s", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.transport_sockets.tls.v3.TlsParameters.compliance_policies",
+    "rulePaths": ["repeated.max_items"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": true},
+      {"id": "at-minimum", "value": [0], "valid": true},
+      {"id": "above-maximum", "value": [0], "valid": false, "repeat": 2}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.HttpProtocolOptions.max_headers_count",
+    "rulePaths": ["uint32.gte"],
+    "cases": [
+      {"id": "valid", "value": 1, "valid": true},
+      {"id": "below-lower", "value": 0, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.RateLimit.HitsAddend.number",
+    "rulePaths": ["uint64.lte"],
+    "cases": [
+      {"id": "valid", "value": "0", "valid": true},
+      {"id": "at-upper", "value": "1000000000", "valid": true},
+      {"id": "above-upper", "value": "1000000001", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.Pipe.mode",
+    "rulePaths": ["uint32.lte"],
+    "cases": [
+      {"id": "valid", "value": 0, "valid": true},
+      {"id": "at-upper", "value": 511, "valid": true},
+      {"id": "above-upper", "value": 512, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.type.v3.TokenBucket.fill_interval",
+    "rulePaths": ["duration.gt", "duration.required"],
+    "cases": [
+      {"id": "valid", "value": "0.000000001s", "valid": true},
+      {"id": "at-exclusive-lower", "value": "0s", "valid": false},
+      {"id": "absent", "value": null, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.type.v3.Percent.value",
+    "rulePaths": ["double.gte", "double.lte"],
+    "cases": [
+      {"id": "valid", "value": 0.0, "valid": true},
+      {"id": "below-lower", "value": -0.25, "valid": false},
+      {"id": "at-upper", "value": 100.0, "valid": true},
+      {"id": "above-upper", "value": 100.25, "valid": false}
+    ]
+  },
+  {
+    "field": "xds.type.matcher.v3.Matcher.MatcherTree.MatchMap.map",
+    "rulePaths": ["map.min_pairs"],
+    "cases": [
+      {"id": "empty", "value": {}, "valid": false},
+      {"id": "valid-key-value", "value": {"key": {"action": {"name": "test", "typedConfig": {"@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog", "path": "/tmp/log"}}}}, "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.config.tap.v3.HttpGenericBodyMatch.GenericTextMatch.binary_match",
+    "rulePaths": ["bytes.min_len"],
+    "cases": [
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "nonempty", "value": "YQ==", "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.RouteAction.prefix_rewrite",
+    "rulePaths": ["string.strict", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "invalid-header", "value": "bad\nvalue", "valid": false},
+      {"id": "unicode-header", "value": "é", "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.KeepaliveSettings.timeout",
+    "rulePaths": ["duration.gte", "duration.required"],
+    "cases": [
+      {"id": "valid", "value": "0.001s", "valid": true},
+      {"id": "below-lower", "value": "0.000999999s", "valid": false},
+      {"id": "absent", "value": null, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.Metadata.filter_metadata",
+    "rulePaths": ["map.keys.string.min_len"],
+    "cases": [
+      {"id": "empty", "value": {}, "valid": true},
+      {"id": "valid-key-value", "value": {"key": {}}, "valid": true},
+      {"id": "empty-key", "value": {"": {}}, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.KeyValue.key",
+    "rulePaths": ["string.max_bytes", "string.min_len"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "at-maximum", "value": "a", "valid": true, "repeat": 16384},
+      {"id": "above-maximum", "value": "a", "valid": false, "repeat": 16385}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.KeyValueAppend.entry",
+    "rulePaths": ["message.skip"],
+    "cases": [
+      {"id": "absent", "value": null, "valid": true},
+      {"id": "skips-invalid-child", "value": {}, "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.KeyValueMutation.remove",
+    "rulePaths": ["string.max_bytes"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "at-maximum", "value": "a", "valid": true, "repeat": 16384},
+      {"id": "above-maximum", "value": "a", "valid": false, "repeat": 16385}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.HeaderValue.key",
+    "rulePaths": ["string.max_bytes", "string.min_len", "string.strict", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "at-maximum", "value": "a", "valid": true, "repeat": 16384},
+      {"id": "above-maximum", "value": "a", "valid": false, "repeat": 16385},
+      {"id": "nonstrict-space", "value": "bad header", "valid": true},
+      {"id": "unicode-header", "value": "é", "valid": true},
+      {"id": "newline", "value": "bad\nheader", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.HeaderValue.value",
+    "rulePaths": ["string.max_bytes", "string.strict", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "at-maximum", "value": "a", "valid": true, "repeat": 16384},
+      {"id": "above-maximum", "value": "a", "valid": false, "repeat": 16385},
+      {"id": "invalid-header", "value": "bad\nvalue", "valid": false},
+      {"id": "unicode-header", "value": "é", "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.HeaderValue.raw_value",
+    "rulePaths": ["bytes.max_len", "bytes.min_len"],
+    "cases": [
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "at-maximum", "value": "YWFh", "repeat": 5461, "suffix": "YQ==", "valid": true},
+      {"id": "above-maximum", "value": "YWFh", "repeat": 5461, "suffix": "YWE=", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.RateLimitSettings.fill_rate",
+    "rulePaths": ["double.gt"],
+    "cases": [
+      {"id": "valid", "value": 0.25, "valid": true},
+      {"id": "at-exclusive-lower", "value": 0.0, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.TypedExtensionConfig.typed_config",
+    "rulePaths": ["any.required"],
+    "cases": [
+      {"id": "absent", "value": null, "valid": false},
+      {"id": "opaque-payload", "value": {"@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog", "path": ""}, "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.type.v3.TokenBucket.tokens_per_fill",
+    "rulePaths": ["uint32.gt"],
+    "cases": [
+      {"id": "valid", "value": 1, "valid": true},
+      {"id": "at-exclusive-lower", "value": 0, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.HealthCheck.HttpHealthCheck.host",
+    "rulePaths": ["string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "invalid-header", "value": "bad\nvalue", "valid": false},
+      {"id": "unicode-header", "value": "é", "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.HealthCheck.HttpHealthCheck.path",
+    "rulePaths": ["string.min_len", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "invalid-header", "value": "bad\nvalue", "valid": false},
+      {"id": "unicode-header", "value": "é", "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.common.fault.v3.FaultRateLimit.FixedLimit.limit_kbps",
+    "rulePaths": ["uint64.gte"],
+    "cases": [
+      {"id": "valid", "value": "1", "valid": true},
+      {"id": "below-lower", "value": "0", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.RouteConfiguration.internal_only_headers",
+    "rulePaths": ["repeated.items.string.strict", "repeated.items.string.well_known_regex"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": true},
+      {"id": "valid-item", "value": ["a"], "valid": true},
+      {"id": "nonstrict-space", "value": ["bad header"], "valid": true},
+      {"id": "newline", "value": ["bad\nheader"], "valid": false},
+      {"id": "empty-item", "value": [""], "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.type.v3.HttpStatus.code",
+    "rulePaths": ["enum.defined_only", "enum.not_in"],
+    "cases": [
+      {"id": "defined", "value": 200, "valid": true},
+      {"id": "undefined", "value": 999, "valid": false},
+      {"id": "excluded", "value": 0, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.HttpUri.timeout",
+    "rulePaths": ["duration.gte", "duration.lt", "duration.required"],
+    "cases": [
+      {"id": "valid", "value": "0s", "valid": true},
+      {"id": "below-lower", "value": "-0.000000001s", "valid": false},
+      {"id": "below-upper", "value": "4294967295.999999999s", "valid": true},
+      {"id": "at-exclusive-upper", "value": "4294967296s", "valid": false},
+      {"id": "absent", "value": null, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.QuicKeepAliveSettings.initial_interval",
+    "rulePaths": ["duration.gte", "duration.lte"],
+    "cases": [
+      {"id": "low-outside", "value": "0s", "valid": true},
+      {"id": "high-outside", "value": "0.001s", "valid": true},
+      {"id": "excluded-middle", "value": "0.0005s", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.listener.v3.FilterChainMatch.destination_port",
+    "rulePaths": ["uint32.gte", "uint32.lte"],
+    "cases": [
+      {"id": "valid", "value": 1, "valid": true},
+      {"id": "below-lower", "value": 0, "valid": false},
+      {"id": "at-upper", "value": 65535, "valid": true},
+      {"id": "above-upper", "value": 65536, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.UpstreamHttpProtocolOptions.override_auto_sni_header",
+    "rulePaths": ["string.ignore_empty", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "invalid-header", "value": "bad header", "valid": false},
+      {"id": "unicode-header", "value": "é", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.AlternateProtocolsCacheOptions.AlternateProtocolsCacheEntry.port",
+    "rulePaths": ["uint32.gt", "uint32.lt"],
+    "cases": [
+      {"id": "valid", "value": 1, "valid": true},
+      {"id": "at-exclusive-lower", "value": 0, "valid": false},
+      {"id": "below-upper", "value": 65534, "valid": true},
+      {"id": "at-exclusive-upper", "value": 65535, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.HttpProtocolOptions.max_response_headers_kb",
+    "rulePaths": ["uint32.gt", "uint32.lte"],
+    "cases": [
+      {"id": "valid", "value": 1, "valid": true},
+      {"id": "at-exclusive-lower", "value": 0, "valid": false},
+      {"id": "at-upper", "value": 8192, "valid": true},
+      {"id": "above-upper", "value": 8193, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.Http2ProtocolOptions.SettingsParameter.identifier",
+    "rulePaths": ["message.required", "uint32.gte", "uint32.lte"],
+    "cases": [
+      {"id": "valid", "value": 0, "valid": true},
+      {"id": "at-upper", "value": 65535, "valid": true},
+      {"id": "above-upper", "value": 65536, "valid": false},
+      {"id": "absent", "value": null, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.SchemeHeaderTransformation.scheme_to_overwrite",
+    "rulePaths": ["string.in"],
+    "cases": [
+      {"id": "valid", "value": "http", "valid": true},
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "unlisted", "value": "ftp", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.ProxyProtocolPassThroughTLVs.tlv_type",
+    "rulePaths": ["repeated.items.uint32.lt"],
+    "cases": [
+      {"id": "boundaries", "value": [0, 255], "valid": true},
+      {"id": "above-upper", "value": [256], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.TlvEntry.type",
+    "rulePaths": ["uint32.lt"],
+    "cases": [
+      {"id": "valid", "value": 0, "valid": true},
+      {"id": "below-upper", "value": 255, "valid": true},
+      {"id": "at-exclusive-upper", "value": 256, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.core.v3.UdpSocketConfig.max_rx_datagram_size",
+    "rulePaths": ["uint64.gt", "uint64.lt"],
+    "cases": [
+      {"id": "valid", "value": "1", "valid": true},
+      {"id": "at-exclusive-lower", "value": "0", "valid": false},
+      {"id": "below-upper", "value": "65535", "valid": true},
+      {"id": "at-exclusive-upper", "value": "65536", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.listener.v3.FilterChainMatch.source_ports",
+    "rulePaths": ["repeated.items.uint32.gte", "repeated.items.uint32.lte"],
+    "cases": [
+      {"id": "boundaries", "value": [1, 65535], "valid": true},
+      {"id": "below-lower", "value": [0], "valid": false},
+      {"id": "above-upper", "value": [65536], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.metrics.v3.HistogramBucketSettings.buckets",
+    "rulePaths": ["repeated.items.double.gt", "repeated.unique"],
+    "cases": [
+      {"id": "positive", "value": [1], "valid": true},
+      {"id": "zero", "value": [0], "valid": false},
+      {"id": "duplicate-item", "value": [1, 1], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.tap.v3.BufferedAdminSink.max_traces",
+    "rulePaths": ["uint64.gt"],
+    "cases": [
+      {"id": "valid", "value": "1", "valid": true},
+      {"id": "at-exclusive-lower", "value": "0", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.VirtualHost.domains",
+    "rulePaths": ["repeated.items.string.strict", "repeated.items.string.well_known_regex", "repeated.min_items"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": false},
+      {"id": "valid-item", "value": ["a"], "valid": true},
+      {"id": "invalid-item", "value": ["bad\nheader"], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.Route.request_headers_to_remove",
+    "rulePaths": ["repeated.items.string.min_len", "repeated.items.string.strict", "repeated.items.string.well_known_regex"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": true},
+      {"id": "valid-item", "value": ["a"], "valid": true},
+      {"id": "short-item", "value": [""], "valid": false},
+      {"id": "nonstrict-space", "value": ["bad header"], "valid": true},
+      {"id": "newline", "value": ["bad\nheader"], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.RouteMatch.path_separated_prefix",
+    "rulePaths": ["string.pattern"],
+    "cases": [
+      {"id": "valid", "value": "/valid/path", "valid": true},
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "invalid-pattern", "value": "?bad", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.DirectResponseAction.status",
+    "rulePaths": ["uint32.gte", "uint32.lt"],
+    "cases": [
+      {"id": "valid", "value": 200, "valid": true},
+      {"id": "below-lower", "value": 199, "valid": false},
+      {"id": "below-upper", "value": 599, "valid": true},
+      {"id": "at-exclusive-upper", "value": 600, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.RateLimit.HitsAddend.format",
+    "rulePaths": ["string.ignore_empty", "string.prefix", "string.suffix"],
+    "cases": [
+      {"id": "valid", "value": "%value%", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "missing-prefix", "value": "value%", "valid": false},
+      {"id": "missing-suffix", "value": "%value", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.InternalRedirectPolicy.response_headers_to_copy",
+    "rulePaths": ["repeated.items.string.strict", "repeated.items.string.well_known_regex", "repeated.unique"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": true},
+      {"id": "valid-item", "value": ["a"], "valid": true},
+      {"id": "nonstrict-space", "value": ["bad header"], "valid": true},
+      {"id": "duplicate-item", "value": ["a", "a"], "valid": false},
+      {"id": "newline", "value": ["bad\nheader"], "valid": false},
+      {"id": "empty-item", "value": [""], "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.config.tap.v3.OutputConfig.sinks",
+    "rulePaths": ["repeated.max_items", "repeated.min_items"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": false},
+      {"id": "at-minimum", "value": [{"filePerTap": {"pathPrefix": "/tmp/tap"}}], "valid": true},
+      {"id": "above-maximum", "value": [{"filePerTap": {"pathPrefix": "/tmp/tap"}}], "valid": false, "repeat": 2}
+    ]
+  },
+  {
+    "field": "envoy.data.accesslog.v3.AccessLogCommon.sample_rate",
+    "rulePaths": ["double.gt", "double.lte"],
+    "cases": [
+      {"id": "valid", "value": 0.25, "valid": true},
+      {"id": "at-exclusive-lower", "value": 0.0, "valid": false},
+      {"id": "at-upper", "value": 1.0, "valid": true},
+      {"id": "above-upper", "value": 1.25, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.data.dns.v3.DnsTable.AddressList.address",
+    "rulePaths": ["repeated.items.string.min_len", "repeated.min_items"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": false},
+      {"id": "valid-item", "value": ["aaa"], "valid": true},
+      {"id": "short-item", "value": ["aa"], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.access_loggers.stats.v3.Config.Histogram.value_format",
+    "rulePaths": ["string.min_len", "string.prefix", "string.suffix"],
+    "cases": [
+      {"id": "valid", "value": "%value%", "valid": true},
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "missing-prefix", "value": "value%", "valid": false},
+      {"id": "missing-suffix", "value": "%value", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.network.reverse_tunnel.v3.ReverseTunnel.handshake_timeout",
+    "rulePaths": ["duration.gt", "duration.lte"],
+    "cases": [
+      {"id": "valid", "value": "0.000000001s", "valid": true},
+      {"id": "at-exclusive-lower", "value": "0s", "valid": false},
+      {"id": "at-upper", "value": "300s", "valid": true},
+      {"id": "above-upper", "value": "300.000000001s", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.common.jwks.v3.JwtHandshakeValidator.token_header",
+    "rulePaths": ["string.ignore_empty", "string.max_len"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "at-maximum", "value": "a", "valid": true, "repeat": 255},
+      {"id": "above-maximum", "value": "a", "valid": false, "repeat": 256}
+    ]
+  },
+  {
+    "field": "envoy.extensions.config.validators.dynamic_modules.v3.DynamicModuleConfigValidator.type_urls",
+    "rulePaths": ["repeated.items.string.min_len", "repeated.max_items", "repeated.min_items"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": false},
+      {"id": "valid-item", "value": ["a"], "valid": true},
+      {"id": "short-item", "value": [""], "valid": false},
+      {"id": "above-maximum", "value": ["a"], "valid": false, "repeat": 2}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.common.jwks.v3.JwtHandshakeValidator.issuer",
+    "rulePaths": ["string.max_len", "string.min_len"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "at-maximum", "value": "a", "valid": true, "repeat": 1024},
+      {"id": "above-maximum", "value": "a", "valid": false, "repeat": 1025}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.api_key_auth.v3.KeySource.header",
+    "rulePaths": ["string.ignore_empty", "string.max_len", "string.strict", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "at-maximum", "value": "a", "valid": true, "repeat": 1024},
+      {"id": "above-maximum", "value": "a", "valid": false, "repeat": 1025},
+      {"id": "nonstrict-space", "value": "bad header", "valid": true},
+      {"id": "unicode-header", "value": "é", "valid": true},
+      {"id": "newline", "value": "bad\nheader", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.api_key_auth.v3.KeySource.query",
+    "rulePaths": ["string.max_len"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "at-maximum", "value": "a", "valid": true, "repeat": 1024},
+      {"id": "above-maximum", "value": "a", "valid": false, "repeat": 1025}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.api_key_auth.v3.Forwarding.header",
+    "rulePaths": ["string.max_len", "string.strict", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "at-maximum", "value": "a", "valid": true, "repeat": 1024},
+      {"id": "above-maximum", "value": "a", "valid": false, "repeat": 1025},
+      {"id": "nonstrict-space", "value": "bad header", "valid": true},
+      {"id": "unicode-header", "value": "é", "valid": true},
+      {"id": "newline", "value": "bad\nheader", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.buffer.v3.Buffer.max_request_bytes",
+    "rulePaths": ["message.required", "uint32.gt"],
+    "cases": [
+      {"id": "valid", "value": 1, "valid": true},
+      {"id": "at-exclusive-lower", "value": 0, "valid": false},
+      {"id": "absent", "value": null, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.compressor.v3.Compressor.ResponseDirectionConfig.uncompressible_response_codes",
+    "rulePaths": ["repeated.items.uint32.gte", "repeated.items.uint32.lt", "repeated.unique"],
+    "cases": [
+      {"id": "boundaries", "value": [200, 599], "valid": true},
+      {"id": "below-lower", "value": [199], "valid": false},
+      {"id": "above-upper", "value": [600], "valid": false},
+      {"id": "duplicate-item", "value": [200, 200], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.ext_authz.v3.ShadowDecision.status_code",
+    "rulePaths": ["uint32.gte", "uint32.ignore_empty", "uint32.lte"],
+    "cases": [
+      {"id": "valid", "value": 100, "valid": true},
+      {"id": "below-lower", "value": 99, "valid": false},
+      {"id": "at-upper", "value": 599, "valid": true},
+      {"id": "above-upper", "value": 600, "valid": false},
+      {"id": "ignored-zero", "value": 0, "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.file_server.v3.FileServerConfig.content_types",
+    "rulePaths": ["map.keys.string.pattern"],
+    "cases": [
+      {"id": "empty", "value": {}, "valid": true},
+      {"id": "valid-key-value", "value": {"key": "value"}, "valid": true},
+      {"id": "invalid-key", "value": {"bad!": "value"}, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.gcp_authn.v3.Audience.AccessToken.scopes",
+    "rulePaths": ["repeated.items.string.min_len", "repeated.items.string.pattern"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": true},
+      {"id": "valid-item", "value": ["a"], "valid": true},
+      {"id": "short-item", "value": [""], "valid": false},
+      {"id": "invalid-item", "value": ["bad header"], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.gcp_authn.v3.TokenHeader.name",
+    "rulePaths": ["string.ignore_empty", "string.strict", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "nonstrict-space", "value": "bad header", "valid": true},
+      {"id": "unicode-header", "value": "é", "valid": true},
+      {"id": "newline", "value": "bad\nheader", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.lua.v3.Lua.package_paths",
+    "rulePaths": ["repeated.items.string.min_len"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": true},
+      {"id": "valid-item", "value": ["a"], "valid": true},
+      {"id": "short-item", "value": [""], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.http.thrift_to_metadata.v3.FieldSelector.id",
+    "rulePaths": ["int32.gte", "int32.lte"],
+    "cases": [
+      {"id": "valid", "value": -32768, "valid": true},
+      {"id": "below-lower", "value": -32769, "valid": false},
+      {"id": "at-upper", "value": 32767, "valid": true},
+      {"id": "above-upper", "value": 32768, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.network.redis_proxy.v3.RedisProxy.ConnPoolSettings.op_timeout",
+    "rulePaths": ["duration.required"],
+    "cases": [
+      {"id": "valid", "value": "0s", "valid": true},
+      {"id": "absent", "value": null, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.network.reverse_tunnel.v3.ReverseTunnel.request_path",
+    "rulePaths": ["string.ignore_empty", "string.max_len", "string.min_len"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "at-maximum", "value": "a", "valid": true, "repeat": 255},
+      {"id": "above-maximum", "value": "a", "valid": false, "repeat": 256}
+    ]
+  },
+  {
+    "field": "envoy.extensions.load_balancing_policies.client_side_weighted_round_robin.v3.ClientSideWeightedRoundRobin.error_utilization_penalty",
+    "rulePaths": ["float.gte"],
+    "cases": [
+      {"id": "valid", "value": 0.0, "valid": true},
+      {"id": "below-lower", "value": -0.25, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.load_balancing_policies.load_aware_locality.v3.LoadAwareLocality.remote_probe_fraction",
+    "rulePaths": ["double.gte", "double.lt"],
+    "cases": [
+      {"id": "valid", "value": 0.0, "valid": true},
+      {"id": "below-lower", "value": -0.25, "valid": false},
+      {"id": "below-upper", "value": 0.75, "valid": true},
+      {"id": "at-exclusive-upper", "value": 1.0, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.load_balancing_policies.ring_hash.v3.RingHash.minimum_ring_size",
+    "rulePaths": ["uint64.gte", "uint64.lte"],
+    "cases": [
+      {"id": "valid", "value": "1", "valid": true},
+      {"id": "below-lower", "value": "0", "valid": false},
+      {"id": "at-upper", "value": "8388608", "valid": true},
+      {"id": "above-upper", "value": "8388609", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.resource_monitors.downstream_connections.v3.DownstreamConnectionsConfig.max_active_downstream_connections",
+    "rulePaths": ["int64.gt"],
+    "cases": [
+      {"id": "valid", "value": "1", "valid": true},
+      {"id": "at-exclusive-lower", "value": "0", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.retry.priority.previous_priorities.v3.PreviousPrioritiesConfig.update_frequency",
+    "rulePaths": ["int32.gt"],
+    "cases": [
+      {"id": "valid", "value": 1, "valid": true},
+      {"id": "at-exclusive-lower", "value": 0, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.router.cluster_specifiers.priority_group.v3.ClusterWeight.weight",
+    "rulePaths": ["message.required", "uint32.gte"],
+    "cases": [
+      {"id": "valid", "value": 1, "valid": true},
+      {"id": "below-lower", "value": 0, "valid": false},
+      {"id": "absent", "value": null, "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.transport_sockets.tls.v3.CertificateValidationContext.verify_certificate_spki",
+    "rulePaths": ["repeated.items.string.max_bytes", "repeated.items.string.min_len"],
+    "cases": [
+      {"id": "empty", "value": [], "valid": true},
+      {"id": "valid-item", "value": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"], "valid": true},
+      {"id": "short-item", "value": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"], "valid": false},
+      {"id": "long-item", "value": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"], "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.service.rate_limit_quota.v3.BucketId.bucket",
+    "rulePaths": ["map.keys.string.min_len", "map.min_pairs", "map.values.string.min_len"],
+    "cases": [
+      {"id": "empty", "value": {}, "valid": false},
+      {"id": "valid-key-value", "value": {"key": "value"}, "valid": true},
+      {"id": "empty-key", "value": {"": "value"}, "valid": false},
+      {"id": "empty-value", "value": {"key": ""}, "valid": false}
+    ]
+  },
+  {
+    "field": "xds.core.v3.ResourceLocator.Directive.entry",
+    "rulePaths": ["string.min_len", "string.pattern"],
+    "cases": [
+      {"id": "valid", "value": "valid/path", "valid": true},
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "invalid-pattern", "value": "bad!", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.route.v3.VirtualHost.request_body_buffer_limit",
+    "rulePaths": ["message.required"],
+    "cases": [
+      {"id": "absent", "value": null, "valid": true},
+      {"id": "present", "value": "1", "valid": true}
+    ]
+  },
+  {
+    "field": "envoy.extensions.http.original_ip_detection.custom_header.v3.CustomHeaderConfig.header_name",
+    "rulePaths": ["string.min_len", "string.strict", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "a", "valid": true},
+      {"id": "empty", "value": "", "valid": false},
+      {"id": "invalid-header", "value": "bad header", "valid": false},
+      {"id": "unicode-header", "value": "é", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.extensions.filters.network.reverse_tunnel.v3.ReverseTunnel.ping_interval",
+    "rulePaths": ["duration.gte", "duration.lte"],
+    "cases": [
+      {"id": "valid", "value": "0.001s", "valid": true},
+      {"id": "below-lower", "value": "0.000999999s", "valid": false},
+      {"id": "at-upper", "value": "300s", "valid": true},
+      {"id": "above-upper", "value": "300.000000001s", "valid": false}
+    ]
+  },
+  {
+    "field": "envoy.config.common.mutation_rules.v3.HeaderMutation.remove",
+    "rulePaths": ["string.strict", "string.well_known_regex"],
+    "cases": [
+      {"id": "valid", "value": "x-name", "valid": true},
+      {"id": "empty", "value": "", "valid": true},
+      {"id": "nonstrict-space", "value": "bad header", "valid": true},
+      {"id": "newline", "value": "bad\nheader", "valid": false}
+    ]
+  }
+]

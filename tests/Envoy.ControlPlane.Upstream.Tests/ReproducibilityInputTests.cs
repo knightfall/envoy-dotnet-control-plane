@@ -15,8 +15,9 @@ public sealed class ReproducibilityInputTests
         string[] paths = ["src/Runtime.cs", "src/Runtime.csproj", "src/Directory.Build.props", "src/Build.targets",
             "src/NestedZ.cs", "src/Nested/Source.cs", "tests/Case.cs", "tests/resources/corpus.json",
             "tests/resources/GoOracle/main.go", "tests/resources/GoOracle/go.mod", "tests/resources/GoOracle/go.sum",
-            "tests/consumers/Core/Consumer.csproj.template", "tests/consumers/AspNetCore/Consumer.csproj.template",
-            "tools/Tool.cs", "examples/Example.cs", ".github/workflows/check.yml"];
+            "tests/validation/PgvConformance/main.go.template", "tests/validation/PgvConformance/go.mod.template",
+            "tests/validation/PgvConformance/go.sum.template", "tests/consumers/Core/Consumer.csproj.template", "tests/consumers/AspNetCore/Consumer.csproj.template",
+            "tools/Tool.cs", "examples/Example.cs", ".github/workflows/check.yml", ".config/coverlet.mtp.appsettings.json"];
         foreach (string path in paths) Write(path, "first\r\nsecond\r\n");
         Write("src/obj/Generated.cs", "generated");
         Write("tests/bin/result.json", "output");
@@ -46,6 +47,10 @@ public sealed class ReproducibilityInputTests
         var changedConsumer = new JsonObject();
         ReproducibilityReport.RecordMaintainedInputs(changedConsumer, fixture.Root);
         Assert.Equal(changedHash, changedConsumer["tests/consumers/Core/Consumer.csproj.template"]!.GetValue<string>());
+        Write(".config/coverlet.mtp.appsettings.json", "changed\n");
+        var changedCoverage = new JsonObject();
+        ReproducibilityReport.RecordMaintainedInputs(changedCoverage, fixture.Root);
+        Assert.Equal(changedHash, changedCoverage[".config/coverlet.mtp.appsettings.json"]!.GetValue<string>());
 
         void Write(string path, string contents)
         {

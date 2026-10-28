@@ -100,7 +100,7 @@ internal static class PgvRuleInventory
         }
     }
 
-    private static IEnumerable<string> EnumerateRulePaths(IMessage rules, string prefix)
+    internal static IEnumerable<string> EnumerateRulePaths(IMessage rules, string prefix)
     {
         foreach (var field in rules.Descriptor.Fields.InFieldNumberOrder())
         {

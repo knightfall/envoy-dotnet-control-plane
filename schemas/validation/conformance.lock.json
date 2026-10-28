@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "88e9c909e82c569bba7d6d722dd5c6b76ba9e965",
+  "schemaRoot": "tests/ProtoValidate.Conformance/proto",
+  "schemas": [
+    {
+      "path": "buf/validate/conformance/cases/bool.proto",
+      "sha256": "6c32062cf47c924b37dcac6cbf7a59b58b7fd1deca7c3ab5e35118275b224a03"
+    },
+    {
+      "path": "buf/validate/conformance/cases/bytes.proto",
+      "sha256": "1699979408ad514204ed430efa01613db0d156a3372a24133221b5973e5a17ed"
+    },
+    {
+      "path": "buf/validate/conformance/cases/custom_rules/custom_rules.proto",
+      "sha256": "13f9e8e4b5992eb6f3aa474fbee7fc955831df63db01fbaa73b4d7c175fe2d31"
+    },
+    {
+      "path": "buf/validate/conformance/cases/enums.proto",
+      "sha256": "d3057a3716767b1af9033fc3fdc173ced5ab76f0636ce5a0f7bb5a0c22458c7b"
+    },
+    {
+      "path": "buf/validate/conformance/cases/filename-with-dash.proto",
+      "sha256": "2b29b53abe650eb748f233af7f66e53a7fb586df506e293782e716ca597970de"
+    },
+    {
+      "path": "buf/validate/conformance/cases/ignore_empty_proto2.proto",
+      "sha256": "3bb0f7d1e4f5d3a2c987e8f38d089cc522b4abb75d6d6758460d10e4e963f483"
+    },
+    {
+      "path": "buf/validate/conformance/cases/ignore_empty_proto3.proto",
+      "sha256": "567d2c80ee7f736e833d864c31f44ce0b52b5f3e0e6e0e6739e8e52630ff57ed"
+    },
+    {
+      "path": "buf/validate/conformance/cases/ignore_empty_proto_editions.proto",
+      "sha256": "90a5d813c7fa2d1368b0d327d27f6c54ad024d8aacb43b9e5986878c8eefa894"
+    },
+    {
+      "path": "buf/validate/conformance/cases/ignore_proto2.proto",
+      "sha256": "9cf57e4fb5982802f87d9871eb5c56072154037b58c144abaf228b08b42381f2"
+    },
+    {
+      "path": "buf/validate/conformance/cases/ignore_proto3.proto",
+      "sha256": "377a9bc13eab740058225eec77822b5ce2bd85ad11de88f7fa50dfc5e72e32de"
+    },
+    {
+      "path": "buf/validate/conformance/cases/ignore_proto_editions.proto",
+      "sha256": "cab920e522eae59020efda9f2cce40aa8e0b1c990559c6efc76b15cfaf5f1509"
+    },
+    {
+      "path": "buf/validate/conformance/cases/kitchen_sink.proto",
+      "sha256": "06a2e0fe7898590a76bd5575fd877f247ce393f89e234d5e29e80e03f66ff081"
+    },
+    {
+      "path": "buf/validate/conformance/cases/library.proto",
+      "sha256": "c8e9c340ab126049f23b2568d3f4e9bd01eb019a174814139ef261c1c72fecc0"
+    },
+    {
+      "path": "buf/validate/conformance/cases/maps.proto",
+      "sha256": "ccf7aa621d332dfc25aef443b2be6594561e9b2a28315bcbc0a4b2fd95d6546c"
+    },
+    {
+      "path": "buf/validate/conformance/cases/messages.proto",
+      "sha256": "8bfb0433589ea9008115de3639101ed47b7f79335ee06a48cea873dd3a096036"
+    },
+    {
+      "path": "buf/validate/conformance/cases/numbers.proto",
+      "sha256": "177fec43329268d6996354f47a733b6ac43d6feb0f4bd95ea4f84ced018fce26"
+    },
+    {
+      "path": "buf/validate/conformance/cases/oneofs.proto",
+      "sha256": "d30dd4b697d54d68326fb958f672b1d5e414bdcf01e1d9e40ed1f8a9f7b80bd9"
+    },
+    {
+      "path": "buf/validate/conformance/cases/other_package/embed.proto",
+      "sha256": "c7ec53f7849c043d404fd87e6780a5ff8e8036092f728412f5a6d1c852c545a5"
+    },
+    {
+      "path": "buf/validate/conformance/cases/predefined_rules_proto2.proto",
+      "sha256": "c2612d707533665d4087c9d53c325bc890208e6a5f2145baa21788d880fc7e98"
+    },
+    {
+      "path": "buf/validate/conformance/cases/predefined_rules_proto3.proto",
+      "sha256": "60691ddb9340d92a6df735a8a065e0b44caacf0431b6e47c4eadc1f7a25cc3e7"
+    },
+    {
+      "path": "buf/validate/conformance/cases/predefined_rules_proto_editions.proto",
+      "sha256": "87d417905d7a811380f15783075604a0a66c84cd18395ee810d53b4a8097c639"
+    },
+    {
+      "path": "buf/validate/conformance/cases/repeated.proto",
+      "sha256": "2f9c7f176f3717869996d2c3dda1492e56f5ec685e06d7d2f7cb2adf33a3492d"
+    },
+    {
+      "path": "buf/validate/conformance/cases/required_field_proto2.proto",
+      "sha256": "9863d0cd2ced8471860f52aab26ed4a949477a72cbe6fd661a16029927d2ed69"
+    },
+    {
+      "path": "buf/validate/conformance/cases/required_field_proto3.proto",
+      "sha256": "f869fd6707195ef393f4827f38aadd9353b428bb293c308260070496695637d5"
+    },
+    {
+      "path": "buf/validate/conformance/cases/required_field_proto_editions.proto",
+      "sha256": "01c17cf1f3d38d46dc60195116e30fd47680972f5c1a996ce31336de282f48f6"
+    },
+    {
+      "path": "buf/validate/conformance/cases/strings.proto",
+      "sha256": "58cb70d3413fdea1264f1d4542d7d69b8f8a0fc3de9e6167ba4015936574fda6"
+    },
+    {
+      "path": "buf/validate/conformance/cases/subdirectory/in_subdirectory.proto",
+      "sha256": "ae80be3588730de2e46b50da527a13970a04508ec0a6847207efdb0b5e55eb6c"
+    },
+    {
+      "path": "buf/validate/conformance/cases/wkt_any.proto",
+      "sha256": "3155e80cac00052a5cbdeb1331715b465fdabb2f2c4de3931650f3232c7f1fa7"
+    },
+    {
+      "path": "buf/validate/conformance/cases/wkt_duration.proto",
+      "sha256": "3d9b0e875d27fe366788c9a639b1cca2f373623abc76f4bc957d59ef578b3e35"
+    },
+    {
+      "path": "buf/validate/conformance/cases/wkt_nested.proto",
+      "sha256": "9a0e2e251f5e1468ead19312bebb990088363a5a808a163c4a5f4f4f26a36b2b"
+    },
+    {
+      "path": "buf/validate/conformance/cases/wkt_timestamp.proto",
+      "sha256": "2b5855caeb0b26ffbca3583d582c23a4ef971207cee4d9fdfd4e755af4b3d005"
+    },
+    {
+      "path": "buf/validate/conformance/cases/wkt_wrappers.proto",
+      "sha256": "e43315a0fc8ba06a6c9af962a4b01b90b76ad64f00ef32cc88ea1b059bbeef3a"
+    },
+    {
+      "path": "buf/validate/conformance/cases/yet_another_package/embed2.proto",
+      "sha256": "4dee0f6eb27f8bfc9410feac53ce023f49bd0afc550597ddb9f6da718c0f8a9d"
+    },
+    {
+      "path": "buf/validate/conformance/harness/harness.proto",
+      "sha256": "20fa26627aed0840227e5631bc703a935f3dfeaf70ced41414d11ba6dbbd49bc"
+    },
+    {
+      "path": "buf/validate/conformance/harness/results.proto",
+      "sha256": "3dd95d2b763c6c07f6e060a819c44eb7e5cca7c9d1d17b181ab0374bea8de580"
+    }
+  ],
+  "imports": [
+    {
+      "path": "buf/validate/validate.proto",
+      "sha256": "780f450e5e1b773cb6c52d32b93655ec915187d2c777aa9ddc0119b573c1e1d2"
+    },
+    {
+      "path": "google/protobuf/any.proto",
+      "sha256": "8e56f61e3078e9232d39ce1b1bab28613783af8191f93a910c3617933f87a179"
+    },
+    {
+      "path": "google/protobuf/descriptor.proto",
+      "sha256": "f46ec56fc26c48433f4cebfdc98cf1cdd5ae15f129f150256dfa82c1ec77e0a3"
+    },
+    {
+      "path": "google/protobuf/duration.proto",
+      "sha256": "a3f7301ff2956ec2e30c2241ece07197e4a86c752348d5607224819d4921c9fe"
+    },
+    {
+      "path": "google/protobuf/timestamp.proto",
+      "sha256": "fa6c44dca2c90a2aaf3a1e4776cef2e9177f70fba365f236269f0f41ac166c96"
+    },
+    {
+      "path": "google/protobuf/wrappers.proto",
+      "sha256": "6878dc7534cf9805eee56345cdc38b5e9ca39dece246710c663c7007a67fef49"
+    }
+  ],
+  "caseCount": 2755,
+  "suiteCount": 38,
+  "corpus": {
+    "path": "tests/ProtoValidate.Conformance/Tests/Data/conformance.pbbin",
+    "sha256": "61c4c5c1bdd4208977a7b62e19549fe067c0efaa83c36252dda5ef3a6d3514d2"
+  },
+  "exclusionSource": {
+    "path": "tests/ProtoValidate.Conformance/Tests/ConformanceUnitTestParser.cs",
+    "sha256": "398ab20a1c44e746db0501cc8f217f9dbc1949f3939579bd0f5d6cc50e3d5f47"
+  },
+  "exclusions": [
+    {
+      "suite": "standard_rules/well_known_types/timestamp",
+      "case": "gt_now/valid",
+      "reason": "The pinned upstream loader excludes this prerecorded relative-time case because its exporter timestamp ages out. No timestamp rule is used in the selected Envoy PGV catalog."
+    },
+    {
+      "suite": "standard_rules/well_known_types/timestamp",
+      "case": "gt_now/within/invalid/within",
+      "reason": "The pinned upstream loader excludes this prerecorded relative-time case because its exporter timestamp ages out. No timestamp rule is used in the selected Envoy PGV catalog."
+    },
+    {
+      "suite": "standard_rules/well_known_types/timestamp",
+      "case": "gt_now/within/valid",
+      "reason": "The pinned upstream loader excludes this prerecorded relative-time case because its exporter timestamp ages out. No timestamp rule is used in the selected Envoy PGV catalog."
+    },
+    {
+      "suite": "standard_rules/well_known_types/timestamp",
+      "case": "lt_now/invalid",
+      "reason": "The pinned upstream loader excludes this prerecorded relative-time case because its exporter timestamp ages out. No timestamp rule is used in the selected Envoy PGV catalog."
+    },
+    {
+      "suite": "standard_rules/well_known_types/timestamp",
+      "case": "lt_now/within/valid",
+      "reason": "The pinned upstream loader excludes this prerecorded relative-time case because its exporter timestamp ages out. No timestamp rule is used in the selected Envoy PGV catalog."
+    },
+    {
+      "suite": "standard_rules/well_known_types/timestamp",
+      "case": "lt_now/within/invalid/lt",
+      "reason": "The pinned upstream loader excludes this prerecorded relative-time case because its exporter timestamp ages out. No timestamp rule is used in the selected Envoy PGV catalog."
+    },
+    {
+      "suite": "standard_rules/well_known_types/timestamp",
+      "case": "within/valid",
+      "reason": "The pinned upstream loader excludes this prerecorded relative-time case because its exporter timestamp ages out. No timestamp rule is used in the selected Envoy PGV catalog."
+    }
+  ],
+  "generatedSourceCount": 35,
+  "generatedSourcesSha256": "03e0e88d8eb8b60090a54b3d57479fa82c96686bc3e9908bb0f195ed56f7bcd7",
+  "configurationSha256": {
+    "buf.validation-conformance.gen.yaml": "509bbcea6772af819986578440d25084bb36d25f89aa4e87653e54a5b7e05a6c"
+  }
+}

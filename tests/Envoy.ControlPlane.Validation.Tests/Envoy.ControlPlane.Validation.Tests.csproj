@@ -15,9 +15,19 @@
     <PackageReference Include="coverlet.MTP" PrivateAssets="all" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
     <Compile Include="../../tools/Envoy.ControlPlane.SchemaTools/OverlayTransform.cs" Link="Support/OverlayTransform.cs" />
+    <Compile Include="../../tools/Envoy.ControlPlane.SchemaTools/PgvRuleInventory.cs" Link="Support/PgvRuleInventory.cs" />
+    <Compile Include="../../tools/Envoy.ControlPlane.SchemaTools/RecognizedRules.cs" Link="Support/RecognizedRules.cs" />
     <Compile Include="../../tools/Envoy.ControlPlane.Tools/Validation/VerifiedValidationSources.cs" Link="Support/VerifiedValidationSources.cs" />
     <Compile Include="../../tools/Envoy.ControlPlane.Tools/Validation/ValidationPaths.cs" Link="Support/ValidationPaths.cs" />
     <Compile Include="../../tools/Envoy.ControlPlane.Tools/Bindings/BindingIntegrity.cs" Link="Support/BindingIntegrity.cs" />
     <EmbeddedResource Include="Fixtures/pgv-cases.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvCases.json" />
+    <EmbeddedResource Include="Fixtures/field-cases.json" LogicalName="Envoy.ControlPlane.Validation.Tests.FieldCases.json" />
+    <Compile Include="obj/conformance/generated/**/*.cs" />
+    <EmbeddedResource Include="obj/conformance/conformance.pbbin" LogicalName="Envoy.ControlPlane.Validation.Tests.Conformance.bin" />
+    <EmbeddedResource Include="obj/conformance/conformance.lock.json" LogicalName="Envoy.ControlPlane.Validation.Tests.ConformanceManifest.json" />
+    <Compile Include="obj/pgv-conformance/generated/**/*.cs" />
+    <EmbeddedResource Include="obj/pgv-conformance/cases.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvUpstreamCases.json" />
+    <EmbeddedResource Include="obj/pgv-conformance/pgv-conformance.lock.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvUpstreamManifest.json" />
+    <EmbeddedResource Include="obj/pgv-conformance/rules.recognized.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvRecognizedRules.json" />
   </ItemGroup>
 </Project>
