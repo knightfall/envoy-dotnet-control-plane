@@ -63,4 +63,8 @@ dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify
 
 The complete repository command additionally runs the root Go corpora, builds and inspects five package/symbol pairs, repeats four suites against fresh package-only consumers and verifies the Core/hosting dependency graphs. CI runs the same checks on Linux, macOS and Windows, with Dorny test reports and Linux portable coverage. The performance baseline stays manual. Released-Envoy verification remains a separate proof level.
 
-Local and current-head CI results are recorded below only after completion.
+## Observed verification
+
+On 28 October 2026, macOS arm64 `repository verify` passed **1,233 solution tests / 0 failed / 0 skipped**, the 68 whole-message and 310 field-level actual Go PGV expectations, 373 selected PGV cases, 2,748 stable native cases and all root Go comparison groups. It built five package/symbol pairs, passed fresh suites **14 / 738 / 268 / 109**, and both executable Core/hosting graph consumers. Compiler and Roslynator results were **0 warnings / 0 errors**. The snapshot reported current-input declared-scope coverage and all 59 rule paths. A focused provenance/update suite separately passed 104 tests.
+
+Canonical generation verified both 540-file Protocol fingerprints and all 1,053 actual PGV Go expectations. The final test-only C# generation request hit a Buf remote service rate limit. A pinned Buf invocation with the checksummed official protoc 35.1 C# generator reproduced all 20 PGV fixture files with the exact existing locked fingerprint; no generator configuration or expected output was relaxed. CI must independently complete canonical remote generation for the final head. GitHub CI and automatic Codex PR review results are recorded on PR #73 and must be clear before merge.

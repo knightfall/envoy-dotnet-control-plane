@@ -45,6 +45,17 @@ public sealed class CatalogCoverageTests
         Assert.Equal(59, evidence.SelectMany(item => Paths(item!)).Distinct(StringComparer.Ordinal).Count());
         Assert.Equal(1244, fields.Count);
         Assert.Equal(127, inventory["oneofs"]!.AsArray().Count);
+        Assert.Empty(inventory["messageOptions"]!.AsArray());
+        var registry = TypeRegistry.FromFiles(ValidationCorpus.Files);
+        foreach (var option in inventory["oneofs"]!.AsArray())
+        {
+            string name = option!["oneof"]!.GetValue<string>();
+            int separator = name.LastIndexOf('.');
+            var oneof = registry.Find(name[..separator]).Oneofs.Single(item => item.Name == name[(separator + 1)..]);
+            Assert.True(option["required"]!.GetValue<bool>(), "Uncovered oneof option: " + name);
+            Assert.True(oneof.GetOptions().GetExtension(Buf.Validate.ValidateExtensions.Oneof).Required,
+                "Derived oneof requirement differs: " + name);
+        }
 
         var coverage = new JsonObject
         {
@@ -53,6 +64,7 @@ public sealed class CatalogCoverageTests
             ["fieldRuleCount"] = fields.Count,
             ["oneofOptionCount"] = inventory["oneofs"]!.AsArray().Count,
             ["rulePathCounts"] = inventory["rulePathCounts"]!.DeepClone(),
+            ["oneofs"] = inventory["oneofs"]!.DeepClone(),
             ["combinations"] = new JsonArray(combinations.Select(signature => (JsonNode)new JsonObject
             {
                 ["paths"] = JsonSerializer.SerializeToNode(signature.Split('+')),

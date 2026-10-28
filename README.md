@@ -2,7 +2,7 @@
 
 A .NET library for building xDS management servers, with behavioral parity for the selected v3 root-library surface of Envoy's Go control plane. Applications supply configuration and own rollout policy, persistence and authentication. The library supplies caches, subscriptions, protocol engines, generated messages and ASP.NET Core transports.
 
-The selected root implementation and T25 candidate preparation are implemented in [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72), which records exact-head CI and automatic review. **T26 optional-validator conformance remains separate. No package publication is authorized by the current work.** Read the [root compatibility report](docs/compatibility/root-1.0.md) for the exact implemented scope, source pins, observed evidence and remaining release gates. The [SotW preview report](docs/preview/README.md) records the earlier, narrower milestone.
+The selected root implementation and T25 candidate preparation are implemented in [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72), which records exact-head CI and automatic review. **T26 optional validation has a separate [conformance report](docs/plan/T26-VALIDATION-CONFORMANCE.md), with explicit scope and exceptions. Candidates remain unpublished; release publishing is a separate workflow.** Read the [root compatibility report](docs/compatibility/root-1.0.md) for the exact implemented scope, source pins, observed evidence and remaining release gates. The [SotW preview report](docs/preview/README.md) records the earlier, narrower milestone.
 
 ## What is implemented
 
@@ -12,7 +12,7 @@ The selected root implementation and T25 candidate preparation are implemented i
 - Resource names/type URLs, reference extraction, message/Struct conversion, conventional extension names and a focused SotW ADS client.
 - TTL response envelopes and caller-owned SotW heartbeat scheduling. The [released-Envoy report](docs/plan/T23-ROOT-ENVOY.md) documents the default Envoy SotW CDS heartbeat limitation and the separately proven explicit Delta refresh/expiry path.
 
-Generated Protocol types cover the pinned standard schema catalog, including commonly used extension messages. Broader contrib/legacy catalogs and the standalone xDS matcher remain deferred. Original PGV options are preserved; **semantic validation is explicit and optional, with full T26/GV conformance still pending**. Publishing a snapshot invokes neither a validator nor a consistency check.
+Generated Protocol types cover the pinned standard schema catalog, including commonly used extension messages. Broader contrib/legacy catalogs and the standalone xDS matcher remain deferred. Original PGV options are preserved; **semantic validation is explicit and optional, with pinned rule coverage and declared compatibility exceptions**. Publishing a snapshot invokes neither a validator nor a consistency check.
 
 ## Run the example
 
