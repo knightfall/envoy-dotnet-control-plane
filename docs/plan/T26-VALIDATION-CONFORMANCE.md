@@ -57,3 +57,22 @@ Local macOS arm64 `validation verify` passed **24 native tests / 0 failed / 0 sk
 The manifest is included in reproducibility inputs, so a changed manifest is visible in an upstream update report. Tests cover new rule paths, unknown encoded fields, unsupported well-known-regex values, disabled message metadata and the verification error's field/rule details. Catalog-wide GV acceptance, arbitrary custom descriptors and universal Any traversal remain separate, unproven claims.
 
 Local macOS arm64 `repository verify --coverage` passed **509 solution tests / 0 failed / 0 skipped**, all 67 Go validation comparisons, the stable upstream conformance corpus and fresh package-consumer suites of **14/30/268/109**. A generated update snapshot recorded the manifest and still reported catalog-wide conformance as false. CI and automatic review of the final PR head remain required.
+
+## Fail-closed evaluator descriptors
+
+The P1 review reproduction rebuilt the real `Percent` descriptor while retaining both annotation sets. Its missing CLR parser caused the evaluator to return success without compiling constraints. The name-keyed cache could then reuse that empty evaluator for an ordinary generated `Percent`, incorrectly accepting `101`.
+
+The locked source adaptation now throws `CompilationException` for ordinary descriptors without a CLR parser. Cached evaluators and the recursive compilation map use descriptor identity, including preloaded and closed descriptor sets. This prevents same-name descriptors from changing generated-message rules. The implementation retains existing well-known-type handling and adds no dependency or public API.
+
+`EvaluatorDescriptorTests` contains six regression cases. All six failed against the original implementation and passed after regenerating the adapted evaluator from the verified upstream archive:
+
+| Requirement | Regression method |
+|---|---|
+| Unsupported metadata-only input faults before or after generated-message use; later generated rules remain effective | `Validate_MetadataOnlyDescriptor_ThrowsWithoutChangingGeneratedRules` |
+| Explicit preloading cannot install an evaluator without a CLR parser | `Preload_MetadataOnlyDescriptor_ThrowsCompilationException` |
+| Preloaded same-name metadata cannot strengthen or weaken the generated rules | `Preload_SameNameDescriptor_DoesNotChangeGeneratedRules` |
+| A same-name descriptor cannot satisfy closed-set registration for another descriptor | `ClosedDescriptorSet_SameNameDescriptor_DoesNotRegisterGeneratedDescriptor` |
+
+The fixtures reuse the real upstream descriptor and existing CLR message types. They generate no additional message owner. The skipped-child migration-guard test now expects the separate root-parser fault from its metadata-only test graph; actual generated skipped messages remain valid.
+
+Local macOS arm64 regeneration and `repository verify` passed **898 solution tests / 0 failed / 0 skipped**, all 68 Go validation expectations, the 2,748 stable Protovalidate cases and 373 selected PGV cases, all sixteen root comparison groups and negative checks, five package/symbol pairs, fresh suites **14/418/268/109**, and both executable package graphs. The build reported zero compiler/Roslynator warnings or errors; packing retained the three expected non-packable-project notices. Original and derived protobuf fingerprints are unchanged. Current-head CI and automatic PR review remain separate; this fix does not complete GV.

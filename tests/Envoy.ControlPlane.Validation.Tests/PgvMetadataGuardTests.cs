@@ -96,7 +96,9 @@ public sealed class PgvMetadataGuardTests
         var validator = new Validator();
 
         Assert.True(validator.Validate(message, failFast: false).IsSuccess);
-        Assert.NotEmpty(validator.GetEvaluatorDebugString(legacy));
+        // The guard skips the child; compiling the metadata-only root still requires a CLR parser.
+        var error = Assert.Throws<CompilationException>(() => validator.GetEvaluatorDebugString(legacy));
+        Assert.Contains("No CLR parser available for envoy.config.core.v3.KeyValueAppend", error.Message, StringComparison.Ordinal);
     }
 
     [Fact]

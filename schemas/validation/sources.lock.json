@@ -39,6 +39,48 @@
         "before": "    public IEvaluator Load(MessageDescriptor messageDescriptor)\n    {",
         "after": "    public IEvaluator Load(MessageDescriptor messageDescriptor)\n    {\n        PgvMetadataGuard.RequireMigrated(messageDescriptor);",
         "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "    internal readonly ConcurrentDictionary<string, MessageEvaluator> EvaluatorMap = new();",
+        "after": "    // Evaluators retain CLR accessors, so protobuf names alone are not cache identities.\n    internal readonly ConcurrentDictionary<MessageDescriptor, MessageEvaluator> EvaluatorMap = new(ReferenceEqualityComparer.Instance);",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "EvaluatorMap.TryGetValue(messageDescriptor.FullName,",
+        "after": "EvaluatorMap.TryGetValue(messageDescriptor,",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "EvaluatorMap.GetOrAdd(messageDescriptor.FullName,",
+        "after": "EvaluatorMap.GetOrAdd(messageDescriptor,",
+        "occurrences": 2
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "new Dictionary<string, MessageEvaluator>()",
+        "after": "new Dictionary<MessageDescriptor, MessageEvaluator>(ReferenceEqualityComparer.Instance)",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "IDictionary<string, MessageEvaluator>",
+        "after": "IDictionary<MessageDescriptor, MessageEvaluator>",
+        "occurrences": 9
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "nestedMessageEvaluators.TryGetValue(fieldDescriptor.MessageType.FullName,",
+        "after": "nestedMessageEvaluators.TryGetValue(fieldDescriptor.MessageType,",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "            if (messageDescriptor.Parser == null)\n            {\n                return;\n            }",
+        "after": "            if (messageDescriptor.Parser == null)\n            {\n                throw new CompilationException($\"No CLR parser available for {messageDescriptor.FullName}.\");\n            }",
+        "occurrences": 1
       }
     ],
     "csharpSources": [
@@ -120,7 +162,7 @@
       {
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
         "sourceSha256": "9c5ec20238d3e7f9cebbce637bea1b7644886dcffd9f2e80aed20389812d27e4",
-        "adaptedSha256": "aeecc8d9593507f546d0163af52269537643fab5f6552a2223cd8594e69db9a6"
+        "adaptedSha256": "298f65cc63b7df0974cd245329d1048c2c3351e69c09446748c75952aa940bb0"
       },
       {
         "path": "Internal/Evaluator/FieldEvaluator.cs",
