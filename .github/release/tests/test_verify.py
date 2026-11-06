@@ -27,11 +27,14 @@ class ReleaseVerificationTests(unittest.TestCase):
         (self.root / 'source-inputs.spdx.json').write_text('{}')
         self.manifest()
 
-    def package(self, suffix, commit=None):
+    def package(self, suffix, commit=None, include_locator=True):
         path = self.root / ('packages/Knightfall.Envoy.ControlPlane.1.0.0-rc.1' + suffix)
         with zipfile.ZipFile(path, 'w') as archive:
-            archive.writestr('security/provenance.json', json.dumps({'version': self.policy['version'],
-                             'workflow': '.github/workflows/publish.yaml', 'sourceRef': 'refs/heads/main'}))
+            if suffix == '.nupkg' and include_locator:
+                archive.writestr('security/provenance.json', json.dumps({'version': self.policy['version'],
+                                 'workflow': '.github/workflows/publish.yaml', 'sourceRef': 'refs/heads/main'}))
+            if suffix == '.snupkg':
+                archive.writestr('lib/net10.0/Library.pdb', b'symbol fixture')
             archive.writestr('package.nuspec', '<package><metadata><id>Knightfall.Envoy.ControlPlane</id>'
                              '<version>1.0.0-rc.1</version><repository url="https://github.com/'
                              + self.policy['repository'] + '" commit="' + (commit or self.commit)
@@ -77,6 +80,12 @@ class ReleaseVerificationTests(unittest.TestCase):
         self.package('.nupkg', 'b' * 40)
         self.manifest()
         with self.assertRaisesRegex(ValueError, 'source commit differs'):
+            self.verify()
+
+    def test_main_package_without_verification_locator_is_rejected(self):
+        self.package('.nupkg', include_locator=False)
+        self.manifest()
+        with self.assertRaisesRegex(ValueError, 'verification locator is missing'):
             self.verify()
 
     def test_unexpected_package_is_rejected_even_with_matching_manifest(self):

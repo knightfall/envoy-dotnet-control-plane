@@ -54,9 +54,12 @@ def verify_release(root, manifest_hash, commit, policy):
             require(fields['id'].text == package_id and fields['version'].text == policy['version'], 'Package identity differs')
             require(fields['repository'].get('commit') == commit, 'Package source commit differs')
             require(fields['repository'].get('url') == 'https://github.com/' + policy['repository'], 'Package repository differs')
-            locator = json.loads(archive.read('security/provenance.json'))
-            require(locator['version'] == policy['version'] and locator['workflow'] == '.github/workflows/publish.yaml'
-                    and locator['sourceRef'] == 'refs/heads/main', 'Package verification locator differs')
+            # SDK symbol packages retain their nuspec/source identity, but omit package content files.
+            if package.endswith('.nupkg'):
+                require('security/provenance.json' in archive.namelist(), 'Package verification locator is missing')
+                locator = json.loads(archive.read('security/provenance.json'))
+                require(locator['version'] == policy['version'] and locator['workflow'] == '.github/workflows/publish.yaml'
+                        and locator['sourceRef'] == 'refs/heads/main', 'Package verification locator differs')
     require('_manifest/spdx_2.2/manifest.spdx.json' in files and 'source-inputs.spdx.json' in files, 'Missing SBOMs')
     return manifest
 
