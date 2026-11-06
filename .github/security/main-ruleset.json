@@ -25,31 +25,40 @@
         "do_not_enforce_on_create": false,
         "required_status_checks": [
           {
-            "context": "Workflow locks and security"
+            "context": "Workflow locks and security",
+            "integration_id": 15368
           },
           {
-            "context": "Build release candidate"
+            "context": "Build release candidate",
+            "integration_id": 15368
           },
           {
-            "context": "CodeQL"
+            "context": "CodeQL",
+            "integration_id": 57789
           },
           {
-            "context": "Offline CLI tests (ubuntu-latest)"
+            "context": "Offline CLI tests (ubuntu-latest)",
+            "integration_id": 15368
           },
           {
-            "context": "Offline CLI tests (macos-latest)"
+            "context": "Offline CLI tests (macos-latest)",
+            "integration_id": 15368
           },
           {
-            "context": "Offline CLI tests (windows-latest)"
+            "context": "Offline CLI tests (windows-latest)",
+            "integration_id": 15368
           },
           {
-            "context": "Buf binding proof (ubuntu-latest)"
+            "context": "Buf binding proof (ubuntu-latest)",
+            "integration_id": 15368
           },
           {
-            "context": "Buf binding proof (macos-latest)"
+            "context": "Buf binding proof (macos-latest)",
+            "integration_id": 15368
           },
           {
-            "context": "Buf binding proof (windows-latest)"
+            "context": "Buf binding proof (windows-latest)",
+            "integration_id": 15368
           }
         ]
       }

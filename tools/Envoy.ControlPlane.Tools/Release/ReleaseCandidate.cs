@@ -53,6 +53,13 @@ internal static class ReleaseCandidate
             }
             File.Copy(BindingPaths.InputsDirectory + "/results/reproducibility/snapshot.json", Path.Combine(evidence, "verification.json"));
             File.Copy(ValidationCoverage.Output, Path.Combine(evidence, "validation-coverage.json"));
+            foreach (string path in Directory.EnumerateFiles("src", "packages.lock.json", SearchOption.AllDirectories)
+                .Where(path => !path.Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj")))
+            {
+                string target = Path.Combine(evidence, path);
+                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+                File.Copy(path, target);
+            }
             string sourceSbom = Path.Combine(output, "source-inputs.spdx.json");
             Write(sourceSbom, SourceSbom.Create(Read("schemas/upstream.lock.json"), Read(ValidationPaths.SourcesLock), version, commit));
             string external = Path.Combine(Path.GetTempPath(), "envoy-sbom-inputs-" + Guid.NewGuid().ToString("N") + ".txt");
@@ -65,6 +72,8 @@ internal static class ReleaseCandidate
                     "-mi", "SPDX:2.2", "-F", "false", "-er", external, "-pm", "true"]);
                 await BuildProcess.RunAsync(tool, ["validate", "-b", output, "-mi", "SPDX:2.2", "-n", "true",
                     "-o", Path.Combine(output, "sbom-validation.json")]);
+                ReleaseSbomVerification.VerifyDependencies(Read(Path.Combine(output, "_manifest/spdx_2.2/manifest.spdx.json")),
+                    Directory.EnumerateFiles(Path.Combine(evidence, "src"), "packages.lock.json", SearchOption.AllDirectories).Select(path => (JsonNode)Read(path)));
             }
             finally
             {

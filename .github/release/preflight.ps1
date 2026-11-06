@@ -7,12 +7,9 @@ if ($LASTEXITCODE -ne 0 -or $reference.object.type -ne 'commit' -or $reference.o
 }
 $checks = gh api "repos/$($policy.repository)/commits/$env:GITHUB_SHA/check-runs?per_page=100" | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0) { throw 'Cannot read source verification checks' }
-$required = @('Workflow locks and security', 'Buf binding proof (ubuntu-latest)', 'Buf binding proof (macos-latest)',
-              'Buf binding proof (windows-latest)', 'Offline CLI tests (ubuntu-latest)',
-              'Offline CLI tests (macos-latest)', 'Offline CLI tests (windows-latest)')
-foreach ($name in $required) {
-    $check = $checks.check_runs | Where-Object { $_.name -eq $name -and $_.app.slug -eq 'github-actions' } | Select-Object -First 1
+foreach ($required in $policy.requiredChecks.PSObject.Properties) {
+    $check = $checks.check_runs | Where-Object { $_.name -eq $required.Name -and $_.app.slug -eq $required.Value } | Select-Object -First 1
     if (!$check -or $check.status -ne 'completed' -or $check.conclusion -ne 'success') {
-        throw "Required source verification is not successful: $name"
+        throw "Required source verification is not successful: $($required.Name)"
     }
 }

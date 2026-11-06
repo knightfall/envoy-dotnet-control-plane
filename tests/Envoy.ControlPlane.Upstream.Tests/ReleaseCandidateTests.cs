@@ -64,6 +64,27 @@ public sealed class ReleaseCandidateTests
         Assert.All(document["relationships"]!.AsArray(), item => Assert.Equal("GENERATED_FROM", item!["relationshipType"]!.GetValue<string>()));
     }
 
+    [Theory]
+    [InlineData("present")]
+    [InlineData("missing")]
+    [InlineData("wrong-version")]
+    public void BuildSbom_MustIncludeEveryLockedRuntimeComponent(string state)
+    {
+        var manifest = JsonNode.Parse("""
+            {"dependencies":{"net10.0":{"Cel":{"type":"Transitive","resolved":"0.3.3"},
+              "Envoy.ControlPlane":{"type":"Project"}}}}
+            """)!;
+        var packages = new JsonArray(new JsonObject { ["name"] = "Unrelated build component" });
+        if (state != "missing")
+            packages.Add(new JsonObject { ["name"] = "Cel", ["versionInfo"] = state == "present" ? "0.3.3" : "0.0.1" });
+        var sbom = new JsonObject { ["packages"] = packages };
+
+        var error = Record.Exception(() => ReleaseSbomVerification.VerifyDependencies(sbom, [manifest]));
+
+        if (state == "present") Assert.Null(error);
+        else Assert.Contains("SBOM omitted a locked runtime dependency: Cel@0.3.3", Assert.IsType<InvalidOperationException>(error).Message, StringComparison.Ordinal);
+    }
+
     private static string CreatePackage(string directory, string change)
     {
         string path = Path.Combine(directory, "package.nupkg");
