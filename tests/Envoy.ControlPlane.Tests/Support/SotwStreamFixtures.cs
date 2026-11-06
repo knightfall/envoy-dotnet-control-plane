@@ -80,18 +80,19 @@ internal sealed class StreamWatch(ChannelWriter<ISotwResponse> responses) : IWat
     internal void CompleteResponses() => Assert.True(responses.TryComplete());
     internal void Respond(ISotwResponse response)
     {
-        Assert.True(responses.TryWrite(response));
+        // Channel delivery can let the session dispose this watch before the producer returns.
         Assert.True(completion.TrySetResult(response));
+        Assert.True(responses.TryWrite(response));
     }
     internal void Fail(Exception failure)
     {
-        Assert.True(responses.TryComplete(failure));
         Assert.True(completion.TrySetException(failure));
+        Assert.True(responses.TryComplete(failure));
     }
     internal void Cancel()
     {
-        Assert.True(responses.TryComplete(new OperationCanceledException("watch canceled")));
         Assert.True(completion.TrySetCanceled());
+        Assert.True(responses.TryComplete(new OperationCanceledException("watch canceled")));
     }
     public void Dispose()
     {
