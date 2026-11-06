@@ -6,7 +6,7 @@
     <PackageVersion Include="Google.Protobuf" Version="3.35.1" />
     <PackageVersion Include="Grpc.Core.Api" Version="2.84.0" />
     <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.84.0" />
-    <PackageVersion Include="Grpc.Net.Client" Version="2.84.0" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.85.0" />
     <PackageVersion Include="Knightfall.Envoy.ControlPlane.Protocol" Version="1.0.0-rc.1" />
     <PackageVersion Include="Knightfall.Envoy.ControlPlane.Validation.Annotations" Version="1.0.0-rc.1" />
     <PackageVersion Include="Knightfall.Envoy.ControlPlane.Validation" Version="1.0.0-rc.1" />
