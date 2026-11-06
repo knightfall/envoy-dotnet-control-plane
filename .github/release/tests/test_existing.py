@@ -2,6 +2,9 @@ import io
 import json
 import os
 from pathlib import Path
+import shlex
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -45,7 +48,8 @@ class ExistingPackageTests(unittest.TestCase):
 
     def test_matching_partial_retry_accepts_repository_signed_payload(self):
         with mock.patch.object(check_existing, 'fetch', side_effect=self.response(package_bytes(b'verified assembly', signed=True))):
-            check_existing.check_existing(self.root, self.policy)
+            matched = check_existing.check_existing(self.root, self.policy)
+            self.assertEqual(matched, {'NuGet': self.policy['packages'], 'GitHub': self.policy['packages']})
 
     def test_conflicting_existing_version_aborts_before_other_registry(self):
         with mock.patch.object(check_existing, 'fetch', side_effect=self.response(package_bytes(b'conflicting assembly'))) as fetch:
@@ -55,7 +59,7 @@ class ExistingPackageTests(unittest.TestCase):
 
     def test_missing_versions_are_available_for_first_publication(self):
         with mock.patch.object(check_existing, 'fetch', side_effect=self.response(None)):
-            check_existing.check_existing(self.root, self.policy)
+            self.assertEqual(check_existing.check_existing(self.root, self.policy), {'NuGet': [], 'GitHub': []})
 
     def test_registry_content_resource_cannot_redirect_credentials_to_another_host(self):
         index = json.dumps({'resources': [{'@type': 'PackageBaseAddress/3.0.0', '@id': 'https://attacker.invalid/'}]}).encode()
@@ -83,3 +87,31 @@ class ExistingPackageTests(unittest.TestCase):
                 else:
                     with self.assertRaises(urllib.error.HTTPError):
                         check_existing.fetch(url, 'Basic fixture', 1024, allow_missing=True)
+
+    @unittest.skipUnless(shutil.which('pwsh') and os.name != 'nt', 'Requires PowerShell and POSIX command fixtures')
+    def test_publisher_skips_only_verified_duplicates_and_stops_on_push_failure(self):
+        scripts = Path(__file__).resolve().parents[1]
+        first_package = json.loads((scripts / 'policy.json').read_text())['packages'][0]
+        for matched in (True, False):
+            with self.subTest(matched=matched), tempfile.TemporaryDirectory() as directory:
+                directory = Path(directory)
+                commands = directory / 'commands'
+                commands.mkdir()
+                capture = directory / 'push-arguments.txt'
+                result = json.dumps({'NuGet': [first_package] if matched else [], 'GitHub': []})
+                (commands / 'python3').write_text('#!/bin/sh\nprintf %s ' + shlex.quote(result) + ' > "$3"\n')
+                (commands / 'dotnet').write_text('#!/bin/sh\nprintf "%s\\n" "$@" >> "$PUBLISH_ARGS"\nexit 88\n')
+                for path in commands.iterdir():
+                    path.chmod(0o700)
+                environment = dict(os.environ, PATH=str(commands) + os.pathsep + os.environ['PATH'],
+                                   RUNNER_TEMP=str(directory), PUBLISH_ARGS=str(capture),
+                                   NUGET_API_KEY='fixture-key', GH_TOKEN='fixture-token')
+                completed = subprocess.run([shutil.which('pwsh'), '-NoProfile', '-File', str(scripts / 'publish.ps1'),
+                                            '-ReleaseDirectory', str(self.root)], env=environment,
+                                           capture_output=True, text=True, timeout=30)
+                self.assertNotEqual(completed.returncode, 0)
+                self.assertIn('NuGet publication failed', completed.stderr)
+                arguments = capture.read_text().splitlines()
+                self.assertEqual(arguments.count('push'), 1)
+                self.assertEqual('--skip-duplicate' in arguments, matched)
+                self.assertNotIn('https://nuget.pkg.github.com/knightfall/index.json', arguments)

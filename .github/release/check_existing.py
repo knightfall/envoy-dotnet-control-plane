@@ -43,6 +43,7 @@ def fetch(url, authorization, limit, allow_missing=False):
 def check_existing(root, policy):
     root = Path(root)
     credential = base64.b64encode(('knightfall:' + os.environ['GH_TOKEN']).encode()).decode()
+    matched = {name: [] for name, _ in REGISTRIES}
     with tempfile.TemporaryDirectory() as directory:
         for name, index_url in REGISTRIES:
             authorization = 'Basic ' + credential if name == 'GitHub' else None
@@ -65,8 +66,11 @@ def check_existing(root, policy):
                 downloaded.write_bytes(content)
                 if payload(downloaded) != payload(original):
                     raise ValueError('Existing ' + name + ' package conflicts with candidate: ' + package_id)
+                matched[name].append(package_id)
     print('Existing package versions in both registries match the candidate; missing versions can be pushed.')
+    return matched
 
 
 if __name__ == '__main__':
-    check_existing(sys.argv[1], json.loads(Path(__file__).with_name('policy.json').read_text()))
+    matched = check_existing(sys.argv[1], json.loads(Path(__file__).with_name('policy.json').read_text()))
+    Path(sys.argv[2]).write_text(json.dumps(matched))

@@ -2,15 +2,25 @@ param([Parameter(Mandatory)][string]$ReleaseDirectory)
 $ErrorActionPreference = 'Stop'
 $policy = Get-Content "$PSScriptRoot/policy.json" -Raw | ConvertFrom-Json
 $tag = "v$($policy.version)"
-python3 "$PSScriptRoot/check_existing.py" $ReleaseDirectory
+$existingPath = Join-Path $env:RUNNER_TEMP 'existing-packages.json'
+python3 "$PSScriptRoot/check_existing.py" $ReleaseDirectory $existingPath
 if ($LASTEXITCODE -ne 0) { throw 'Existing registry versions conflict with the verified candidate or could not be checked' }
+$existing = Get-Content $existingPath -Raw | ConvertFrom-Json
 foreach ($id in $policy.packages) {
     $package = Join-Path $ReleaseDirectory "packages/$id.$($policy.version).nupkg"
-    # A resumed run can encounter an already-pushed version. Both registries are
-    # subsequently restored fresh and compared entry-for-entry before announcement.
-    dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
+    # Only duplicates already compared with this candidate may be skipped.
+    # A new or not-yet-visible conflict must fail before subsequent uploads.
+    $duplicateOption = @()
+    if ($existing.NuGet -contains $id) { $duplicateOption = @('--skip-duplicate') }
+    dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY @duplicateOption --no-symbols
     if ($LASTEXITCODE -ne 0) { throw "NuGet publication failed: $id" }
-    dotnet nuget push $package --source "https://nuget.pkg.github.com/knightfall/index.json" --api-key $env:GH_TOKEN --skip-duplicate --no-symbols
+    # NuGet skips automatic symbol upload when the main package is a duplicate.
+    $symbols = Join-Path $ReleaseDirectory "packages/$id.$($policy.version).snupkg"
+    dotnet nuget push $symbols --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
+    if ($LASTEXITCODE -ne 0) { throw "NuGet symbol publication failed: $id" }
+    $duplicateOption = @()
+    if ($existing.GitHub -contains $id) { $duplicateOption = @('--skip-duplicate') }
+    dotnet nuget push $package --source "https://nuget.pkg.github.com/knightfall/index.json" --api-key $env:GH_TOKEN @duplicateOption --no-symbols
     if ($LASTEXITCODE -ne 0) { throw "GitHub Packages publication failed: $id" }
 }
 $assets = Join-Path $env:RUNNER_TEMP 'release-assets'
