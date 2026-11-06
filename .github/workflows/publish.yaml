@@ -121,13 +121,12 @@ jobs:
           subject-path: ${{ runner.temp }}/release/packages/*
           sbom-path: ${{ runner.temp }}/release/source-inputs.spdx.json
           create-storage-record: false
-      - name: Verify attestations before publishing
-        shell: pwsh
-        run: |
-          foreach ($file in Get-ChildItem "$env:RUNNER_TEMP/release/packages/*") {
-            gh attestation verify $file.FullName --repo $env:GITHUB_REPOSITORY --signer-workflow "$env:GITHUB_REPOSITORY/.github/workflows/publish.yaml" --source-ref refs/heads/main --source-digest $env:GITHUB_SHA --deny-self-hosted-runners
-            if ($LASTEXITCODE -ne 0) { throw 'Attestation verification failed' }
-          }
+      - name: Verify provenance, both SBOM bundles and their exact subjects/data
+        run: python3 .github/release/verify-attestations.py "$RUNNER_TEMP/release"
+        env:
+          PROVENANCE_BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+          BUILD_SBOM_BUNDLE: ${{ steps.build_sbom.outputs.bundle-path }}
+          SOURCE_SBOM_BUNDLE: ${{ steps.source_sbom.outputs.bundle-path }}
       - name: Authenticate to NuGet using the production trusted-publishing policy
         id: nuget
         uses: NuGet/login@v1.2.0
