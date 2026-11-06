@@ -2,6 +2,8 @@ param([Parameter(Mandatory)][string]$ReleaseDirectory)
 $ErrorActionPreference = 'Stop'
 $policy = Get-Content "$PSScriptRoot/policy.json" -Raw | ConvertFrom-Json
 $tag = "v$($policy.version)"
+python3 "$PSScriptRoot/check_existing.py" $ReleaseDirectory
+if ($LASTEXITCODE -ne 0) { throw 'Existing registry versions conflict with the verified candidate or could not be checked' }
 foreach ($id in $policy.packages) {
     $package = Join-Path $ReleaseDirectory "packages/$id.$($policy.version).nupkg"
     # A resumed run can encounter an already-pushed version. Both registries are
@@ -20,7 +22,8 @@ foreach ($bundle in @(@('provenance', $env:PROVENANCE_BUNDLE), @('build-sbom', $
     $digest = (Get-FileHash $bundle[1] -Algorithm SHA256).Hash.ToLowerInvariant()
     Copy-Item $bundle[1] (Join-Path $assets "$($bundle[0])-$digest.sigstore.json")
 }
-Compress-Archive -Path "$ReleaseDirectory/*" -DestinationPath "$assets/release-evidence.zip"
+python3 "$PSScriptRoot/release_archive.py" $ReleaseDirectory "$assets/release-evidence.zip"
+if ($LASTEXITCODE -ne 0) { throw 'Cannot archive the complete release evidence' }
 gh release view $tag --repo $policy.repository *> $null
 if ($LASTEXITCODE -ne 0) {
     gh release create $tag --repo $policy.repository --verify-tag --draft --prerelease --title $tag --notes-file docs/releases/1.0.0-rc.1.md

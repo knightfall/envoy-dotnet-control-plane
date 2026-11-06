@@ -2,9 +2,13 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 import zipfile
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from release_archive import create_archive
 
 SPEC = importlib.util.spec_from_file_location('release_verify', Path(__file__).resolve().parents[1] / 'verify.py')
 VERIFY = importlib.util.module_from_spec(SPEC)
@@ -53,6 +57,21 @@ class ReleaseVerificationTests(unittest.TestCase):
 
     def test_complete_source_bound_release_passes(self):
         self.assertEqual(self.verify()['commit'], self.commit)
+
+    def test_evidence_archive_round_trip_preserves_hidden_manifest_inputs(self):
+        for name in ('release/policy.json', 'security/tools.json', 'workflows/actions.lock'):
+            path = self.root / 'evidence/.github' / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('pinned input')
+        self.manifest()
+        with tempfile.TemporaryDirectory() as directory:
+            archive_path = Path(directory) / 'evidence.zip'
+            extracted = Path(directory) / 'extracted'
+            create_archive(self.root, archive_path)
+            with zipfile.ZipFile(archive_path) as archive:
+                archive.extractall(extracted)
+            result = VERIFY.verify_release(extracted, self.digest, self.commit, self.policy)
+            self.assertEqual(result['files'], json.loads((self.root / 'release.json').read_text())['files'])
 
     def test_artifact_modified_after_manifest_is_rejected(self):
         (self.root / 'source-inputs.spdx.json').write_text('changed')
