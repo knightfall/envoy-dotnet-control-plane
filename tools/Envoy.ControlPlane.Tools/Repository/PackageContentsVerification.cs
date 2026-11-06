@@ -47,6 +47,7 @@ internal static class PackageContentsVerification
     private static void VerifyNotices(ZipArchive archive, string package)
     {
         VerifyFile(archive, "licenses/LICENSE", GetFileSha256("LICENSE"));
+        VerifyFile(archive, "security/provenance.json", GetFileSha256("docs/releases/provenance.json"));
         var sources = JsonNode.Parse(File.ReadAllText("schemas/upstream.lock.json"))!["sources"]!.AsArray();
         if (package == "Envoy.ControlPlane.Protocol")
         {

@@ -25,6 +25,10 @@ mono_crash.*
 
 # Authored release notes are repository documentation.
 !/docs/releases/
+!/tools/Envoy.ControlPlane.Tools/Release/
+!/tools/Envoy.ControlPlane.Tools/Release/**
+!/.github/release/
+!/.github/release/**
 
 [Dd]ebug/x64/
 [Dd]ebugPublic/x64/

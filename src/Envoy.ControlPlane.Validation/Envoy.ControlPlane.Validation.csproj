@@ -3,7 +3,6 @@
     <PackageId>Knightfall.Envoy.ControlPlane.Validation</PackageId>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>0.1.0-t03</Version>
     <Description>Experimental optional source-built ProtoValidate evaluator for the pinned Envoy catalog.</Description>
     <Authors>knightfall; TELUS</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

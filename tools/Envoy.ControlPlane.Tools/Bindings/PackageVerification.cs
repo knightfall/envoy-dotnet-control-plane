@@ -128,6 +128,9 @@ internal static class PackageVerification
             new XAttribute("value", Path.Combine(repository, PackageDirectory))));
         sources.Add(new XElement("add", new XAttribute("key", "nuget.org"),
             new XAttribute("value", "https://api.nuget.org/v3/index.json")));
-        new XDocument(new XElement("configuration", sources)).Save(Path.Combine(directory, "NuGet.Config"));
+        var mapping = new XElement("packageSourceMapping",
+            new XElement("packageSource", new XAttribute("key", "candidate"), new XElement("package", new XAttribute("pattern", "Knightfall.Envoy.*"))),
+            new XElement("packageSource", new XAttribute("key", "nuget.org"), new XElement("package", new XAttribute("pattern", "*"))));
+        new XDocument(new XElement("configuration", sources, mapping)).Save(Path.Combine(directory, "NuGet.Config"));
     }
 }

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "version": "1.0.0-rc.1",
+  "repository": "https://github.com/knightfall/envoy-dotnet-control-plane",
+  "workflow": ".github/workflows/publish.yaml",
+  "sourceRef": "refs/heads/main",
+  "release": "https://github.com/knightfall/envoy-dotnet-control-plane/releases/tag/v1.0.0-rc.1",
+  "attestations": "https://github.com/knightfall/envoy-dotnet-control-plane/attestations",
+  "provenanceFormat": "https://slsa.dev/provenance/v1",
+  "sbomFormat": "SPDX-2.2",
+  "sourceCommitLocation": "NuGet package nuspec repository.commit",
+  "note": "Verification locator, not a signature. Signed attestations are generated after packaging and published with the release. Verify the matching original upload artifact; NuGet repository signing changes archive bytes."
+}

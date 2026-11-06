@@ -1,0 +1,210 @@
+name: Package release
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the verified 1.0.0-rc.1 candidate (requires production approval)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: package-release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    name: Build release candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      manifest_sha256: ${{ steps.manifest.outputs.sha256 }}
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      TESTINGPLATFORM_TELEMETRY_OPTOUT: '1'
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-go@v6.5.0
+        with:
+          go-version: '1.26.4'
+          cache: false
+      - name: Restore pinned tooling
+        run: dotnet restore tools/Envoy.ControlPlane.Tools --locked-mode
+      - name: Generate locked contracts
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- bindings generate --cache "$RUNNER_TEMP/upstream-sources"
+      - name: Restore locked solution
+        run: dotnet restore Envoy.ControlPlane.slnx --locked-mode
+      - name: Verify solution, Go parity and fresh package consumers
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- repository verify
+      - name: Prepare source-bound candidate and validated SBOMs
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- release prepare --output "$RUNNER_TEMP/release" --cache "$RUNNER_TEMP/release-tools"
+      - name: Check actual package layouts with the publishing verifier
+        run: python3 .github/release/check-candidate.py "$RUNNER_TEMP/release"
+        env:
+          RELEASE_EXPECTED_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify NuGet package and symbol retry behavior on loopback
+        run: python3 .github/release/check-push-retry.py "$RUNNER_TEMP/release"
+      - name: Record manifest digest for this run
+        id: manifest
+        run: echo "sha256=$(sha256sum "$RUNNER_TEMP/release/release.json" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7.0.2
+        id: upload
+        with:
+          name: release-candidate-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+          include-hidden-files: true # The verified evidence includes .github policy and lock files.
+          retention-days: 30
+      - name: Download this run's candidate to verify artifact transport
+        uses: actions/download-artifact@v8.0.2
+        with:
+          artifact-ids: ${{ steps.upload.outputs.artifact-id }}
+          path: ${{ runner.temp }}/downloaded-release
+          merge-multiple: true
+      - name: Verify the downloaded manifest and complete evidence round trip
+        run: |
+          cmp "$RUNNER_TEMP/release/release.json" "$RUNNER_TEMP/downloaded-release/release.json"
+          python3 .github/release/check-candidate.py "$RUNNER_TEMP/downloaded-release"
+        env:
+          RELEASE_EXPECTED_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+  publish:
+    name: Attest and publish verified packages
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.repository == 'knightfall/envoy-dotnet-control-plane' && github.ref == 'refs/heads/main'
+    needs: build
+    environment: production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write # Create the draft release and attach the verified artifacts.
+      packages: write # Publish the same candidate to GitHub Packages.
+      id-token: write # Short-lived NuGet and Sigstore credentials.
+      attestations: write # Record provenance and SBOM attestations.
+    env:
+      RELEASE_PUBLISH: 'true'
+      RELEASE_MANIFEST_SHA256: ${{ needs.build.outputs.manifest_sha256 }}
+      GH_TOKEN: ${{ github.token }}
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            .github/release
+            global.json
+            docs/releases/1.0.0-rc.1.md
+          sparse-checkout-cone-mode: false
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact_id }}
+          path: ${{ runner.temp }}/release
+          merge-multiple: true
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Verify source, package allowlist and every artifact digest
+        run: python3 .github/release/verify.py "$RUNNER_TEMP/release"
+      - name: Verify protected release tag and main CI
+        shell: pwsh
+        run: .github/release/preflight.ps1
+      - name: Attest build provenance
+        id: provenance
+        uses: actions/attest@v4.2.2
+        with:
+          subject-path: |
+            ${{ runner.temp }}/release/packages/*
+            ${{ runner.temp }}/release/release.json
+            ${{ runner.temp }}/release/source-inputs.spdx.json
+            ${{ runner.temp }}/release/_manifest/spdx_2.2/manifest.spdx.json
+          create-storage-record: false
+      - name: Attest build dependency SBOM
+        id: build_sbom
+        uses: actions/attest@v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/release/packages/*
+          sbom-path: ${{ runner.temp }}/release/_manifest/spdx_2.2/manifest.spdx.json
+          create-storage-record: false
+      - name: Attest original source inputs and source-built evaluator
+        id: source_sbom
+        uses: actions/attest@v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/release/packages/*
+          sbom-path: ${{ runner.temp }}/release/source-inputs.spdx.json
+          create-storage-record: false
+      - name: Verify provenance, both SBOM bundles and their exact subjects/data
+        run: python3 .github/release/verify-attestations.py "$RUNNER_TEMP/release"
+        env:
+          PROVENANCE_BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+          BUILD_SBOM_BUNDLE: ${{ steps.build_sbom.outputs.bundle-path }}
+          SOURCE_SBOM_BUNDLE: ${{ steps.source_sbom.outputs.bundle-path }}
+      - name: Authenticate to NuGet using the production trusted-publishing policy
+        id: nuget
+        uses: NuGet/login@v1.2.0
+        with:
+          user: knightfall
+      - name: Publish identical verified packages and draft release assets
+        shell: pwsh
+        run: .github/release/publish.ps1 -ReleaseDirectory "$env:RUNNER_TEMP/release"
+        env:
+          NUGET_API_KEY: ${{ steps.nuget.outputs.NUGET_API_KEY }}
+          PROVENANCE_BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+          BUILD_SBOM_BUNDLE: ${{ steps.build_sbom.outputs.bundle-path }}
+          SOURCE_SBOM_BUNDLE: ${{ steps.source_sbom.outputs.bundle-path }}
+  verify-published:
+    name: Verify external consumption (${{ matrix.registry }})
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.repository == 'knightfall/envoy-dotnet-control-plane' && github.ref == 'refs/heads/main'
+    needs: [build, publish]
+    strategy:
+      fail-fast: false
+      matrix:
+        registry: [nuget, github]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            .github/release
+            global.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact_id }}
+          path: ${{ runner.temp }}/release
+          merge-multiple: true
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Verify published package payloads and a fresh consumer
+        shell: pwsh
+        run: .github/release/verify-published.ps1 -Registry $env:RELEASE_REGISTRY -ReleaseDirectory "$env:RUNNER_TEMP/release"
+        env:
+          RELEASE_REGISTRY: ${{ matrix.registry }}
+          GH_TOKEN: ${{ github.token }}
+  announce:
+    name: Announce verified release
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.repository == 'knightfall/envoy-dotnet-control-plane' && github.ref == 'refs/heads/main'
+    needs: verify-published
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Publish release announcement after both registry consumers pass
+        run: gh release edit v1.0.0-rc.1 --repo "$GITHUB_REPOSITORY" --draft=false
+        env:
+          GH_TOKEN: ${{ github.token }}

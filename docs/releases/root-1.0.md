@@ -1,6 +1,6 @@
 # Root 1.0 release preparation
 
-T25 prepares a concrete root candidate and its review evidence. Publication needs separate explicit authorization and an authorized repository/package workflow. This change does not create a NuGet release, a tag or a GitHub release. The optional evaluator has its own T26/GV gate and is excluded from the root candidate.
+T25 prepares a concrete root candidate and its review evidence. Publication needs separate explicit authorization and an authorized repository/package workflow. This change does not create a NuGet release, a tag or a GitHub release. The optional evaluator passed its separate T26 declared-scope gate in PR #73 and joins the five-package release candidate while retaining its separate dependency graph and documented exceptions.
 
 ## Candidate identity and version
 
@@ -12,7 +12,7 @@ The owner selected the `Knightfall.Envoy.ControlPlane` NuGet family. Assembly na
 | Knightfall.Envoy.ControlPlane.Validation.Annotations | 1.0.0-rc.1 | Root candidate, annotations only |
 | Knightfall.Envoy.ControlPlane | 1.0.0-rc.1 | Root candidate |
 | Knightfall.Envoy.ControlPlane.AspNetCore | 1.0.0-rc.1 | Root candidate |
-| Knightfall.Envoy.ControlPlane.Validation | 0.1.0-t03 | Experimental research; excluded from root candidate |
+| Knightfall.Envoy.ControlPlane.Validation | 1.0.0-rc.1 | Explicit optional evaluator; T26 declared-scope conformance |
 
 The distinct prefix avoids reusing the existing public `Envoy.ControlPlane` ID. Choosing a name does not reserve it or prove publishing rights. Confirm final repository branding/visibility and publishing rights through the separate publication checklist below. Package-content and executable consumer checks verify new IDs/versions with unchanged assembly names and dependency ownership.
 
@@ -22,7 +22,7 @@ The root candidate adds the complete selected v3 server/cache/helper surface ove
 
 The implementation uses idiomatic C# channel delivery, asynchronous publication/disposal, cancellation tokens, `TimeProvider` and ordinary ASP.NET Core DI/authorization/logging. Original PGV metadata and authoritative generated message ownership remain intact. Core and hosting contain no evaluator/CEL dependency. See [usage/migration](../usage.md), [public API contracts](../public-api.md) and [compatibility](../compatibility/root-1.0.md) before upgrading.
 
-Known limits include stable caller-owned messages, source SnapshotCache prefix/readiness behavior, raw Delta TTL omission, unsupported Linear Fetch, application-owned reconnect/policy and explicit opaque-Any registration. The default Envoy 1.40.1 SotW CDS mux removes clusters on payload-free heartbeats; the separately proven explicit Delta TTL path does not add an automatic scheduler. The proxy matrix covers one released version on Linux amd64/arm64 and a four-family graph. The complete selected catalog is broader than that live graph. Broader contrib/legacy catalogs and standalone matcher remain deferred. Full optional-validator conformance is not included.
+Known limits include stable caller-owned messages, source SnapshotCache prefix/readiness behavior, raw Delta TTL omission, unsupported Linear Fetch, application-owned reconnect/policy and explicit opaque-Any registration. The default Envoy 1.40.1 SotW CDS mux removes clusters on payload-free heartbeats; the separately proven explicit Delta TTL path does not add an automatic scheduler. The proxy matrix covers one released version on Linux amd64/arm64 and a four-family graph. The complete selected catalog is broader than that live graph. Broader contrib/legacy catalogs and standalone matcher remain deferred. Optional validation is limited to the pinned T26 catalog/rule set and its named exceptions.
 
 ## Engineering checklist
 

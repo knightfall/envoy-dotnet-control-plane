@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0-rc.1",
+  "repository": "knightfall/envoy-dotnet-control-plane",
+  "packages": [
+    "Knightfall.Envoy.ControlPlane.Validation.Annotations",
+    "Knightfall.Envoy.ControlPlane.Protocol",
+    "Knightfall.Envoy.ControlPlane",
+    "Knightfall.Envoy.ControlPlane.AspNetCore",
+    "Knightfall.Envoy.ControlPlane.Validation"
+  ],
+  "requiredChecks": {
+    "Workflow locks and security": "github-actions",
+    "Build release candidate": "github-actions",
+    "CodeQL": "github-advanced-security",
+    "Offline CLI tests (ubuntu-latest)": "github-actions",
+    "Offline CLI tests (macos-latest)": "github-actions",
+    "Offline CLI tests (windows-latest)": "github-actions",
+    "Buf binding proof (ubuntu-latest)": "github-actions",
+    "Buf binding proof (macos-latest)": "github-actions",
+    "Buf binding proof (windows-latest)": "github-actions"
+  }
+}

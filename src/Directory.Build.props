@@ -11,8 +11,11 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/knightfall/envoy-dotnet-control-plane</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/knightfall/envoy-dotnet-control-plane</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/knightfall/envoy-dotnet-control-plane/releases/tag/v$(Version)</PackageReleaseNotes>
   </PropertyGroup>
   <ItemGroup>
     <None Include="../../LICENSE" Pack="true" PackagePath="licenses/" />
+    <None Include="../../docs/releases/provenance.json" Pack="true" PackagePath="security/" />
   </ItemGroup>
 </Project>

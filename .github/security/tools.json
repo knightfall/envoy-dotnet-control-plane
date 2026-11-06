@@ -1,0 +1,46 @@
+{
+  "gh-actions-lock": {
+    "osx-arm64": {
+      "url": "https://github.com/github/gh-actions-lock/releases/download/v0.4.1/darwin-arm64",
+      "sha256": "f205ea5dbbda67165e08aab1fb6395290ca62f0a038bf27d4b684abd0816635c"
+    },
+    "linux-x64": {
+      "url": "https://github.com/github/gh-actions-lock/releases/download/v0.4.1/linux-amd64",
+      "sha256": "39deb2fe714dbf74b073d8245fc7f3d50cd0eee18d5c0900e9e849ae933ae17e"
+    }
+  },
+  "sbom-tool": {
+    "osx-arm64": {
+      "url": "https://github.com/microsoft/sbom-tool/releases/download/v4.1.5/sbom-tool-osx-arm64",
+      "sha256": "bb25842fd707fbe78d3ac9de0d2b27ee2f4a97764f3b8a5c2068c826e75f3535"
+    },
+    "linux-x64": {
+      "url": "https://github.com/microsoft/sbom-tool/releases/download/v4.1.5/sbom-tool-linux-x64",
+      "sha256": "bf5d4f99bc98c119d549d08fc02ae92598a7a42772f17317c01031a92632e05b"
+    }
+  },
+  "actionlint": {
+    "osx-arm64": {
+      "url": "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_darwin_arm64.tar.gz",
+      "sha256": "aba9ced2dee8d27fecca3dc7feb1a7f9a52caefa1eb46f3271ea66b6e0e6953f",
+      "archiveEntry": "actionlint"
+    },
+    "linux-x64": {
+      "url": "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz",
+      "sha256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
+      "archiveEntry": "actionlint"
+    }
+  },
+  "zizmor": {
+    "osx-arm64": {
+      "url": "https://github.com/zizmorcore/zizmor/releases/download/v1.32.0/zizmor-aarch64-apple-darwin.tar.gz",
+      "sha256": "6efed18c4539a663fd3c851a2be9533fd8456c4e646d9416206da059154a0d3c",
+      "archiveEntry": "zizmor"
+    },
+    "linux-x64": {
+      "url": "https://github.com/zizmorcore/zizmor/releases/download/v1.32.0/zizmor-x86_64-unknown-linux-gnu.tar.gz",
+      "sha256": "bb110cc765eca9cd7efb2e284a956be5974c60027b0970f16397d86208a9957b",
+      "archiveEntry": "zizmor"
+    }
+  }
+}
