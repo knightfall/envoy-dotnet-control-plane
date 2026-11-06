@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0-rc.1",
+  "repository": "knightfall/envoy-dotnet-control-plane",
+  "packages": [
+    "Knightfall.Envoy.ControlPlane.Validation.Annotations",
+    "Knightfall.Envoy.ControlPlane.Protocol",
+    "Knightfall.Envoy.ControlPlane",
+    "Knightfall.Envoy.ControlPlane.AspNetCore",
+    "Knightfall.Envoy.ControlPlane.Validation"
+  ]
+}

@@ -14,5 +14,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="../../LICENSE" Pack="true" PackagePath="licenses/" />
+    <None Include="../../docs/releases/provenance.json" Pack="true" PackagePath="security/" />
   </ItemGroup>
 </Project>

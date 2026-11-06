@@ -27,7 +27,7 @@ Generation retrieves immutable sources and pinned Buf/official C# plugins; initi
 
 ## Packages and contracts
 
-All maintained libraries target **net10.0**. The four root candidates use **1.0.0-rc.1** under the owner-selected `Knightfall.Envoy.ControlPlane` package family. Assembly names, C# namespaces and protobuf identities retain their existing names. These are locally built candidates, not published NuGet packages; see the [release checklist](docs/releases/root-1.0.md).
+All maintained libraries target **net10.0**. All five candidates use **1.0.0-rc.1** under the owner-selected `Knightfall.Envoy.ControlPlane` package family. Assembly names, C# namespaces and protobuf identities retain their existing names. These are locally built candidates, not published NuGet packages; see the [release checklist](docs/releases/root-1.0.md).
 
 | NuGet package | Responsibility |
 |---|---|
@@ -35,7 +35,7 @@ All maintained libraries target **net10.0**. The four root candidates use **1.0.
 | [Knightfall.Envoy.ControlPlane.Validation.Annotations](src/Envoy.ControlPlane.Validation.Annotations/Envoy.ControlPlane.Validation.Annotations.csproj) | Shared derived Protovalidate annotation definitions; no evaluator |
 | [Knightfall.Envoy.ControlPlane](src/Envoy.ControlPlane/README.md) | Caches, snapshots, protocol engines, Fetch, client and helpers |
 | [Knightfall.Envoy.ControlPlane.AspNetCore](src/Envoy.ControlPlane.AspNetCore/README.md) | Kestrel/gRPC adapters, DI, endpoint mapping and optional HTTP gateway |
-| [Knightfall.Envoy.ControlPlane.Validation](src/Envoy.ControlPlane.Validation/Envoy.ControlPlane.Validation.csproj) | Experimental source-built optional evaluator; outside the root release candidate |
+| [Knightfall.Envoy.ControlPlane.Validation](src/Envoy.ControlPlane.Validation/Envoy.ControlPlane.Validation.csproj) | Explicit source-built optional evaluator; separate dependency graph and declared validation scope |
 
 Use [public API and lifetime contracts](docs/public-api.md) when implementing a custom cache, response or callback. Behavioral parity uses idiomatic C# channels, asynchronous ownership, `CancellationToken`, `TimeProvider` and ordinary ASP.NET Core APIs. It does not require identical Go APIs, hash bytes, error text or synchronization internals.
 

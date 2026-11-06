@@ -26,3 +26,15 @@ changing protobuf identity. See the repository's `schemas/BINDINGS.md` for those
 exact corrections, runtime-retention behavior and descriptor normalization.
 
 The separate `validation.catalog.pb` embedded resource records derived descriptors. Original source descriptors remain in `catalog.pb`; validation/source locks and original licenses identify the transformation.
+
+## Supply-chain verification
+
+[Versioned release evidence](https://github.com/knightfall/envoy-dotnet-control-plane/releases/tag/v1.0.0-rc.1) includes build/source-input SBOMs, signed provenance and SBOM bundles, package digests and source pins. [GitHub attestations](https://github.com/knightfall/envoy-dotnet-control-plane/attestations) bind artifacts to the protected publishing workflow. `security/provenance.json` inside this package records the verification locations; its nuspec records the source commit.
+
+Verify the original upload artifact downloaded from the matching GitHub release:
+
+```sh
+gh attestation verify Knightfall.Envoy.ControlPlane.Protocol.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --deny-self-hosted-runners
+```
+
+NuGet adds its repository signature after upload, changing archive bytes. For a NuGet download, verify that signature with `dotnet nuget verify <package.nupkg> --all` and compare its payload with the attested release artifact using the release verification instructions. The signed bundles are external release evidence; the locator inside the package is not itself an attestation.

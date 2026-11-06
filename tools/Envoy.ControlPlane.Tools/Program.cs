@@ -6,12 +6,16 @@ internal static class Program
     {
         if (args.Length == 0 || args is ["--help"])
         {
-            Console.WriteLine("Commands: upstream <sync|inspect|export|report|diff>, bindings <generate|verify>, validation verify, repository verify, transport <verify|benchmark>, envoy verify, patch <output-directory> [binding-lock]");
+            Console.WriteLine("Commands: workflows verify --cache <tool-cache>, release prepare --output <new-directory> --cache <tool-cache>, upstream <sync|inspect|export|report|diff>, bindings <generate|verify>, validation verify, repository verify, transport <verify|benchmark>, envoy verify, patch <output-directory> [binding-lock]");
             return 0;
         }
 
         switch (args[0])
         {
+            case "release":
+                return await ReleaseCandidate.RunAsync(args[1..]);
+            case "workflows":
+                return await WorkflowSecurity.RunAsync(args[1..]);
             case "upstream":
                 return await Upstream.RunAsync(args[1..]);
             case "bindings":

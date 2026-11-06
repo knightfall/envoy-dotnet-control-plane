@@ -9,7 +9,7 @@
     <PackageVersion Include="Grpc.Net.Client" Version="2.84.0" />
     <PackageVersion Include="Knightfall.Envoy.ControlPlane.Protocol" Version="1.0.0-rc.1" />
     <PackageVersion Include="Knightfall.Envoy.ControlPlane.Validation.Annotations" Version="1.0.0-rc.1" />
-    <PackageVersion Include="Knightfall.Envoy.ControlPlane.Validation" Version="0.1.0-t03" />
+    <PackageVersion Include="Knightfall.Envoy.ControlPlane.Validation" Version="1.0.0-rc.1" />
     <PackageVersion Include="Knightfall.Envoy.ControlPlane" Version="1.0.0-rc.1" />
     <PackageVersion Include="Knightfall.Envoy.ControlPlane.AspNetCore" Version="1.0.0-rc.1" />
     <PackageVersion Include="Roslynator.Analyzers" Version="5.0.1" />

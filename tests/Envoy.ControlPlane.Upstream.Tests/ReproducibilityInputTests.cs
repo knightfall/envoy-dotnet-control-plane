@@ -17,7 +17,8 @@ public sealed class ReproducibilityInputTests
             "tests/resources/GoOracle/main.go", "tests/resources/GoOracle/go.mod", "tests/resources/GoOracle/go.sum",
             "tests/validation/PgvConformance/main.go.template", "tests/validation/PgvConformance/go.mod.template",
             "tests/validation/PgvConformance/go.sum.template", "tests/consumers/Core/Consumer.csproj.template", "tests/consumers/AspNetCore/Consumer.csproj.template",
-            "tools/Tool.cs", "examples/Example.cs", ".github/workflows/check.yml", ".config/coverlet.mtp.appsettings.json"];
+            "tools/Tool.cs", "examples/Example.cs", ".github/workflows/check.yml", ".github/workflows/actions.lock",
+            ".github/release/verify.py", ".github/release/publish.ps1", ".github/security/tools.json", ".config/coverlet.mtp.appsettings.json"];
         foreach (string path in paths) Write(path, "first\r\nsecond\r\n");
         Write("src/obj/Generated.cs", "generated");
         Write("tests/bin/result.json", "output");

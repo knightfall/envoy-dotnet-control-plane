@@ -63,3 +63,15 @@ The fallback endpoint cleans paths and handles `/v3/discovery:endpoints`, `clust
 Google.Protobuf supplies parsing/formatting. The default Any registry includes the eight resource roots, their descriptor dependencies and discovery TTL wrappers. For opaque extension payloads, supply a **complete** registry containing those roots/wrappers plus application extension descriptors, using `Google.Protobuf.Reflection.TypeRegistry.FromMessages`/`FromFiles`. A Listener descriptor alone cannot resolve an HCM payload hidden in Any; include `HttpConnectionManager.Descriptor`. No global reflection registry or alternate JSON implementation is installed. Unknown Any formatting fails with 500.
 
 Kestrel, routing middleware and clients can canonicalize/escape URLs before this handler sees `Request.Path`; the gateway then applies source-style slash/dot cleaning. Normal endpoint authorization and host body limits still apply. Host connection/body-read failures and cancellation can terminate a request before a library status can be sent; a body-read failure delivered to the gateway maps to 400. No global quota, method restriction, media-type rejection or parser-limit override is introduced. Strict UTF-8 decoding precedes the stock protobuf parser. Error text, JSON whitespace/property order and time precision are runtime/adapter differences; the bounded Go corpus compares semantic JSON, not byte formatting. See `docs/plan/T18-FETCH-GATEWAY.md` for observed proof and remaining full-matrix/interop gates.
+
+## Supply-chain verification
+
+[Versioned release evidence](https://github.com/knightfall/envoy-dotnet-control-plane/releases/tag/v1.0.0-rc.1) includes build/source-input SBOMs, signed provenance and SBOM bundles, package digests and source pins. [GitHub attestations](https://github.com/knightfall/envoy-dotnet-control-plane/attestations) bind artifacts to the protected publishing workflow. `security/provenance.json` inside this package records the verification locations; its nuspec records the source commit.
+
+Verify the original upload artifact downloaded from the matching GitHub release:
+
+```sh
+gh attestation verify Knightfall.Envoy.ControlPlane.AspNetCore.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --deny-self-hosted-runners
+```
+
+NuGet adds its repository signature after upload, changing archive bytes. For a NuGet download, verify that signature with `dotnet nuget verify <package.nupkg> --all` and compare its payload with the attested release artifact using the release verification instructions. The signed bundles are external release evidence; the locator inside the package is not itself an attestation.

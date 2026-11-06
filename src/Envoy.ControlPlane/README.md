@@ -116,3 +116,15 @@ Dispose cancels/releases owned calls, including the old call during replacement,
 `MessageConversions.ToStruct(message, typeRegistry)` uses standard protobuf JSON with proto field names. `ToMessage<T>(value, typeRegistry)` and `ToMessage(value, descriptor, typeRegistry)` return new messages; they do not merge into an existing destination. Register descriptors for opaque Any payloads explicitly. Null inputs, unknown/malformed payloads and descriptors without a CLR parser fail. Duration/ListValue scalar/array roots cannot become Struct objects, matching the source helper's boundary. The existing example listener graph can round-trip with Listener, HCM and router descriptors registered.
 
 `WellKnownNames` supplies the complete conventional-name inventory at the behavior pin. The upstream catalog is deprecated: protobuf type URLs determine extension identity. Case-only Go aliases map to canonical C# casing; the existing two `WellKnownFilterNames` fields remain aliases. `ResourceFetchPaths` exposes the eight standard HTTP discovery paths used by the hosting gateway. See `docs/plan/T20-HELPER-COMPATIBILITY.md` for the complete symbol map, adaptations and proof.
+
+## Supply-chain verification
+
+[Versioned release evidence](https://github.com/knightfall/envoy-dotnet-control-plane/releases/tag/v1.0.0-rc.1) includes build/source-input SBOMs, signed provenance and SBOM bundles, package digests and source pins. [GitHub attestations](https://github.com/knightfall/envoy-dotnet-control-plane/attestations) bind artifacts to the protected publishing workflow. `security/provenance.json` inside this package records the verification locations; its nuspec records the source commit.
+
+Verify the original upload artifact downloaded from the matching GitHub release:
+
+```sh
+gh attestation verify Knightfall.Envoy.ControlPlane.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --deny-self-hosted-runners
+```
+
+NuGet adds its repository signature after upload, changing archive bytes. For a NuGet download, verify that signature with `dotnet nuget verify <package.nupkg> --all` and compare its payload with the attested release artifact using the release verification instructions. The signed bundles are external release evidence; the locator inside the package is not itself an attestation.

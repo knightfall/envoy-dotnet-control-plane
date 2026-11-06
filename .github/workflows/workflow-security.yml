@@ -1,0 +1,29 @@
+name: Workflow security
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: workflow-security-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    name: Workflow locks and security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Check release trust boundaries
+        run: python3 -m unittest discover -s .github/release/tests -v
+      - name: Verify action locks, syntax and security
+        run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release -- workflows verify --cache "$RUNNER_TEMP/workflow-tools"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DOTNET_CLI_TELEMETRY_OPTOUT: '1'
