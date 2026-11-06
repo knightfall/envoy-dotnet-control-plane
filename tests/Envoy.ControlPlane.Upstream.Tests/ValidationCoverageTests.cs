@@ -67,6 +67,39 @@ public sealed class ValidationCoverageTests
         Assert.False(ValidationCoverage.IsCurrent(report, inputs));
     }
 
+    [Theory]
+    [InlineData("buf.pgv-go.gen.yaml")]
+    [InlineData("tests/validation/PgvConformance/main.go.template")]
+    [InlineData("tests/validation/PgvConformance/go.mod.template")]
+    [InlineData("tests/validation/PgvConformance/go.sum.template")]
+    public void ChangedGeneratorConfiguration_WithoutLockUpdate_InvalidatesCoverage(string input)
+    {
+        using var fixture = new UpstreamFixture();
+        const string manifest = "conformance.lock.json";
+        string path = Path.Combine(fixture.Root, input);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, "original generator input");
+        var configuration = new JsonObject
+        {
+            ["configurationSha256"] = new JsonObject { [input] = "unchanged expected hash" },
+        };
+        File.WriteAllText(Path.Combine(fixture.Root, manifest), configuration.ToJsonString());
+        var before = new JsonObject();
+        ValidationCoverage.RecordConfigurationInputs(before, fixture.Root, [manifest]);
+        var report = new JsonObject { ["catalogWideConformance"] = true, ["inputs"] = before.DeepClone() };
+        var unchanged = new JsonObject();
+        ValidationCoverage.RecordConfigurationInputs(unchanged, fixture.Root, [manifest]);
+        Assert.True(ValidationCoverage.IsCurrent(report, unchanged));
+
+        File.WriteAllText(path, "changed generator input");
+        var after = new JsonObject();
+        ValidationCoverage.RecordConfigurationInputs(after, fixture.Root, [manifest]);
+
+        Assert.Equal(before[manifest]!.GetValue<string>(), after[manifest]!.GetValue<string>());
+        Assert.NotEqual(before[input]!.GetValue<string>(), after[input]!.GetValue<string>());
+        Assert.False(ValidationCoverage.IsCurrent(report, after));
+    }
+
     private static (JsonObject Manifest, JsonArray Fixtures, JsonObject Catalog, JsonObject Report) Evidence()
     {
         var manifest = JsonNode.Parse("""

@@ -128,10 +128,13 @@ internal static class ValidationCoverage
         var inputs = new JsonObject();
         foreach (string path in new[] { ManifestPath, "schemas/validation/sources.lock.json", "schemas/validation/bindings.lock.json",
             "schemas/validation/conformance.lock.json", "schemas/validation/pgv-conformance.lock.json", "schemas/validation/rules.recognized.json",
-            "Directory.Packages.props", "Directory.Build.props", "global.json" })
+            "upstream-baseline.json", "schemas/upstream.lock.json", "schemas/catalog.json", "schemas/bindings.lock.json",
+            "Directory.Packages.props", "Directory.Build.props", "Directory.Build.targets", "global.json" })
         {
             inputs.Add(path, GetFileSha256(path));
         }
+        RecordConfigurationInputs(inputs, ".", ["schemas/bindings.lock.json", "schemas/validation/bindings.lock.json",
+            "schemas/validation/conformance.lock.json", "schemas/validation/pgv-conformance.lock.json"]);
         foreach (string root in new[] { "src/Envoy.ControlPlane.Validation", "src/Envoy.ControlPlane.Validation.Annotations",
             "tests/Envoy.ControlPlane.Validation.Tests", "tests/validation/GoOracle", "tools/Envoy.ControlPlane.SchemaTools",
             "tools/Envoy.ControlPlane.Tools/Validation" })
@@ -150,6 +153,20 @@ internal static class ValidationCoverage
         inputs.Add("originalDescriptors", GetFileSha256(BindingPaths.InputsDirectory + "/catalog.pb"));
         inputs.Add("derivedDescriptors", GetFileSha256(ValidationPaths.MetadataRoot + "/catalog.pb"));
         return inputs;
+    }
+
+    internal static void RecordConfigurationInputs(JsonObject inputs, string repository, IEnumerable<string> manifests)
+    {
+        foreach (string manifest in manifests)
+        {
+            var configuration = Read(Path.Combine(repository, manifest))["configurationSha256"]!.AsObject();
+            inputs[manifest] = GetFileSha256(Path.Combine(repository, manifest));
+            foreach (var (path, _) in configuration)
+            {
+                // Hash current bytes, not the expected value stored in the lock.
+                inputs[path] = GetFileSha256(Path.Combine(repository, path));
+            }
+        }
     }
 
     private static string[] Paths(JsonNode paths) => paths.AsArray().Select(item => item!.GetValue<string>()).Order(StringComparer.Ordinal).ToArray();
