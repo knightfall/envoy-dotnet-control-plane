@@ -4,6 +4,7 @@ using Envoy.ControlPlane.Validation.Tests.Support;
 using Envoy.Extensions.AccessLoggers.File.V3;
 using Envoy.Type.V3;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using ProtoValidate;
 using ProtoValidate.Exceptions;
 using Xunit;
@@ -13,11 +14,11 @@ namespace Envoy.ControlPlane.Validation.Tests;
 public sealed class ValidationTests
 {
     [Fact]
-    public void Corpus_ValidInvalidAndBoundaryCases_MatchIndependentPgvExpectations()
+    public void Corpus_ValidInvalidAndBoundaryCases_MatchDeclaredOutcomes()
     {
         var results = ValidationCorpus.Evaluate(new Validator());
-        Assert.Equal(33, results.Length);
-        Assert.Equal(33, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(68, results.Length);
+        Assert.Equal(68, results.Select(result => result.Id).Distinct(StringComparer.Ordinal).Count());
         foreach (var result in results)
         {
             Assert.True(result.ActualValid == result.ExpectedValid,
@@ -30,6 +31,16 @@ public sealed class ValidationTests
     }
 
     [Fact]
+    public void NaN_RangeViolation_IdentifiesFieldAndRule()
+    {
+        var result = new Validator().Validate(new Percent { Value = double.NaN }, failFast: false);
+        Assert.False(result.IsSuccess);
+        var violation = Assert.Single(result.Violations);
+        Assert.Equal("value", violation.Field.GetPath());
+        Assert.Equal("double.gte_lte", violation.RuleId);
+    }
+
+    [Fact]
     public void Violations_NestedInvalidMessage_IdentifyFieldAndRule()
     {
         var validator = new Validator();
@@ -37,6 +48,42 @@ public sealed class ValidationTests
         Assert.False(result.IsSuccess);
         Assert.Contains(result.Violations,
             violation => violation.Field.GetPath() == "header.key" && violation.RuleId == "string.min_len");
+    }
+
+    [Fact]
+    public void Violations_InvalidMapKey_IdentifyTheKeyAndRule()
+    {
+        var resource = new Metadata();
+        resource.FilterMetadata.Add("", new Struct());
+
+        var result = new Validator().Validate(resource, failFast: false);
+
+        Assert.False(result.IsSuccess);
+        var violation = Assert.Single(result.Violations);
+        Assert.Equal("string.min_len", violation.RuleId);
+        Assert.Equal("filter_metadata[\"\"]", violation.Field.GetPath());
+        var element = Assert.Single(violation.Field.Elements);
+        Assert.Equal("filter_metadata", element.FieldName);
+        Assert.True(element.HasStringKey);
+        Assert.Equal("", element.StringKey);
+    }
+
+    [Fact]
+    public void Violations_InvalidRepeatedMessage_IdentifyIndexAndNestedField()
+    {
+        var resource = new DnsResolutionConfig { Resolvers = { new Address() } };
+
+        var result = new Validator().Validate(resource, failFast: false);
+
+        Assert.False(result.IsSuccess);
+        var violation = Assert.Single(result.Violations);
+        Assert.Equal("required", violation.RuleId);
+        Assert.Equal("resolvers[0].address", violation.Field.GetPath());
+        Assert.Equal(2, violation.Field.Elements.Count);
+        Assert.Equal("resolvers", violation.Field.Elements[0].FieldName);
+        Assert.True(violation.Field.Elements[0].HasIndex);
+        Assert.Equal(0UL, violation.Field.Elements[0].Index);
+        Assert.Equal("address", violation.Field.Elements[1].FieldName);
     }
 
     [Fact]

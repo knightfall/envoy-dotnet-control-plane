@@ -1,0 +1,7 @@
+<Project>
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory).config/coverlet.mtp.appsettings.json"
+          Link="coverlet.mtp.appsettings.json"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

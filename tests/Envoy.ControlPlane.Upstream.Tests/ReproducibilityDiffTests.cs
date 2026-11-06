@@ -51,6 +51,8 @@ public sealed class ReproducibilityDiffTests
 
     [Theory]
     [InlineData("inputs", "schemas/bindings.lock.json")]
+    [InlineData("inputs", "schemas/validation/rules.recognized.json")]
+    [InlineData("inputs", "schemas/validation/pgv-conformance.lock.json")]
     [InlineData("files", "envoy/config/route/v3/route.proto")]
     [InlineData("derivedFiles", "envoy/config/route/v3/route.proto")]
     [InlineData("derivedRules", "field:envoy.config.route.v3.VirtualHost.domains")]

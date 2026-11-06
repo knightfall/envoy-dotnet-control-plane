@@ -1,0 +1,8 @@
+version: v2
+managed:
+  enabled: false
+plugins:
+  - remote: buf.build/protocolbuffers/csharp:v35.1
+    revision: 1
+    out: tests/Envoy.ControlPlane.Validation.Tests/obj/pgv-conformance/generated
+    opt: base_namespace=

@@ -1,6 +1,6 @@
 # Optional schema validation
 
-Reviewed **25 October 2026**. The user selected an implementation built from pinned ProtoValidate source. [T03 evidence](../../schemas/VALIDATION.md) records separate annotation ownership, the derived metadata correction and the 33-case Go comparison. The provider arrangement is implemented for bounded local review. Full T26/GV conformance is required before optional-validator publication or validation-parity claims.
+Reviewed **28 October 2026**. The user selected an implementation built from pinned ProtoValidate source. [T03 evidence](../../schemas/VALIDATION.md) records separate annotation ownership, the derived metadata correction and the 33-case Go comparison. The provider arrangement is implemented for bounded local review. The [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) records the implemented declared-scope GV evidence, accepted NaN differences, exclusions and current-head acceptance gates. Optional-validator publication remains a separate step.
 
 ## 1. Compatibility boundary
 

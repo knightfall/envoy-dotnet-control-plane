@@ -33,6 +33,78 @@
         "before": "EvaluatorBuilder.Load(nestedTypeMessageDescriptor);",
         "after": "EvaluatorBuilder.LoadOrBuildDescriptor(nestedTypeMessageDescriptor);",
         "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "    public IEvaluator Load(MessageDescriptor messageDescriptor)\n    {",
+        "after": "    public IEvaluator Load(MessageDescriptor messageDescriptor)\n    {\n        PgvMetadataGuard.RequireMigrated(messageDescriptor);",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "    internal readonly ConcurrentDictionary<string, MessageEvaluator> EvaluatorMap = new();",
+        "after": "    // Evaluators retain CLR accessors, so protobuf names alone are not cache identities.\n    internal readonly ConcurrentDictionary<MessageDescriptor, MessageEvaluator> EvaluatorMap = new(ReferenceEqualityComparer.Instance);",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "EvaluatorMap.TryGetValue(messageDescriptor.FullName,",
+        "after": "EvaluatorMap.TryGetValue(messageDescriptor,",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "EvaluatorMap.GetOrAdd(messageDescriptor.FullName,",
+        "after": "EvaluatorMap.GetOrAdd(messageDescriptor,",
+        "occurrences": 2
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "new Dictionary<string, MessageEvaluator>()",
+        "after": "new Dictionary<MessageDescriptor, MessageEvaluator>(ReferenceEqualityComparer.Instance)",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "IDictionary<string, MessageEvaluator>",
+        "after": "IDictionary<MessageDescriptor, MessageEvaluator>",
+        "occurrences": 9
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "nestedMessageEvaluators.TryGetValue(fieldDescriptor.MessageType.FullName,",
+        "after": "nestedMessageEvaluators.TryGetValue(fieldDescriptor.MessageType,",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "            if (messageDescriptor.Parser == null)\n            {\n                return;\n            }",
+        "after": "            if (messageDescriptor.Parser == null)\n            {\n                throw new CompilationException($\"No CLR parser available for {messageDescriptor.FullName}.\");\n            }",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "var messageRules = RuleResolver.ResolveMessageRules(messageDescriptor);",
+        "after": "var messageRules = RuleResolver.ResolveMessageRules(messageDescriptor);\n            AnnotationGuard.RequireSupported(messageRules, messageDescriptor.FullName, Extensions);",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "var oneofRules = RuleResolver.ResolveOneofRules(oneofDesc);",
+        "after": "var oneofRules = RuleResolver.ResolveOneofRules(oneofDesc);\n            AnnotationGuard.RequireSupported(oneofRules, oneofDesc.FullName, Extensions);",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "var fieldRules = RuleResolver.ResolveFieldRules(fieldDescriptor);",
+        "after": "var fieldRules = RuleResolver.ResolveFieldRules(fieldDescriptor);\n            AnnotationGuard.RequireSupported(fieldRules, fieldDescriptor.FullName, Extensions);",
+        "occurrences": 1
+      },
+      {
+        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
+        "before": "        return EvaluatorMap.GetOrAdd(messageDescriptor, _ => Build(messageDescriptor));",
+        "after": "        try\n        {\n            return EvaluatorMap.GetOrAdd(messageDescriptor, _ => Build(messageDescriptor));\n        }\n        catch (Exception error) when (error is not CompilationException && error is not OutOfMemoryException)\n        {\n            throw new CompilationException($\"Failed to compile validator for {messageDescriptor.FullName}.\", error);\n        }",
+        "occurrences": 1
       }
     ],
     "csharpSources": [
@@ -114,7 +186,7 @@
       {
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
         "sourceSha256": "9c5ec20238d3e7f9cebbce637bea1b7644886dcffd9f2e80aed20389812d27e4",
-        "adaptedSha256": "86534e1e750591fc35bdb3d583973121bba479fa1bf06a2a2f1dc363d1727038"
+        "adaptedSha256": "dc2d670ee6daa7e10f4268335d85420a24aa207f1922478cc8bf889b399de039"
       },
       {
         "path": "Internal/Evaluator/FieldEvaluator.cs",
@@ -244,8 +316,22 @@
   },
   "corpus": {
     "path": "tests/Envoy.ControlPlane.Validation.Tests/Fixtures/pgv-cases.json",
-    "sha256": "d65996c87fbedc83bad927ec17b268f6d039e6318e6c4764f5e318016e2b1f52",
-    "caseCount": 33,
-    "goVersion": "1.26.4"
+    "sha256": "8898cb0a32a5d9bfc8eda37b217f57e526626d6a32fd32d19912bdcf15f7db87",
+    "caseCount": 68,
+    "goVersion": "1.26.4",
+    "acceptedDifferences": [
+      {
+        "id": "nan-range-rejection",
+        "reason": "Protovalidate deliberately rejects NaN for floating-point range constraints; Go PGV comparison-based checks accept it. Approved as an intentional stricter outcome.",
+        "dotnetValid": false,
+        "goValid": true,
+        "cases": [
+          "percent-nan",
+          "fill-rate-nan",
+          "float-wrapper-nan",
+          "histogram-nan"
+        ]
+      }
+    ]
   }
 }

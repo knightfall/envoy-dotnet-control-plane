@@ -22,8 +22,7 @@ internal static class CodeCoverageVerification
         {
             string projectResults = Path.Combine(results, "raw", Path.GetFileNameWithoutExtension(project));
             await BuildProcess.RunAsync("dotnet", ["test", "--project", project, "--configuration", "Release", "--no-build", "--no-restore",
-                "--results-directory", projectResults, "--report-xunit-trx", "--coverlet", "--coverlet-output-format", "cobertura",
-                "--coverlet-include", "[Envoy.ControlPlane*]*", "--coverlet-exclude-by-file", "**/obj/**"]);
+                "--results-directory", projectResults, "--report-xunit-trx", "--coverlet"]);
             Require(Directory.EnumerateFiles(projectResults, "*.xml", SearchOption.AllDirectories).Any(),
                 "No coverage report was produced for " + project);
         }
@@ -37,6 +36,18 @@ internal static class CodeCoverageVerification
         var coverage = XDocument.Load(cobertura).Root!;
         Require(int.TryParse(coverage.Attribute("lines-valid")?.Value, out int valid) && valid > 0,
             "Merged coverage has no measured source lines");
+        VerifyLibraryCoverage(coverage);
         Console.WriteLine($"Coverage collected from {projects.Length} test projects: {coverage.Attribute("lines-covered")?.Value}/{valid} measured lines. Reports: {report}");
+    }
+
+    internal static void VerifyLibraryCoverage(XElement coverage)
+    {
+        var packages = coverage.Element("packages")?.Elements("package").ToArray() ?? [];
+        foreach (string name in new[] { "Envoy.ControlPlane", "Envoy.ControlPlane.AspNetCore", "Envoy.ControlPlane.Validation" })
+        {
+            var package = packages.SingleOrDefault(item => (string?)item.Attribute("name") == name);
+            Require(package?.Descendants("line").Any() == true,
+                "Coverage did not measure product source in " + name);
+        }
     }
 }

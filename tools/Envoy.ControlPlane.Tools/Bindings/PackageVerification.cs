@@ -87,6 +87,16 @@ internal static class PackageVerification
         }
         foreach (var source in XDocument.Load(testProject).Descendants("Compile").Where(item => item.Attribute("Include") is not null))
         {
+            if (source.Attribute("Include")!.Value == ValidationConformance.GeneratedInclude)
+            {
+                ValidationConformance.CopyToConsumer(destination);
+                continue;
+            }
+            if (source.Attribute("Include")!.Value == PgvConformance.GeneratedInclude)
+            {
+                PgvConformance.CopyToConsumer(destination);
+                continue;
+            }
             string path = Path.Combine(sourceDirectory, source.Attribute("Include")!.Value);
             string target = Path.Combine(destination, source.Attribute("Link")?.Value ?? Path.GetFileName(path));
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);

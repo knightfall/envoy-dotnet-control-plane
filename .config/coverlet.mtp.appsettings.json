@@ -1,0 +1,9 @@
+{
+  "Coverlet": {
+    "Include": "[Envoy.ControlPlane*]*",
+    "Exclude": "[*.Tests]*",
+    "ExcludeByAttribute": "ExcludeFromCodeCoverage,ExcludeFromCodeCoverageAttribute,GeneratedCodeAttribute,CompilerGeneratedAttribute",
+    "ExcludeByFile": "**/obj/generated/**",
+    "Format": "cobertura"
+  }
+}

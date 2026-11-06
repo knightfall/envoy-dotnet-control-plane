@@ -26,7 +26,8 @@ internal static class ReproducibilityReport
             var descriptors = Read(scratch);
             var inputs = new JsonObject();
             foreach (string path in new[] { "upstream-baseline.json", "schemas/upstream.lock.json", "schemas/catalog.json", "schemas/bindings.lock.json",
-                "schemas/validation/bindings.lock.json", "schemas/validation/sources.lock.json", "global.json", "tests/resources/envoy-images.lock.json" })
+                "schemas/validation/bindings.lock.json", "schemas/validation/sources.lock.json", "schemas/validation/conformance.lock.json", "schemas/validation/rules.recognized.json", "schemas/validation/pgv-conformance.lock.json",
+                ValidationCoverage.ManifestPath, "global.json", "tests/resources/envoy-images.lock.json" })
             {
                 inputs.Add(path, Read(path));
             }
@@ -46,9 +47,10 @@ internal static class ReproducibilityReport
                 inputs.Add(Path.GetFileName(path), GetFileSha256(path));
             }
             RecordMaintainedInputs(inputs, Path.GetFullPath("."));
-            var coverage = new JsonObject
+            var verifiedCoverage = ValidationCoverage.ReadCurrent();
+            var coverage = verifiedCoverage ?? new JsonObject
             {
-                ["gate"] = "T26/GV incomplete",
+                ["gate"] = "GV current-input evidence unavailable",
                 ["catalogWideConformance"] = false,
                 ["unsupportedConstraints"] = "not-assessed",
                 ["messageOneofAndDerivedConformance"] = "unproven",
@@ -57,7 +59,11 @@ internal static class ReproducibilityReport
             var rules = new JsonObject();
             foreach (var rule in descriptors["rulePathCounts"]!.AsObject())
             {
-                rules.Add(rule.Key, new JsonObject { ["occurrences"] = rule.Value!.DeepClone(), ["conformance"] = "unproven" });
+                rules.Add(rule.Key, new JsonObject
+                {
+                    ["occurrences"] = rule.Value!.DeepClone(),
+                    ["conformance"] = verifiedCoverage is null ? "unproven" : "verified within declared catalog scope",
+                });
             }
             coverage.Add("pgvRulePaths", rules);
             Write(output, new JsonObject
@@ -89,13 +95,16 @@ internal static class ReproducibilityReport
     internal static void RecordMaintainedInputs(JsonObject inputs, string repository)
     {
         string[] extensions = [".cs", ".csproj", ".props", ".targets", ".proto", ".json", ".go", ".mod", ".sum", ".yaml", ".yml"];
-        foreach (string directory in new[] { "src", "tests", "tools", "examples", ".github/workflows" })
+        foreach (string directory in new[] { "src", "tests", "tools", "examples", ".github/workflows", ".config" })
         {
             string root = Path.Combine(repository, directory);
             if (!Directory.Exists(root)) continue;
             var files = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
                          .Where(file => extensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase)
-                             || file.EndsWith(".csproj.template", StringComparison.OrdinalIgnoreCase))
+                             || file.EndsWith(".csproj.template", StringComparison.OrdinalIgnoreCase)
+                             || file.EndsWith(".go.template", StringComparison.OrdinalIgnoreCase)
+                             || file.EndsWith(".mod.template", StringComparison.OrdinalIgnoreCase)
+                             || file.EndsWith(".sum.template", StringComparison.OrdinalIgnoreCase))
                          .Select(file => (SourcePath: file, RelativePath: Path.GetRelativePath(repository, file).Replace('\\', '/')))
                          .Where(file => !file.RelativePath.Split('/').Any(segment => segment is "bin" or "obj"))
                          .OrderBy(file => file.RelativePath, StringComparer.Ordinal);

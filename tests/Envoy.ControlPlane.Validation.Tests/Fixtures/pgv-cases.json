@@ -58,7 +58,7 @@
     "category": "string",
     "type": "envoy.config.core.v3.HeaderValue",
     "input": {
-      "key": "é"
+      "key": "\u00e9"
     },
     "valid": true
   },
@@ -318,5 +318,395 @@
       "entry": {}
     },
     "valid": true
+  },
+  {
+    "id": "extension-source-missing",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ExtensionConfigSource",
+    "input": {
+      "typeUrls": [
+        "type.googleapis.com/example.Filter"
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "extension-source-present-skips-nested",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ExtensionConfigSource",
+    "input": {
+      "configSource": {},
+      "typeUrls": [
+        "type.googleapis.com/example.Filter"
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "extension-source-ads",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ExtensionConfigSource",
+    "input": {
+      "configSource": {
+        "ads": {}
+      },
+      "typeUrls": [
+        "type.googleapis.com/example.Filter"
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "extension-source-empty-type-urls",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ExtensionConfigSource",
+    "input": {
+      "configSource": {}
+    },
+    "valid": false
+  },
+  {
+    "id": "config-source-direct-missing-specifier",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ConfigSource",
+    "input": {},
+    "valid": false
+  },
+  {
+    "id": "config-source-direct-ads",
+    "category": "any-presence-on-message",
+    "type": "envoy.config.core.v3.ConfigSource",
+    "input": {
+      "ads": {}
+    },
+    "valid": true
+  },
+  {
+    "id": "percent-nan",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.type.v3.Percent",
+    "input": {
+      "value": "NaN"
+    },
+    "valid": false,
+    "goValid": true,
+    "difference": "nan-range-rejection"
+  },
+  {
+    "id": "percent-positive-infinity",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.type.v3.Percent",
+    "input": {
+      "value": "Infinity"
+    },
+    "valid": false
+  },
+  {
+    "id": "percent-negative-infinity",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.type.v3.Percent",
+    "input": {
+      "value": "-Infinity"
+    },
+    "valid": false
+  },
+  {
+    "id": "fill-rate-nan",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.core.v3.RateLimitSettings",
+    "input": {
+      "fillRate": "NaN"
+    },
+    "valid": false,
+    "goValid": true,
+    "difference": "nan-range-rejection"
+  },
+  {
+    "id": "fill-rate-zero",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.core.v3.RateLimitSettings",
+    "input": {
+      "fillRate": 0
+    },
+    "valid": false
+  },
+  {
+    "id": "fill-rate-positive",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.core.v3.RateLimitSettings",
+    "input": {
+      "fillRate": 1
+    },
+    "valid": true
+  },
+  {
+    "id": "fill-rate-positive-infinity",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.core.v3.RateLimitSettings",
+    "input": {
+      "fillRate": "Infinity"
+    },
+    "valid": true
+  },
+  {
+    "id": "float-wrapper-nan",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.extensions.load_balancing_policies.client_side_weighted_round_robin.v3.ClientSideWeightedRoundRobin",
+    "input": {
+      "errorUtilizationPenalty": "NaN"
+    },
+    "valid": false,
+    "goValid": true,
+    "difference": "nan-range-rejection"
+  },
+  {
+    "id": "float-wrapper-negative",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.extensions.load_balancing_policies.client_side_weighted_round_robin.v3.ClientSideWeightedRoundRobin",
+    "input": {
+      "errorUtilizationPenalty": -1
+    },
+    "valid": false
+  },
+  {
+    "id": "float-wrapper-positive-infinity",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.extensions.load_balancing_policies.client_side_weighted_round_robin.v3.ClientSideWeightedRoundRobin",
+    "input": {
+      "errorUtilizationPenalty": "Infinity"
+    },
+    "valid": true
+  },
+  {
+    "id": "histogram-nan",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.metrics.v3.HistogramBucketSettings",
+    "input": {
+      "match": {
+        "prefix": "x"
+      },
+      "buckets": [
+        "NaN"
+      ]
+    },
+    "valid": false,
+    "goValid": true,
+    "difference": "nan-range-rejection"
+  },
+  {
+    "id": "histogram-zero",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.metrics.v3.HistogramBucketSettings",
+    "input": {
+      "match": {
+        "prefix": "x"
+      },
+      "buckets": [
+        0
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "histogram-positive",
+    "category": "repeated/double-gt",
+    "type": "envoy.config.metrics.v3.HistogramBucketSettings",
+    "input": {
+      "match": {
+        "prefix": "x"
+      },
+      "buckets": [
+        1
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "histogram-duplicate",
+    "category": "floating-point/Go-PGV",
+    "type": "envoy.config.metrics.v3.HistogramBucketSettings",
+    "input": {
+      "match": {
+        "prefix": "x"
+      },
+      "buckets": [
+        1,
+        1
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "tlv-boundaries",
+    "category": "repeated/uint32-lt",
+    "type": "envoy.config.core.v3.ProxyProtocolPassThroughTLVs",
+    "input": {
+      "tlvType": [
+        0,
+        255
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "tlv-above",
+    "category": "repeated/uint32-lt",
+    "type": "envoy.config.core.v3.ProxyProtocolPassThroughTLVs",
+    "input": {
+      "tlvType": [
+        256
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "ports-boundaries",
+    "category": "repeated/uint32-range",
+    "type": "envoy.config.listener.v3.FilterChainMatch",
+    "input": {
+      "sourcePorts": [
+        1,
+        65535
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "ports-below",
+    "category": "repeated/uint32-range",
+    "type": "envoy.config.listener.v3.FilterChainMatch",
+    "input": {
+      "sourcePorts": [
+        0
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "ports-above",
+    "category": "repeated/uint32-range",
+    "type": "envoy.config.listener.v3.FilterChainMatch",
+    "input": {
+      "sourcePorts": [
+        65536
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "sni-header-empty",
+    "category": "string/ignore-empty-header-name",
+    "type": "envoy.config.core.v3.UpstreamHttpProtocolOptions",
+    "input": {
+      "overrideAutoSniHeader": ""
+    },
+    "valid": true
+  },
+  {
+    "id": "sni-header-valid",
+    "category": "string/ignore-empty-header-name",
+    "type": "envoy.config.core.v3.UpstreamHttpProtocolOptions",
+    "input": {
+      "overrideAutoSniHeader": "x-envoy-test"
+    },
+    "valid": true
+  },
+  {
+    "id": "sni-header-invalid",
+    "category": "string/ignore-empty-header-name",
+    "type": "envoy.config.core.v3.UpstreamHttpProtocolOptions",
+    "input": {
+      "overrideAutoSniHeader": "bad header"
+    },
+    "valid": false
+  },
+  {
+    "id": "host-remove-header-valid",
+    "category": "repeated/string-header-name",
+    "type": "envoy.config.route.v3.VirtualHost",
+    "input": {
+      "name": "example",
+      "domains": [
+        "example.com"
+      ],
+      "requestHeadersToRemove": [
+        "x-custom"
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "host-remove-header-empty",
+    "category": "repeated/string-header-name",
+    "type": "envoy.config.route.v3.VirtualHost",
+    "input": {
+      "name": "example",
+      "domains": [
+        "example.com"
+      ],
+      "requestHeadersToRemove": [
+        ""
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "host-remove-header-newline",
+    "category": "repeated/string-header-name",
+    "type": "envoy.config.route.v3.VirtualHost",
+    "input": {
+      "name": "example",
+      "domains": [
+        "example.com"
+      ],
+      "requestHeadersToRemove": [
+        "x\ny"
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "spki-boundary",
+    "category": "repeated/string-runes-and-bytes",
+    "type": "envoy.extensions.transport_sockets.tls.v3.CertificateValidationContext",
+    "input": {
+      "verifyCertificateSpki": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "valid": true
+  },
+  {
+    "id": "spki-too-short",
+    "category": "repeated/string-runes-and-bytes",
+    "type": "envoy.extensions.transport_sockets.tls.v3.CertificateValidationContext",
+    "input": {
+      "verifyCertificateSpki": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "spki-too-long",
+    "category": "repeated/string-runes-and-bytes",
+    "type": "envoy.extensions.transport_sockets.tls.v3.CertificateValidationContext",
+    "input": {
+      "verifyCertificateSpki": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    },
+    "valid": false
+  },
+  {
+    "id": "spki-utf8-byte-limit",
+    "category": "repeated/string-runes-and-bytes",
+    "type": "envoy.extensions.transport_sockets.tls.v3.CertificateValidationContext",
+    "input": {
+      "verifyCertificateSpki": [
+        "\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9"
+      ]
+    },
+    "valid": false
   }
 ]

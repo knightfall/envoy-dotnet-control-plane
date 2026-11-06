@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using Envoy.ControlPlane.Cache;
 using Envoy.ControlPlane.Tests.Support;
 using Envoy.Service.Discovery.V3;
@@ -81,5 +82,88 @@ public sealed class WatcherContractTests
         var subscription = new TestSubscription(new Dictionary<string, string>(), new HashSet<string>(), new HashSet<string>(), false);
         Assert.Same(failure, Assert.Throws<InvalidOperationException>(() => watcher.CreateWatch(new DiscoveryRequest(), subscription)));
         Assert.Same(failure, Assert.Throws<InvalidOperationException>(() => watcher.CreateDeltaWatch(new DeltaDiscoveryRequest(), subscription)));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AwaitableWatch_AsyncDisposal_WaitsForProducerAndCancelsPendingResponse(bool delta)
+    {
+        var registration = new AsyncRegistration();
+        var (watch, completion) = CreatePendingWatch(new RegistrationWatcher(registration), delta);
+        Task disposal = watch.DisposeAsync().AsTask();
+        try
+        {
+            await registration.Started.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+            Assert.False(disposal.IsCompleted);
+            Assert.False(completion.IsCompleted);
+            Assert.Equal(1, registration.AsyncDisposals);
+            Assert.Equal(0, registration.SyncDisposals);
+        }
+        finally
+        {
+            registration.AllowCompletion.SetResult();
+            await disposal.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        }
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => completion);
+        Assert.True(completion.IsCanceled);
+        Assert.Equal(1, registration.AsyncDisposals);
+        Assert.Equal(0, registration.SyncDisposals);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AwaitableWatch_AsyncDisposal_ReleasesSynchronousRegistration(bool delta)
+    {
+        var registration = new SyncRegistration();
+        var (watch, completion) = CreatePendingWatch(new RegistrationWatcher(registration), delta);
+
+        await watch.DisposeAsync();
+
+        Assert.Equal(1, registration.Disposals);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => completion);
+        Assert.True(completion.IsCanceled);
+    }
+
+    private static (IAsyncDisposable Watch, Task Completion) CreatePendingWatch(IConfigWatcher watcher, bool delta)
+    {
+        var subscription = new TestSubscription(new Dictionary<string, string>(), new HashSet<string>(), new HashSet<string>(), false);
+        if (delta)
+        {
+            var watch = watcher.CreateDeltaWatch(new DeltaDiscoveryRequest(), subscription);
+            return ((IAsyncDisposable)watch, watch.Completion);
+        }
+        var sotw = watcher.CreateWatch(new DiscoveryRequest(), subscription);
+        return ((IAsyncDisposable)sotw, sotw.Completion);
+    }
+
+    private sealed class RegistrationWatcher(IDisposable registration) : IConfigWatcher
+    {
+        public IDisposable CreateWatch(DiscoveryRequest request, ISubscription subscription, ChannelWriter<ISotwResponse> responses) => registration;
+        public IDisposable CreateDeltaWatch(DeltaDiscoveryRequest request, ISubscription subscription, ChannelWriter<IDeltaResponse> responses) => registration;
+    }
+
+    private sealed class AsyncRegistration : IDisposable, IAsyncDisposable
+    {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource AllowCompletion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public int SyncDisposals { get; private set; }
+        public int AsyncDisposals { get; private set; }
+
+        public void Dispose() => SyncDisposals++;
+
+        public async ValueTask DisposeAsync()
+        {
+            AsyncDisposals++;
+            Started.SetResult();
+            await AllowCompletion.Task;
+        }
+    }
+
+    private sealed class SyncRegistration : IDisposable
+    {
+        public int Disposals { get; private set; }
+        public void Dispose() => Disposals++;
     }
 }

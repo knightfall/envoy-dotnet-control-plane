@@ -32,7 +32,7 @@ internal static class VerifiedValidationSources
         return Path.Combine(destination, source["archivePrefix"]!.GetValue<string>());
     }
 
-    internal static async Task MaterializeEvaluatorAsync(string cache)
+    internal static async Task<string> MaterializeEvaluatorAsync(string cache)
     {
         var runtime = JsonNode.Parse(File.ReadAllText(ValidationPaths.SourcesLock))!["runtime"]!;
         string source = await RetrieveAsync(cache, runtime, ValidationPaths.EvaluatorRoot + "/source");
@@ -75,6 +75,7 @@ internal static class VerifiedValidationSources
         File.Copy(annotation, ValidationPaths.AnnotationsRoot + "/inputs/buf/validate/validate.proto", overwrite: true);
         File.Copy(license, ValidationPaths.AnnotationsRoot + "/LICENSE.upstream", overwrite: true);
         Console.WriteLine($"Materialized {files.Count} pinned evaluator sources with reviewed adaptations.");
+        return source;
     }
 
     internal static void VerifyMaterialized()

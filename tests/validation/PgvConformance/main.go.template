@@ -1,0 +1,63 @@
+package main
+
+import (
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"os"
+
+	"google.golang.org/protobuf/proto"
+)
+
+type result struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	Type          string `json:"type"`
+	Data          string `json:"data"`
+	ExpectedValid bool   `json:"expectedValid"`
+}
+
+func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
+	if len(os.Args) != 2 {
+		return fmt.Errorf("usage: pgv-conformance-export <output-json>")
+	}
+	results := make([]result, 0, len(TestCases))
+	for index, item := range TestCases {
+		validator, ok := item.Message.(interface{ ValidateAll() error })
+		var validationError error
+		if ok {
+			validationError = validator.ValidateAll()
+		} else if string(item.Message.ProtoReflect().Descriptor().FullName()) != "tests.harness.cases.MessageIgnored" {
+			return fmt.Errorf("%s has no generated validator", item.Name)
+		}
+		expected := item.Failures == 0
+		if (validationError == nil) != expected {
+			return fmt.Errorf("%s: expected valid=%t, Go error=%v", item.Name, expected, validationError)
+		}
+		data, err := proto.Marshal(item.Message)
+		if err != nil {
+			return err
+		}
+		results = append(results, result{
+			ID: fmt.Sprintf("%04d", index), Name: item.Name,
+			Type: string(item.Message.ProtoReflect().Descriptor().FullName()),
+			Data: base64.StdEncoding.EncodeToString(data), ExpectedValid: expected,
+		})
+	}
+	encoded, err := json.MarshalIndent(results, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(os.Args[1], append(encoded, '\n'), 0o644); err != nil {
+		return err
+	}
+	fmt.Printf("Go PGV: %d upstream fixture outcomes matched their declared expectations.\n", len(results))
+	return nil
+}

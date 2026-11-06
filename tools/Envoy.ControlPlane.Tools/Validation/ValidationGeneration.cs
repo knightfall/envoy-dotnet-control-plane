@@ -11,7 +11,8 @@ internal static class ValidationGeneration
         string version = await BuildProcess.RunAsync("go", ["version"]);
         Require(version.StartsWith("go version go" + corpus["goVersion"]!.GetValue<string>() + " ", StringComparison.Ordinal),
             "Go generation toolchain differs from lock");
-        await VerifiedValidationSources.MaterializeEvaluatorAsync(cache);
+        string source = await VerifiedValidationSources.MaterializeEvaluatorAsync(cache);
+        ValidationConformance.Materialize(source);
         const string inputs = ValidationPaths.AnnotationsRoot + "/inputs";
         Directory.CreateDirectory(inputs + "/google/protobuf");
         foreach (string path in Directory.GetFiles(BindingPaths.InputsDirectory + "/inputs/google/protobuf", "*.proto"))
@@ -20,6 +21,7 @@ internal static class ValidationGeneration
         }
         File.WriteAllText(inputs + "/buf.yaml", "version: v2\nmodules:\n  - path: .\n");
         await BuildProcess.RunAsync(buf, ["generate", inputs, "--template", "buf.annotations.gen.yaml", "--path", inputs + "/buf/validate"]);
+        await ValidationConformance.GenerateAsync(buf);
     }
 
     internal static async Task GenerateAsync(string cache, string buf)
@@ -53,6 +55,7 @@ internal static class ValidationGeneration
         Require(PatchBindings.Run([BindingPaths.GeneratedDirectory, ValidationPaths.BindingsLock]) == 0,
             "Derived generated-code correction failed");
         VerifyOutputs();
+        await PgvConformance.GenerateAsync(cache, buf, tool);
     }
 
     internal static void VerifyOutputs()

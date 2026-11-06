@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "scope": "Pinned standard Envoy catalog: all 59 populated PGV rule paths and 86 path combinations, using 90 representative fields and 310 field-boundary outcomes, plus the separately locked whole-message, oneof, PGV and Protovalidate corpora. This is finite behavioral evidence, not exhaustive input-space or arbitrary-schema equivalence.",
+  "originalDescriptorSha256": "c34501434b0580470167d4a257269e25d921dbd5c6ba4968255642cf1e3d10a4",
+  "derivedDescriptorSha256": "7d725cc4b71d1a5b9025fd48cc20690d0280acbbf5544fd13537345f605be06e",
+  "fieldRuleCount": 1244,
+  "oneofOptionCount": 127,
+  "rulePathCount": 59,
+  "combinationCount": 86,
+  "fieldGroupCount": 90,
+  "fieldCaseCount": 310,
+  "configurationSha256": {
+    "schemas/validation/sources.lock.json": "e34ebf53f5aed0bca47980a58dc44f7d9e19753c3680be0560e55ab9abad1ecf",
+    "schemas/validation/bindings.lock.json": "9857fd0ccb7fbec01ad3669ddbf6c802b1a6da2b2cb5ff2ca4020a9f8cfda039",
+    "schemas/validation/rules.recognized.json": "7bd8b4f793a8522b592b96baf3882db567dc57833206ee58e3b82459732b0df3",
+    "schemas/validation/conformance.lock.json": "87e26e8c38ec581ca0128742015ad713f3d621ef0a04e7142d388dee8e6b7d1d",
+    "schemas/validation/pgv-conformance.lock.json": "dadfa24dfc49a3575fcae3f7db9631fac3af221ca7ef78d28494491bc3278485",
+    "tests/Envoy.ControlPlane.Validation.Tests/Fixtures/field-cases.json": "5cfd21d03a1a72c3bf713c20c5f66c5d17b0eacb1b63a113c2877ef456157110",
+    "src/Envoy.ControlPlane.Validation/AnnotationGuard.cs": "95bb00db0a9dbdb58a70fcbaaa76379bd4bd97b99848869ab232411f5479fae0",
+    "src/Envoy.ControlPlane.Validation/PgvMetadataGuard.cs": "efe52e8e6aa5742eb189fc74fea3e7a667258ccfd7e994b804fd53a0b5a8f7b0"
+  },
+  "exclusions": [
+    "Four named NaN range differences in sources.lock.json are accepted: Protovalidate rejects and Go PGV accepts.",
+    "Seven prerecorded relative-time timestamp cases are excluded per the pinned upstream loader policy; the selected catalog has no timestamp rules.",
+    "680 PGV harness cases outside the selected populated rule paths are excluded by pgv-conformance.lock.json.",
+    "Opaque Any payloads are not automatically unpacked or validated. Exact Go error text and order, arbitrary custom descriptors/rules, broader schema catalogs and newer upstream revisions are outside this claim."
+  ]
+}

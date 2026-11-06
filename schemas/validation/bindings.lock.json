@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
-  "descriptorSetSha256": "7403284aec07c54c08d450dbc5ccea77f9c713e88c971c22421c37283e59e9f9",
+  "descriptorSetSha256": "7d725cc4b71d1a5b9025fd48cc20690d0280acbbf5544fd13537345f605be06e",
   "generatedSourceCount": 540,
-  "generatedSourcesSha256": "3d68c6a4dd31907c29c8c8de05136ded90ada8de0bf9c4efe118429d2ebca51d",
+  "generatedSourcesSha256": "42727efcd5b2e21267af63639ca0e2227c6a188f40454e218b306f2f42b4d6df",
   "annotationSourceCount": 1,
   "annotationSourcesSha256": "769ac71289df8ae63979e4713cc89923b3fd1ccc115107a670f783e89383c0f0",
   "conditionalOneofRequirementCount": 16,
   "configurationSha256": {
     "buf.annotations.gen.yaml": "9e6d47e1cde0a185ce1365194b3febeb92fda347fd465fd5b5fafba112a30079",
     "buf.validation.gen.yaml": "5971ad8829b48a31d25e677ca36ec1109daed0f1a8b72f81050862ae032fddcc",
-    "schemas/validation/sources.lock.json": "21b1f9b13f8a14362f753b6665566667e39c481a12a9c1574e716f1e2bf922d0",
-    "tools/Envoy.ControlPlane.SchemaTools/OverlayTransform.cs": "12f7db6c0b6d5526401aa5eba5726c32998637e25fc3c07b0f72ce78f515dcde",
+    "schemas/validation/sources.lock.json": "e34ebf53f5aed0bca47980a58dc44f7d9e19753c3680be0560e55ab9abad1ecf",
+    "tools/Envoy.ControlPlane.SchemaTools/OverlayTransform.cs": "7ef29d1b4f4a2268112205b58c934b3dd3e11a494ffbdbf6799cec3bf833d832",
     "tools/Envoy.ControlPlane.Tools/Validation/MigrationCorrections.cs": "4e7ef6d4a487c37a51122628287053c76765e5afe5eef5fb30ba2ebad6440d5d"
   },
   "generatedCodeCorrections": [
@@ -45,8 +45,8 @@
           "occurrences": 1
         }
       ],
-      "inputSha256": "175c74f33b2d5f2e826522dae03d2623cd7f95f5f13701a605f0b7a639ade3e0",
-      "outputSha256": "11c46db1bc7940249b3f0b259fbc470e5bd1b0c40ecf1ece62b0ac7e141322cb"
+      "inputSha256": "042a2cb1a260829a5c5218bddb4f19a45c3681c1ba532689936d641b08e7af43",
+      "outputSha256": "06ca4c70a8d9b8453a84d6b9d3ede7571b65ebef02e4076520dedd34ae4ab2af"
     },
     {
       "path": "Envoy/Service/ExtProc/V3/ExternalProcessor.cs",
@@ -60,5 +60,7 @@
       "inputSha256": "f1994e4b235421fa25b7e3e078556227d6f603e4c8ae7c0e8950b472bdebc316",
       "outputSha256": "1521ccde43243934e1f786c0f0a37e6d178e48ebe1fa35611b3a532b6f327a3b"
     }
-  ]
+  ],
+  "presenceOnlyMessageRuleCount": 1,
+  "nonStrictHeaderNameCount": 28
 }
