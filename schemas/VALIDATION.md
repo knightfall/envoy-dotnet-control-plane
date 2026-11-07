@@ -54,7 +54,7 @@ Original sources remain unchanged. The original descriptor set has **523 files**
 
 Generated C# retains the upstream message and field explanations. Protocol and Annotations include XML documentation in their packages. `GeneratedDocumentation_MessageAndFieldComments_PreserveUpstreamExplanations` checks representative message and field comments through project references and fresh package consumption. Generator formatting and serialization code remain standard upstream output.
 
-The derived set fingerprint is `7403284aec07c54c08d450dbc5ccea77f9c713e88c971c22421c37283e59e9f9`. The final 540-file C# fingerprint is `3d68c6a4dd31907c29c8c8de05136ded90ada8de0bf9c4efe118429d2ebca51d`. The separate one-file annotation fingerprint and configuration checksums are locked as well.
+At T03, the derived set fingerprint was `7403284aec07c54c08d450dbc5ccea77f9c713e88c971c22421c37283e59e9f9` and the 540-file C# fingerprint was `3d68c6a4dd31907c29c8c8de05136ded90ada8de0bf9c4efe118429d2ebca51d`. Later T26 changes produced the release fingerprints recorded in the [root compatibility report](../docs/compatibility/root-1.0.md). The separate one-file annotation fingerprint and configuration checksums are locked as well.
 
 ## The oneof compatibility correction
 
@@ -107,4 +107,4 @@ The selected arrangement is owned Buf generation, a single annotation assembly a
 
 At T03, T26/GV still required claimed rule/combinations coverage, applicable official evaluator conformance, unsupported-rule detection, evaluator fault/limit cases, custom descriptors and Any behavior, diagnostics and clean-consumer evidence for the final API. The later [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) records the work completed and its explicit exclusions. Non-finite numbers, timestamp rules, regex differences, collection combinations and the full catalog are not established by this 33-case proof. Exact Go error text/order and method shapes are not promised. Live Envoy acceptance is a separate interoperability gate.
 
-A schema/tool/source update must report original and derived rule changes and rerun affected comparisons. Locked fingerprints prevent an unevaluated change being accepted silently. Public package names/API remain experimental until the release review and GV requirements pass.
+A schema/tool/source update must report original and derived rule changes and rerun affected comparisons. Locked fingerprints prevent an unevaluated change being accepted silently. The package family and declared T26 validation scope were subsequently released as a prerelease; see the [release record](../docs/releases/1.0.0-rc.1.md) and [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) for the evidence and limits.

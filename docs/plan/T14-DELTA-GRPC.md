@@ -1,6 +1,6 @@
 # T14 Delta gRPC adapters
 
-The final T14 increment connects the merged [cache](T14-DELTA-CACHE.md) and [stream](T14-DELTA-STREAMS.md) work to the official generated gRPC contracts through ASP.NET Core/Kestrel. It adds no runtime dependency, schema, generator or descriptor change. Exact-head review/CI are pending; completed local results are recorded below.
+This is historical T14 evidence. The final T14 increment connected the merged [cache](T14-DELTA-CACHE.md) and [stream](T14-DELTA-STREAMS.md) work to the official generated gRPC contracts through ASP.NET Core/Kestrel. It added no runtime dependency, schema, generator or descriptor change. The review/CI status and deferred work below describe that increment, not the current release; see the [root compatibility report](../compatibility/root-1.0.md) for current scope.
 
 ## Service matrix
 

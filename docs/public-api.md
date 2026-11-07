@@ -4,7 +4,7 @@ This is the root 1.0 API review for T25. The [compatibility report](compatibilit
 
 ## Package boundaries and versions
 
-Protocol owns generated messages, gRPC contracts and original PGV definitions. Validation.Annotations owns shared derived annotation definitions without an evaluator. Core references Protocol and supplies transport-independent behavior. ASP.NET Core references Core and provides hosting. Only the separate experimental Validation project adds the source-built evaluator and CEL. Core-only consumption must retain that separation.
+Protocol owns generated messages, gRPC contracts and original PGV definitions. Validation.Annotations owns shared derived annotation definitions without an evaluator. Core references Protocol and supplies transport-independent behavior. ASP.NET Core references Core and provides hosting. Only the separate optional Validation project adds the source-built evaluator and CEL. Core-only consumption must retain that separation.
 
 Every maintained library targets `net10.0`; the SDK is pinned in `global.json`. Older .NET targets, trimming and Native AOT have no acceptance proof. Generated protobuf full names and wire fields remain upstream identities. The three documented C# generator corrections in [BINDINGS.md](../schemas/BINDINGS.md) change colliding CLR member names only. Do not load overlapping generated binding packages.
 
