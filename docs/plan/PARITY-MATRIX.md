@@ -57,7 +57,7 @@ Evidence: pkg/cache/types/types.go; pkg/cache/v3/cache.go; simple.go; snapshot.g
 | ratelimit schema module | Configuration/discovery types and root methods are implemented | [Source lock](../../schemas/upstream.lock.json) pins original schemas; descriptor/consumer and T18 transport evidence remain distinct |
 | contrib and legacy API catalogs | Deferred; explicit scope decision required | No v2 control-plane runtime in the current root library |
 | Schema validation metadata | Preserve original upstream options and definitions from the first binding release | T02/T03 prove accessibility and one descriptor owner before G1 |
-| Optional explicit semantic validation | T03 source-built Protovalidate feasibility is implemented; full T26 conformance remains open | Bounded 33-case research is not GV; declared rule coverage still requires conformance, with no Core evaluator dependency or publication decorator |
+| Optional explicit semantic validation | Source-built evaluator is published with [T26 declared-scope conformance](T26-VALIDATION-CONFORMANCE.md), differences and exclusions | No Core evaluator dependency or automatic snapshot validation; the original 33-case T03 research alone does not establish conformance |
 | PGV Validate/ValidateAll API shape | Exact method shape/error text/order is not part of semantic parity by default | Standard C# generation does not recreate validators; claim only outcomes and diagnostics proven at GV |
 | vtprotobuf | No C# API clone | Go-specific generated performance API; compare .NET behavior/performance instead |
 | xdsmatcher | Deferred; explicit scope decision required | Match-tree evaluation, registry, legacy conversion need their own cases |

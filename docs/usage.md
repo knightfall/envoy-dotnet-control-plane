@@ -1,6 +1,6 @@
 # Hosting, configuration updates and migration
 
-The root library targets .NET 10. Package publication and final candidate identities remain tracked in the [release checklist](releases/root-1.0.md). These instructions describe the current source and freshly packed local packages.
+The root library targets .NET 10. Five packages are published as prerelease `1.0.0-rc.1`; their identities and release evidence are in the [release record](releases/root-1.0.md). These instructions apply to the current source and the published package surface.
 
 ## Run the maintained application
 
@@ -64,7 +64,7 @@ TTL wrapping does not expire entries in the cache. `RunHeartbeatsAsync` is an ex
 | An older Envoy generated-message package | Replace overlapping bindings with Protocol and its annotation dependency. Check the pinned catalog and required extensions before changing references. Loading two providers for the same protobuf definitions breaks the authoritative-owner contract. |
 | Go caches and goroutines | Retain the observable subscription/publication semantics, using asynchronous publication and channel-based one-shot watches. Await owned asynchronous disposal before changing subscription state. |
 | Awaiting one response | Use the two-argument watch convenience extension and await its completion. Custom producers implement the channel-writer methods on `IConfigWatcher`. |
-| Automatic consistency or semantic validation assumptions | Invoke the desired checks explicitly before publication. Full optional-validator conformance remains T26/GV work. |
+| Automatic consistency or semantic validation assumptions | Invoke the desired checks explicitly before publication. The [T26 report](plan/T26-VALIDATION-CONFORMANCE.md) states the optional evaluator's tested scope and exceptions. |
 | Existing preview host | Existing registration/mapping remain; the mapping now includes Delta, Fetch, VHDS/LEDS and rate-limit configuration methods. Protect the endpoint group according to the application's policy. |
 | Custom gRPC channels | Pass the application-owned invoker to `SotwAdsClient`; dispose the helper and await pending operations. Reconnect, decoding and acceptance policy stay in the application. |
 

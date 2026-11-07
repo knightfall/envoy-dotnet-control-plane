@@ -1,6 +1,6 @@
 # Upstream schema licenses and notices
 
-The [source lock](upstream.lock.json) records the SHA-256 of every root license/notice file below, plus the checksummed archive containing the original text. Source archives are retained outside this repository. Generated language bindings and redistributed schema sources have not been published.
+The [source lock](upstream.lock.json) records the SHA-256 of every root license/notice file below, plus the checksummed archive containing the original text. Source archives are retained outside this repository. The generated bindings are published in the [1.0.0-rc.1 release](../docs/releases/1.0.0-rc.1.md), with source locks and third-party notices carried in the packages and release evidence.
 
 | Source | Declared license | Original files at the pinned revision |
 |---|---|---|
@@ -19,4 +19,4 @@ These twelve files cover the selected upstream schema sources and Go reference. 
 
 T02 generates through [Buf CLI 1.75.0](https://github.com/bufbuild/buf/blob/v1.75.0/LICENSE), licensed Apache-2.0, using the official protobuf C# v35.1 and gRPC C# v1.84.0 remote plugins. Their upstream generator licenses are [protobuf BSD-3-Clause](https://github.com/protocolbuffers/protobuf/blob/v35.1/LICENSE) and [gRPC Apache-2.0](https://github.com/grpc/grpc/blob/v1.84.0/LICENSE). These tools are not bundled in Protocol. The runtime dependencies are Google.Protobuf 3.35.1 (BSD-3-Clause) and Grpc.Core.Api 2.84.0 (Apache-2.0); analyzers stay private build dependencies.
 
-The source exporter copies the twelve original license/notice texts from the verified archives into its build output. The candidate package carries them under `licenses/<source-id>/`, alongside this inventory and the source locks. T03/T26 must record validation-provider and derived-metadata licenses. T24 reviews notices again against final package contents before release.
+The source exporter copies the twelve original license/notice texts from the verified archives into its build output. Protocol carries them under `licenses/<source-id>/`, alongside this inventory and the source locks. The optional annotation/evaluator packages separately retain their original Apache-2.0 license and validation source lock. Package verification checks notices against the locked originals; see [validation provenance](VALIDATION.md) and the [release record](../docs/releases/root-1.0.md).

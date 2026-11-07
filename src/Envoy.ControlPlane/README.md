@@ -1,6 +1,6 @@
 # Envoy.ControlPlane Core
 
-NuGet candidate: `Knightfall.Envoy.ControlPlane` 1.0.0-rc.1 (root candidate). The assembly remains `Envoy.ControlPlane`.
+NuGet package: `Knightfall.Envoy.ControlPlane` 1.0.0-rc.1 (Core). The assembly remains `Envoy.ControlPlane`.
 
 Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watches, SotW/Delta SnapshotCache responses, subscription state and transport-independent stream processing with optional ordered SotW ADS. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. The separate ASP.NET Core package supplies ten SotW, eleven Delta and nine unary Fetch service methods. Explicit caller-owned SotW heartbeat scheduling is available.
 
@@ -92,7 +92,7 @@ Heartbeats select pending SotW wildcard/exact TTL resources, retaining versions/
 
 Fetch creates no watch/status entries or request timestamps. Its lazy response retains the original request/context and selected stable resources, uses normal TTL wrappers and exposes an empty returned-resource ledger. As in the source, the cache forwards cancellation context without rejecting an already-canceled immediate read. Application callbacks/producers may observe cancellation.
 
-`FetchServer` consumes any `IConfigFetcher` and optional `IFetchCallbacks`. It calls the request hook, producer, materializer and response hook in that order. Request hooks may mutate or reject; response hooks may mutate the outgoing envelope and receive null if materialization failed. Missing outer envelopes fail before response hooks. Producer/materializer exceptions propagate unchanged after the applicable hooks. The original response callback signature has no context/cancellation argument. See `docs/plan/T18-FETCH-GATEWAY.md` for source mapping and transport boundaries.
+`FetchServer` consumes any `IConfigFetcher` and optional `IFetchCallbacks`. It calls the request hook, producer, materializer and response hook in that order. Request hooks may mutate or reject; response hooks may mutate the outgoing envelope and receive null if materialization failed. Producer failures and missing outer envelopes fail before response hooks. A materialization exception is rethrown unchanged after a successful response hook; if that hook itself throws, its exception takes precedence. The original response callback signature has no context/cancellation argument. See `docs/plan/T18-FETCH-GATEWAY.md` for source mapping and transport boundaries.
 
 ## Focused SotW ADS client
 
@@ -124,7 +124,7 @@ Dispose cancels/releases owned calls, including the old call during replacement,
 Verify the original upload artifact downloaded from the matching GitHub release:
 
 ```sh
-gh attestation verify Knightfall.Envoy.ControlPlane.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --deny-self-hosted-runners
+gh attestation verify Knightfall.Envoy.ControlPlane.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --source-digest 000438a9c4d0bc0b58a5ec7bc55af10f5f9c0ccd --deny-self-hosted-runners
 ```
 
 NuGet adds its repository signature after upload, changing archive bytes. For a NuGet download, verify that signature with `dotnet nuget verify <package.nupkg> --all` and compare its payload with the attested release artifact using the release verification instructions. The signed bundles are external release evidence; the locator inside the package is not itself an attestation.

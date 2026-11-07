@@ -1,9 +1,9 @@
-# Knightfall.Envoy.ControlPlane.Protocol candidate
+# Knightfall.Envoy.ControlPlane.Protocol
 
-Candidate net10.0 bindings generated through Buf CLI and pinned official
+The net10.0 bindings are generated through Buf CLI and pinned official
 C#/gRPC plugins from the original upstream catalog. T03 adds derived
 Protovalidate options while preserving all original PGV options. The binding
-and source-provider arrangement passed bounded G1 proof; final candidate verification/review remains T25. The NuGet ID has the Knightfall prefix; the assembly remains Envoy.ControlPlane.Protocol.
+and source-provider arrangement passed bounded G1 proof, with later T25 package verification. The NuGet ID has the Knightfall prefix; the assembly remains Envoy.ControlPlane.Protocol.
 
 The assembly owns the selected Envoy, xDS/UDPA, ratelimit, CEL, Google API/RPC,
 PGV, OpenTelemetry and Prometheus messages and annotation definitions.
@@ -16,7 +16,7 @@ gRPC client and server contracts use Grpc.Core.Api; consumers choose their own
 channel and hosting transport. No cache, server implementation or validation
 evaluator is included. The annotation-only dependency owns buf.validate types;
 Protocol has no CEL/evaluator dependency. The separately installed optional
-validation candidate evaluates derived options through ProtoValidate source.
+validation package evaluates derived options through ProtoValidate source.
 
 The embedded `Envoy.ControlPlane.Protocol.catalog.pb` resource records original
 source descriptors. The package's `schemas/` directory contains source and tool
@@ -34,7 +34,7 @@ The separate `validation.catalog.pb` embedded resource records derived descripto
 Verify the original upload artifact downloaded from the matching GitHub release:
 
 ```sh
-gh attestation verify Knightfall.Envoy.ControlPlane.Protocol.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --deny-self-hosted-runners
+gh attestation verify Knightfall.Envoy.ControlPlane.Protocol.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --source-digest 000438a9c4d0bc0b58a5ec7bc55af10f5f9c0ccd --deny-self-hosted-runners
 ```
 
 NuGet adds its repository signature after upload, changing archive bytes. For a NuGet download, verify that signature with `dotnet nuget verify <package.nupkg> --all` and compare its payload with the attested release artifact using the release verification instructions. The signed bundles are external release evidence; the locator inside the package is not itself an attestation.

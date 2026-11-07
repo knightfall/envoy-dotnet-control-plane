@@ -1,5 +1,7 @@
 # T21 — root differential verification
 
+This task report preserves its original implementation-time status and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Completes issue #27 / R22 for the required V05–V27 scenario families. All modes call actual Go code at behavior commit 67c5345367582741334e34ffc66a561b0ce32946; schema source remains 82a4424f760b6ba3ffc9f2911389d061656f35c8. Module checks reject a changed root/Envoy/rate-limit revision or replacement. Native fixtures assert independent expectations before exporting observed results; native-only traces never substitute for Go execution.
 
 ## Execution and retained evidence

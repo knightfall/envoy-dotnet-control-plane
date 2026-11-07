@@ -1,5 +1,7 @@
 # T19 — focused SotW ADS client
 
+This task report preserves its original implementation-time status and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Issue #25 / R19 / V26 adds `Envoy.ControlPlane.Clients.SotwAdsClient` to Core. It uses the existing generated ADS client and `Grpc.Core.Api` dependency already supplied by Protocol. No Grpc.Net.Client/Kestrel dependency, retry/reconnect policy, subscription engine, Delta client, resource decoder or validation provider is added to Core.
 
 ## Contract and .NET adaptation

@@ -89,7 +89,7 @@ No tests were run or added during this planning pass. Before release, use the pi
 
 ## Source map and scope divergences
 
-The seven files in [`docs/codebase/`](docs/codebase/) map the upstream structure and evidence used for this draft.
+The seven files in [`docs/codebase/`](../../codebase/) map the upstream structure and evidence used for this draft.
 
 - **Requested outcome:** a .NET parity library. **Reference reality:** the main README explicitly limits the project to generic server/cache infrastructure and excludes resource translation.
 - **“Parity” ambiguity:** the active control-plane implementation is v3, but the mirrored generated API module includes old and current API packages. Full generated-proto parity is a much broader commitment than matching the current v3 server/cache.

@@ -1,6 +1,6 @@
 # Detailed architecture
 
-Reviewed **26 October 2026**. Status: runtime design with implemented resource/cache/SotW/hosting sections; [T11 evidence](../plan/T11-ASP-NET-HOST.md) records current verification, while later features remain proposals. [T01 source provenance](../../schemas/PROVENANCE.md) records the source baseline. This document uses the Go behavior pin and the separate Envoy schema pin in [upstream-baseline.json](../../upstream-baseline.json). Requirements, task IDs, and verification IDs are defined in [traceability](../plan/TRACEABILITY.md) and the [implementation plan](../plan/IMPLEMENTATION-PLAN.md).
+Reviewed **26 October 2026** as a runtime design. Feature descriptions and proposed gates below preserve that design context; the [root compatibility report](../compatibility/root-1.0.md) and [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) record subsequent implementation and verification. [T01 source provenance](../../schemas/PROVENANCE.md) records the source baseline. This document uses the Go behavior pin and the separate Envoy schema pin in [upstream-baseline.json](../../upstream-baseline.json). Requirements, task IDs, and verification IDs are defined in [traceability](../plan/TRACEABILITY.md) and the [implementation plan](../plan/IMPLEMENTATION-PLAN.md).
 
 ## 1. Purpose and compatibility contract
 
@@ -35,7 +35,7 @@ flowchart TD
     P[Protocol messages and descriptors] --> C
     P --> D
     P --> E
-    P --> V[Optional explicit validation]
+    P -->|IMessage values| V[Optional explicit validation]
     A --> V
     V --> B
     D --> H[Application callbacks and ILogger]
@@ -43,24 +43,26 @@ flowchart TD
 
 | Package | Owns | Must not own |
 |---|---|---|
-| `Envoy.ControlPlane.Protocol` | One authoritative set of generated messages, descriptors, gRPC client/server contracts; required annotation definitions | Cache state, CEL evaluator, ASP.NET host policy |
-| `Envoy.ControlPlane` | Resource catalog, snapshots, caches, watches, subscriptions, protocol engines, callbacks, fetch logic, conversion helpers, ADS client wrapper | Kestrel startup, HTTP routing, storage, process-wide mutable registries |
-| `Envoy.ControlPlane.AspNetCore` | Concrete generated service adapters, DI registration, endpoint mapping, HTTP/JSON gateway | Independent protocol state machines |
-| `Envoy.ControlPlane.Validation` | Explicit schema validation, structured outcomes, isolated evaluator integration | Duplicate Envoy message types, cache publication policy, stream state |
+| `Knightfall.Envoy.ControlPlane.Protocol` | One authoritative set of generated messages, descriptors, gRPC client/server contracts and original PGV definitions | Cache state, CEL evaluator, ASP.NET host policy |
+| `Knightfall.Envoy.ControlPlane.Validation.Annotations` | Shared derived Protovalidate annotation definitions | Envoy resource messages, evaluator or CEL runtime |
+| `Knightfall.Envoy.ControlPlane` | Resource catalog, snapshots, caches, watches, subscriptions, protocol engines, callbacks, fetch logic, conversion helpers, ADS client wrapper | Kestrel startup, HTTP routing, storage, process-wide mutable registries |
+| `Knightfall.Envoy.ControlPlane.AspNetCore` | Concrete generated service adapters, DI registration, endpoint mapping, HTTP/JSON gateway | Independent protocol state machines |
+| `Knightfall.Envoy.ControlPlane.Validation` | Explicit schema validation, structured outcomes, isolated evaluator integration | Duplicate Envoy message types, cache publication policy, stream state |
 
-The root release uses Protocol, Core, and ASP.NET Core packages. The optional validation package references the authoritative Protocol types and owns its evaluator dependency. Its final name/provider follow T03. Core and ASP.NET Core remain independent of it; no validator interface or validated-publication decorator is added to Core.
+The release includes Protocol, Core, ASP.NET Core, shared validation annotations and the optional validation evaluator. The evaluator depends on the annotation package and owns its evaluator dependencies; it can validate generated messages without referencing Protocol. Core and ASP.NET Core remain independent of it; no validator interface or validated-publication decorator is added to Core.
 
-Core targets .NET 10 provisionally. Protocol may use a wider compatible target after the package-consumption proof. Pin actual package/compiler versions during T02/T04; no floating dependencies. Core uses Google.Protobuf contracts, the chosen gRPC abstractions, logging abstractions, and `TimeProvider`. The client accepts an application-owned call invoker; it does not force an HTTP channel implementation on cache-only applications.
+All maintained library packages target .NET 10. Package/compiler versions are pinned; no floating dependencies are used. Core uses Google.Protobuf contracts, gRPC call abstractions and `TimeProvider`; the hosting adapters use `ILogger`. The client accepts an application-owned call invoker; it does not force an HTTP channel implementation on cache-only applications.
 
-The T04 package/build layout exists; the resource, cache, server and hosting feature folders below remain planned. See [T04 build evidence](../plan/T04-BUILD-FOUNDATION.md):
+The implemented repository uses the following layout. See [T04 build evidence](../plan/T04-BUILD-FOUNDATION.md) for the historical foundation and the [root compatibility report](../compatibility/root-1.0.md) for subsequent work:
 
 ```text
-src/Envoy.ControlPlane.Protocol/          generated binding facade or owned outputs
-src/Envoy.ControlPlane/                  Resources, Cache, Server, Client, Conversion
-src/Envoy.ControlPlane.AspNetCore/       Services, Http, DependencyInjection
-src/Envoy.ControlPlane.Validation/       optional validator; final provider/name after T03
+src/Envoy.ControlPlane.Protocol/          generated binding facade and owned outputs
+src/Envoy.ControlPlane/                  Resources, Cache, Streams, Fetch and Client
+src/Envoy.ControlPlane.AspNetCore/       gRPC and HTTP hosting
+src/Envoy.ControlPlane.Validation.Annotations/  shared validation annotations
+src/Envoy.ControlPlane.Validation/       optional evaluator
 tests/                                  unit, differential, transport, Envoy, package tests
-examples/MinimalControlPlane/            runnable host and Envoy bootstrap
+examples/Envoy.ControlPlane.Example/     runnable host and update source
 schemas/                                input manifests, lock data, controlled overlays
 tools/                                  project-based generation and verification commands
 scripts/                                retained historical provider research
@@ -82,7 +84,7 @@ T02 preserves original upstream validation annotations and required option defin
 
 ## 4. Proposed contracts
 
-The snapshot contract is implemented by T05; watcher/subscription/response contracts and one-shot completion are implemented by T06. Node hashing is implemented by T07; Fetch remains a sketch for later tasks. See [T05 evidence](../plan/T05-RESOURCES-AND-SNAPSHOTS.md) and [T06 evidence](../plan/T06-WATCHES.md) for the implemented surface. Actual generated service signatures come from the selected bindings.
+The following sketches show early contract design, not exact current signatures. See [public API contracts](../public-api.md) and the source for current interfaces, including channel-based watches and Fetch. [T05](../plan/T05-RESOURCES-AND-SNAPSHOTS.md) and [T06](../plan/T06-WATCHES.md) retain the original implementation evidence. Actual generated service signatures come from the selected bindings.
 
 ```csharp
 public interface INodeHasher { string Hash(Node? node); }
@@ -116,7 +118,7 @@ public interface IConfigFetcher
 
 `ResourceEntry` retains a resource message and optional TTL. `ResourceCatalog.GetName` derives the indexing name from the message; applications can implement `INamedResource` for custom naming. `ISubscription` describes the exact names, prefixes, wildcard state, and returned metadata needed by the cache. Its collections remain stable for the watch lifetime; a separate immutable-view framework is not required. The stream owns subscription updates; cancel or complete its current watch before mutating the `SotwSubscription`. A cache retains a stable view only for its watch lifetime. T08 copies read-only returned-version metadata into owned mutable bookkeeping; protobuf messages are not cloned by this operation. Response envelopes retain the originating request, context, version, returned metadata, and materialization behavior needed for upstream custom-cache parity. `ResponseContext` carries the creation cancellation token and optional caller state for callback correlation, adapting Go context without depending on ASP.NET or ambient state. Custom response interfaces preserve lazy materialization and failure propagation. Keep stream-specific nonce mutation away from data shared by multiple streams.
 
-T10 makes SotW producer delivery channel-based: ordinary streams supply individual bounded channels, and ordered ADS supplies one shared bounded FIFO. The producer writes directly to its destination to establish publication order. A cancellation registration that owns pending asynchronous writes implements `IAsyncDisposable`; the stream awaits disposal before changing subscription state. Releasing one registration must not complete a shared writer. A two-argument extension retains await-one convenience through `IWatch<ISotwResponse>` over an individual channel. Its task completion can resume after enqueueing; it does not schedule stream responses. Delta retains its task-based contract until T14.
+T10 makes SotW producer delivery channel-based: ordinary streams supply individual bounded channels, and ordered ADS supplies one shared bounded FIFO. The producer writes directly to its destination to establish publication order. A cancellation registration that owns pending asynchronous writes implements `IAsyncDisposable`; the stream awaits disposal before changing subscription state. Releasing one registration must not complete a shared writer. A two-argument extension retains await-one convenience through `IWatch<ISotwResponse>` over an individual channel. Its task completion can resume after enqueueing; it does not schedule stream responses. T14 subsequently adopted the channel-based Delta contract as well.
 
 `Watch<T>` remains a standalone one-shot primitive with asynchronous continuations and idempotent synchronous disposal. Consumers of the task adapter use a disposal scope around `Completion.WaitAsync(cancellationToken)`; canceling that wait alone does not dispose the registration. Cache delivery must not invoke network I/O inside publication locks, and an immediate result must remain valid before the stream begins reading it. These API choices prioritize behavioral parity using standard .NET coordination rather than translating Go's synchronization structure.
 
@@ -155,7 +157,7 @@ Owns a single type URL and shared resource collection, with exact/prefix/wildcar
 
 ### 6.3 MuxCache
 
-Routes SotW and Delta through separately configurable classification functions and delegates fetch using the source's selection contract. Classifier output selects a registered child cache; missing keys are errors. Child caches remain independently owned unless explicitly registered with ownership transfer. The mux must not hide LinearCache's unsupported fetch or invent an aggregate snapshot transaction.
+Routes SotW and Delta through separate classification functions and delegates Fetch using the SotW classifier. Classifier output selects a registered child cache; missing keys are errors. The mux copies its fixed child index, never disposes children and exposes no ownership-transfer option. It preserves LinearCache's unsupported Fetch result and adds no aggregate snapshot transaction.
 
 T16 implements this using a constructor-copied ordinal routing index, caller-owned children, direct channel/registration/task delegation and a separate `IConfigFetcher` capability. The public routing table is fixed, rather than copying Go's mutable struct fields. Fetch preserves `ResponseContext`; watch-only children explicitly report unsupported Fetch. SnapshotCache polling and Fetch transports remain T18. See [T16 evidence](../plan/T16-MUX-CACHE.md) for the implemented boundary and source/native comparisons.
 
@@ -227,7 +229,7 @@ Represent TTL independently from the resource payload. Materialize the correct x
 
 The reviewed SnapshotCache periodic heartbeat loop scans **SotW watches only**. It sends TTL-bearing resources using the current snapshot version, omits the normal resource payload in heartbeat mode, preserves returned-resource metadata, and consumes the one-shot watch; the next client request creates another. Preserve its exact/prefix selection behavior using fixtures, rather than assuming every selection path is identical to normal responses. Delta resource TTL encoding is in scope; an additional automatic Delta heartbeat scheduler is not source parity.
 
-Use an injected `TimeProvider` and a cache-owned timer. Only start it when heartbeat mode is enabled with a valid interval. Disposal cancels the timer and pending owned work, is idempotent, and prevents publication after shutdown. Tests advance a fake clock and explicitly demonstrate proxy expiry and refresh with a real Envoy.
+The caller starts `RunHeartbeatsAsync` with a valid interval and cancels and awaits the task to stop it; `SnapshotCache` uses its injected `TimeProvider`. Stopping the loop leaves the cache and pending watches usable. The [T17 report](../plan/T17-TTL-HEARTBEATS.md) records lifecycle tests. The [released-Envoy report](../plan/T23-ROOT-ENVOY.md) separately documents the default SotW CDS heartbeat limitation and the tested caller-supplied Delta TTL refresh/expiry path.
 
 ## 12. Transports and error semantics
 
@@ -251,7 +253,7 @@ Routes: `/v3/discovery:endpoints`, `:clusters`, `:listeners`, `:routes`, `:scope
 
 T11 implements parameterless `AddEnvoyControlPlane()` using application-registered singleton cache, optional callbacks and initialized SotW options. `MapEnvoyControlPlane()` returns a standard route group for the nine preview SotW services and application endpoint conventions. HTTP/Fetch mapping and JSON descriptor registry configuration remain T18. Runtime caches are shared singletons unless the application deliberately supplies another lifetime. Stream sessions are per-call objects. Use ordinary ASP.NET Core dependency injection and call lifetimes; do not add a callback-factory framework.
 
-Startup builds the descriptor registry, validates options, and starts explicitly enabled timers. Shutdown stops accepting calls, cancels sessions through a linked host token, cancels/disposes all watches, awaits reader/event-loop completion, and disposes owned timers/resources. Cleanup runs on open-hook rejection, EOF, reader failure, writer failure, callback failure, and host stop. Close notification occurs once after watch cleanup even if open was rejected, matching source lifecycle intent.
+Hosting registers the protocol engines and adapters; it starts no cache heartbeat task. Applications own any heartbeat loop and cancel and await it during shutdown. Host stopping reaches stream sessions through a linked token; session cleanup releases watches and awaits owned readers. Cleanup runs on open-hook rejection, EOF, reader failure, writer failure, callback failure, and host stop. Close notification occurs once after watch cleanup even if open was rejected, matching source lifecycle intent.
 
 Authentication/TLS/authorization use ASP.NET Core facilities. Node ID is an application routing key, not proof of identity. Show application-owned authorization through an existing request callback. Transport limits and exception exposure use host configuration; the library adds no separate policy subsystem. Map the Go logging surface to `ILogger`, keeping resource payloads out of default messages. Telemetry remains an application use of the existing callbacks.
 
@@ -265,7 +267,7 @@ Resource helpers include name resolution, type URL constants, reference extracti
 
 ## 15. Optional schema validation
 
-Optional validation is an approved compatibility surface for the selected schema catalog. The target is the pinned upstream rule semantics; Protovalidate remains a candidate implementation. Preserve original annotations and descriptors from the first binding release. A runtime does not execute PGV annotations merely because they are present.
+Optional validation is an approved compatibility surface for the selected schema catalog. The target is the pinned upstream rule semantics; the optional evaluator uses pinned ProtoValidate source. Preserve original annotations and descriptors from the first binding release. A runtime does not execute PGV annotations merely because they are present.
 
 T03 is a bounded binding-design prerequisite. Inventory upstream rules, evaluate .NET candidates, prove metadata access and a representative Go/.NET corpus, and resolve descriptor ownership before G1. Record feasibility limits explicitly. Do not freeze bindings that discard metadata needed for validation without an explicit scope decision.
 
@@ -302,8 +304,8 @@ Upstream update tooling records old/new behavior and schema pins, regenerates se
 
 All source anchors refer to Go commit `67c5345367582741334e34ffc66a561b0ce32946`; paths are in the separate upstream repository.
 
-- [Cache contracts](../../../go-control-plane/pkg/cache/v3/cache.go), [snapshot](../../../go-control-plane/pkg/cache/v3/snapshot.go), [SnapshotCache and heartbeats](../../../go-control-plane/pkg/cache/v3/simple.go), [cached resources](../../../go-control-plane/pkg/cache/v3/cached_resource.go).
-- [LinearCache](../../../go-control-plane/pkg/cache/v3/linear.go), [MuxCache](../../../go-control-plane/pkg/cache/v3/mux.go), [resource selection](../../../go-control-plane/pkg/cache/v3/resource.go), [status](../../../go-control-plane/pkg/cache/v3/status.go).
-- [SotW default path](../../../go-control-plane/pkg/server/sotw/v3/xds.go), [SotW ordered ADS](../../../go-control-plane/pkg/server/sotw/v3/ads.go), [send path](../../../go-control-plane/pkg/server/sotw/v3/server.go), [Delta](../../../go-control-plane/pkg/server/delta/v3/server.go), [subscriptions](../../../go-control-plane/pkg/server/stream/v3/subscription.go), [options](../../../go-control-plane/pkg/server/config/config.go).
-- [Service adapters](../../../go-control-plane/pkg/server/v3/server.go), [HTTP gateway](../../../go-control-plane/pkg/server/v3/gateway.go), [fetch engine](../../../go-control-plane/pkg/server/rest/v3/server.go), [ADS client](../../../go-control-plane/pkg/client/sotw/v3/client.go).
+- [Cache contracts](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/cache/v3/cache.go), [snapshot](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/cache/v3/snapshot.go), [SnapshotCache and heartbeats](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/cache/v3/simple.go), [cached resources](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/cache/v3/cached_resource.go).
+- [LinearCache](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/cache/v3/linear.go), [MuxCache](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/cache/v3/mux.go), [resource selection](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/cache/v3/resource.go), [status](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/cache/v3/status.go).
+- [SotW default path](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/server/sotw/v3/xds.go), [SotW ordered ADS](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/server/sotw/v3/ads.go), [send path](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/server/sotw/v3/server.go), [Delta](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/server/delta/v3/server.go), [subscriptions](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/server/stream/v3/subscription.go), [options](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/server/config/config.go).
+- [Service adapters](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/server/v3/server.go), [HTTP gateway](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/server/v3/gateway.go), [fetch engine](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/server/rest/v3/server.go), [ADS client](https://github.com/envoyproxy/go-control-plane/blob/67c5345367582741334e34ffc66a561b0ce32946/pkg/client/sotw/v3/client.go).
 - [xDS specification](https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol.html), [protobuf serialization limits](https://protobuf.dev/programming-guides/serialization-not-canonical/), [validation sources and assessment](VALIDATION.md).

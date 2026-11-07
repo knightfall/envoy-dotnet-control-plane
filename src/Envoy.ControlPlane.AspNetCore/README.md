@@ -1,6 +1,6 @@
 # Envoy.ControlPlane.AspNetCore
 
-NuGet candidate: `Knightfall.Envoy.ControlPlane.AspNetCore` 1.0.0-rc.1 (root candidate). The assembly remains `Envoy.ControlPlane.AspNetCore`.
+NuGet package: `Knightfall.Envoy.ControlPlane.AspNetCore` 1.0.0-rc.1 (hosting). The assembly remains `Envoy.ControlPlane.AspNetCore`.
 
 Hosts the Core SotW and Delta engines through the authoritative generated gRPC contracts and Kestrel. ADS and CDS, EDS, LDS, RDS, SRDS, SDS, RTDS and ECDS support both streaming modes. VHDS and LEDS add their Delta-only RPCs. The eight standard services also support unary Fetch. Rate-limit configuration supports dedicated SotW `StreamRlsConfigs` and unary `FetchRlsConfigs`, with no dedicated Delta RPC. The HTTP gateway is opt-in.
 
@@ -28,19 +28,23 @@ This example binds cleartext HTTP/2 on loopback. Configure TLS, certificates, me
 
 Register a shared singleton `IConfigWatcher` and optional singleton `ISotwCallbacks`/`SotwOptions` and `IDeltaCallbacks`/`DeltaOptions`. `AddEnvoyControlPlane` retains application registrations and uses separate singleton Core servers with independent per-call sessions. Stream IDs are local to each engine. An instance supplied with `AddSingleton<IConfigWatcher>(cache)` remains application-owned. Factory-created service ownership follows the normal DI container rules. The adapter does not dispose caches or client channels.
 
-`MapEnvoyControlPlane` returns a standard route group. After configuring the application's authentication provider, protect that group with the usual authorization APIs:
+`MapEnvoyControlPlane` returns a standard route group. To protect it, register the policy and the application's authentication provider **before** `builder.Build()`:
 
 ```csharp
 builder.Services.AddAuthorization(authorization => authorization.AddPolicy("xds",
     policy => policy.RequireAuthenticatedUser().RequireClaim("permission", "xds")));
-// Register the application's authentication provider before Build().
-// Then configure the ordinary middleware and endpoint policy:
+// Register the application's authentication provider here as well.
+```
+
+After `builder.Build()`, configure the middleware and map the protected group instead of the unprotected mapping above:
+
+```csharp
 application.UseAuthentication();
 application.UseAuthorization();
 application.MapEnvoyControlPlane().RequireAuthorization("xds");
 ```
 
-Use this protected mapping instead of the unprotected mapping above. Node ID is a cache routing key, not an authenticated identity. The open callback's `ResponseContext.State` is the `ServerCallContext`; use `GetHttpContext().User` for application identity. Existing request callbacks can reject with `RpcException`. Retain any per-stream authorization data by stream ID and release it in the close callback. SotW response callbacks receive the cache publication context, which can differ from the open context. Delta response callbacks follow their separate source signature and do not receive that context.
+ Node ID is a cache routing key, not an authenticated identity. The open callback's `ResponseContext.State` is the `ServerCallContext`; use `GetHttpContext().User` for application identity. Existing request callbacks can reject with `RpcException`. Retain any per-stream authorization data by stream ID and release it in the close callback. SotW response callbacks receive the cache publication context, which can differ from the open context. Delta response callbacks follow their separate source signature and do not receive that context.
 
 The transport forwards the framework asynchronous request reader and serial writer to `SotwServer` or `DeltaServer`. Call cancellation and host `ApplicationStopping` reach the Core session; its cleanup settles owned reads/watches and invokes close. Kestrel's remaining graceful connection drain follows `HostOptions.ShutdownTimeout`. The library supplies no separate cleanup timer. Core `InvalidArgument` and `Unavailable` failures become corresponding gRPC statuses; application `RpcException` statuses are retained, and unexpected failures follow the framework's normal handling.
 
@@ -71,7 +75,7 @@ Kestrel, routing middleware and clients can canonicalize/escape URLs before this
 Verify the original upload artifact downloaded from the matching GitHub release:
 
 ```sh
-gh attestation verify Knightfall.Envoy.ControlPlane.AspNetCore.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --deny-self-hosted-runners
+gh attestation verify Knightfall.Envoy.ControlPlane.AspNetCore.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --source-digest 000438a9c4d0bc0b58a5ec7bc55af10f5f9c0ccd --deny-self-hosted-runners
 ```
 
 NuGet adds its repository signature after upload, changing archive bytes. For a NuGet download, verify that signature with `dotnet nuget verify <package.nupkg> --all` and compare its payload with the attested release artifact using the release verification instructions. The signed bundles are external release evidence; the locator inside the package is not itself an attestation.

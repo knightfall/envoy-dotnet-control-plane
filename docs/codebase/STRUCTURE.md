@@ -1,6 +1,6 @@
 # Structure
 
-Reviewed 24 October 2026. Source paths below are relative to go-control-plane/.
+Historical source review from 24 October 2026. Source paths below refer to the upstream Go repository. See the [current repository overview](../../README.md) for the implemented packages and published identities.
 
 ## Upstream reference
 
@@ -15,7 +15,7 @@ Reviewed 24 October 2026. Source paths below are relative to go-control-plane/.
 
 ## Proposed .NET repository
 
-See ../../PARITY-PLAN.md and ../plan/PARITY-MATRIX.md. Recommended packages are Protocol, ControlPlane runtime, and AspNetCore adapters. The matcher is a separate follow-up. [TODO] Freeze actual package IDs before publishing.
+The proposal recommended Protocol, ControlPlane runtime, and AspNetCore adapters, with the matcher as a separate follow-up. The later [release record](../releases/root-1.0.md) lists all five published package identities.
 
 ## Evidence
 

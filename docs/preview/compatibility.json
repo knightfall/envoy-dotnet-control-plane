@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "release": "sotw-preview",
-  "scopeNote": "Historical accepted SotW preview; current source additionally implements T14 Delta support. See docs/plan/T14-DELTA-GRPC.md for separate evidence.",
+  "scopeNote": "Historical accepted SotW preview only. Package versions, fingerprints, publication and validation status below describe that milestone; see docs/compatibility/root-1.0.md and docs/plan/T26-VALIDATION-CONFORMANCE.md for the published 1.0.0-rc.1 scope and later evidence.",
   "publication": "not-published",
   "targetFramework": "net10.0",
   "fullRootParity": false,
-  "validationConformance": "T26/GV incomplete; validation not included in preview",
+  "validationConformance": "Not included in this historical preview; later declared-scope conformance is recorded in docs/plan/T26-VALIDATION-CONFORMANCE.md",
   "sourcePins": {
     "goControlPlane": {
       "repository": "https://github.com/envoyproxy/go-control-plane.git",

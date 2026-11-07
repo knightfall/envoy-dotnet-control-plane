@@ -1,5 +1,7 @@
 # T07 — SotW SnapshotCache and status
 
+This task report preserves its implementation-time scope and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Implemented 25 October 2026 after T06 merged in PR #40 (`878d7df9509e9fe74e8d48cf363ddf189782a4b3`). Behavior baseline: `67c5345367582741334e34ffc66a561b0ce32946`. This is the preview SotW cache slice; Delta delivery, heartbeat scheduling, stream state and network adapters remain later tasks.
 
 ## Source contract and implementation

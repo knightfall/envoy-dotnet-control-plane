@@ -1,5 +1,7 @@
 # T08 — SotW subscription transitions
 
+This task report preserves its implementation-time scope and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Implemented 25 October 2026 after T07 merged in PR #41 (`8f8cfaed92a6108c7aa297ee0e971d4766e00661`). Behavior baseline: `67c5345367582741334e34ffc66a561b0ce32946`. This task supplies subscription transitions, legacy-wildcard settings and the current-subscription response predicate. The stream loop that invokes the predicate remains T09/T10.
 
 ## Source and implementation

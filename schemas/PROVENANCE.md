@@ -1,6 +1,6 @@
 # T01: upstream input provenance
 
-Recorded 24 October 2026 for [T01 / issue #2](https://github.com/knightfall/envoy-dotnet-control-plane/issues/2). Source work and V01 verification are complete on `feat/t01-upstream-input-lock`, awaiting PR review. This report records source and descriptor inspections plus automated CLI acceptance/rejection checks. It does not establish C# binding-provider compatibility, validator equivalence, or Envoy interoperability.
+Recorded 24 October 2026 for [T01 / issue #2](https://github.com/knightfall/envoy-dotnet-control-plane/issues/2). Source work and V01 verification were completed on `feat/t01-upstream-input-lock` and subsequently merged in [PR #33](https://github.com/knightfall/envoy-dotnet-control-plane/pull/33). This report records source and descriptor inspections plus automated CLI acceptance/rejection checks. It does not establish C# binding-provider compatibility, validator equivalence, or Envoy interoperability.
 
 ## Artifacts
 
@@ -127,4 +127,4 @@ DOTNET_CLI_HOME=/private/tmp/envoy-dotnet-cli NUGET_PACKAGES=/private/tmp/envoy-
 
 The [CI workflow](../.github/workflows/upstream-verification.yml) executes the same offline test project on Linux, macOS and Windows for PRs, pushes to `main` and manual runs, retaining TRX results. The full protoc inspection is recorded separately on macOS arm64 and is not claimed as part of that portable fixture CI matrix.
 
-**V01 and G0 source-provenance checks pass.** PR review and merge remain pending; [issue #2](https://github.com/knightfall/envoy-dotnet-control-plane/issues/2) can close when the reviewed change merges. There are no unresolved source-origin blockers in the selected catalog. T02/T03 binding/metadata decisions remain separate gates. No C# runtime bindings, library test results, validator conformance or live Envoy exercise is claimed.
+**V01 and G0 source-provenance checks passed.** The T01 work subsequently merged in [PR #33](https://github.com/knightfall/envoy-dotnet-control-plane/pull/33). No source-origin blockers were identified for the selected catalog in this proof. This T01 evidence alone does not establish C# binding compatibility, validator conformance or live Envoy interoperability; see the [root compatibility report](../docs/compatibility/root-1.0.md) and [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) for later evidence.

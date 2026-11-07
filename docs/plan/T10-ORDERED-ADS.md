@@ -1,5 +1,7 @@
 # T10 — Channel delivery and ordered SotW ADS
 
+This task report preserves its implementation-time scope and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Implements [issue #11](https://github.com/knightfall/envoy-dotnet-control-plane/issues/11) against behavior revision `67c5345367582741334e34ffc66a561b0ce32946`, using `sotw/ads.go`, `sotw/xds.go`, `cache/simple.go` and the upstream ADS scenarios. [Test attribution](../../tests/resources/UPSTREAM-TESTS.md) records the reused source, immutable module retrieval and retained license. Schema, generator, descriptor and generated-code pins are unchanged.
 
 ## Delivery and ownership
