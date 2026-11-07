@@ -81,7 +81,7 @@ jobs:
             tests/Envoy.ControlPlane.Tests/packages.lock.json
             tests/Envoy.ControlPlane.TransportProbe/packages.lock.json
             tests/Envoy.ControlPlane.Validation.Tests/packages.lock.json
-      - uses: actions/setup-go@v6.5.0
+      - uses: actions/setup-go@v7.0.0
         with:
           go-version: '1.26.4'
           cache-dependency-path: |
