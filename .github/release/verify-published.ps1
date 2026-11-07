@@ -1,17 +1,29 @@
-param([Parameter(Mandatory)][ValidateSet('nuget', 'github')][string]$Registry,
+param([Parameter(Mandatory)][ValidateSet('candidate', 'nuget', 'github')][string]$Registry,
       [Parameter(Mandatory)][string]$ReleaseDirectory)
 $ErrorActionPreference = 'Stop'
 $policy = Get-Content "$PSScriptRoot/policy.json" -Raw | ConvertFrom-Json
 $consumer = Join-Path $env:RUNNER_TEMP "consumer-$Registry"
 New-Item -ItemType Directory -Path $consumer | Out-Null
 Copy-Item 'global.json' $consumer
-$source = if ($Registry -eq 'nuget') { 'https://api.nuget.org/v3/index.json' } else { 'https://nuget.pkg.github.com/knightfall/index.json' }
+$source = switch ($Registry) {
+    'candidate' { [System.Security.SecurityElement]::Escape((Resolve-Path "$ReleaseDirectory/packages").Path) }
+    'nuget' { 'https://api.nuget.org/v3/index.json' }
+    'github' { 'https://nuget.pkg.github.com/knightfall/index.json' }
+}
+$dependencySource = ''
+$dependencyMapping = ''
+$releasePattern = '*'
+if ($Registry -ne 'nuget') {
+    $dependencySource = '<add key="dependencies" value="https://api.nuget.org/v3/index.json"/>'
+    $dependencyMapping = '<packageSource key="dependencies"><package pattern="*"/></packageSource>'
+    $releasePattern = 'Knightfall.Envoy.*'
+}
 @"
 <configuration>
-  <packageSources><clear/><add key="release" value="$source"/><add key="dependencies" value="https://api.nuget.org/v3/index.json"/></packageSources>
+  <packageSources><clear/><add key="release" value="$source"/>$dependencySource</packageSources>
   <packageSourceMapping>
-    <packageSource key="release"><package pattern="Knightfall.Envoy.*"/></packageSource>
-    <packageSource key="dependencies"><package pattern="*"/></packageSource>
+    <packageSource key="release"><package pattern="$releasePattern"/></packageSource>
+    $dependencyMapping
   </packageSourceMapping>
 </configuration>
 "@ | Set-Content "$consumer/NuGet.Config"
@@ -20,20 +32,7 @@ $versions = ($policy.packages | ForEach-Object { "<PackageVersion Include=`"$_`"
 "<Project><PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup><ItemGroup>$versions</ItemGroup></Project>" | Set-Content "$consumer/Directory.Packages.props"
 $references = ($policy.packages | ForEach-Object { "<PackageReference Include=`"$_`"/>" }) -join ''
 "<Project Sdk=`"Microsoft.NET.Sdk`"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile></PropertyGroup><ItemGroup><FrameworkReference Include=`"Microsoft.AspNetCore.App`"/>$references</ItemGroup></Project>" | Set-Content "$consumer/Consumer.csproj"
-@'
-using Envoy.ControlPlane.Cache;
-using Envoy.ControlPlane.AspNetCore;
-using Envoy.Type.V3;
-using Microsoft.Extensions.DependencyInjection;
-using ProtoValidate;
-var services = new ServiceCollection();
-services.AddSingleton<IConfigWatcher>(new SnapshotCache());
-services.AddEnvoyControlPlane();
-var validator = new Validator();
-if (!validator.Validate(new Percent { Value = 50 }).IsSuccess || validator.Validate(new Percent { Value = 101 }).IsSuccess)
-    throw new System.InvalidOperationException("Published optional validator behavior differs");
-System.Console.WriteLine("Published Protocol, annotations, Core, hosting and validator loaded and exercised.");
-'@ | Set-Content "$consumer/Program.cs"
+Copy-Item "$PSScriptRoot/consumer.cs" "$consumer/Program.cs"
 $cache = Join-Path $consumer 'obj/packages'
 $restored = $false
 for ($attempt = 0; $attempt -lt 12; $attempt++) {
