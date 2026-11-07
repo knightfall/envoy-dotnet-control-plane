@@ -53,6 +53,9 @@ jobs:
           RELEASE_EXPECTED_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify NuGet package and symbol retry behavior on loopback
         run: python3 .github/release/check-push-retry.py "$RUNNER_TEMP/release"
+      - name: Run the external consumer against the candidate before publication
+        shell: pwsh
+        run: .github/release/verify-published.ps1 -Registry candidate -ReleaseDirectory "$env:RUNNER_TEMP/release"
       - name: Record manifest digest for this run
         id: manifest
         run: echo "sha256=$(sha256sum "$RUNNER_TEMP/release/release.json" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
