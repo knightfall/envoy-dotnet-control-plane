@@ -1,11 +1,11 @@
 """Verify the original production candidate without rebuilding or publishing it."""
+import argparse
 import hashlib
 import importlib.util
 import json
 import os
 from pathlib import Path
 import subprocess
-import sys
 import zipfile
 
 from verify import require, sha256, verify_release
@@ -61,6 +61,12 @@ def verify_assets(root, assets, repository, commit):
 
 
 if __name__ == '__main__':
-    verify_candidate(sys.argv[1], os.environ)
-    verify_assets(sys.argv[1], sys.argv[2], os.environ['GITHUB_REPOSITORY'], os.environ['RELEASE_SOURCE_COMMIT'])
-    print('Verified the protected tag, signed manifest, complete candidate and release assets, and all three bundles.')
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('candidate', type=Path)
+    parser.add_argument('--assets', type=Path, help='Also verify the downloaded draft release assets before announcement')
+    arguments = parser.parse_args()
+    verify_candidate(arguments.candidate, os.environ)
+    print('Verified the protected tag, signed manifest and complete original candidate.')
+    if arguments.assets is not None:
+        verify_assets(arguments.candidate, arguments.assets, os.environ['GITHUB_REPOSITORY'], os.environ['RELEASE_SOURCE_COMMIT'])
+        print('Verified every release asset, the complete evidence ZIP and all three signed bundles.')
