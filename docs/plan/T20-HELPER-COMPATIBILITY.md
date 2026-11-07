@@ -1,5 +1,7 @@
 # T20 — resource and helper compatibility report
 
+This task report preserves its original implementation-time status and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 This completes issue #26 / R20 / V27 beyond the accepted preview helpers. Behavior source remains `67c5345367582741334e34ffc66a561b0ce32946`. The implementation adds no dependency, generator/schema changes, global descriptor registry or JSON codec. It reuses Google.Protobuf and the authoritative generated messages.
 
 ## Function and type inventory

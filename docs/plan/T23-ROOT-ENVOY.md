@@ -1,5 +1,7 @@
 # T23 — Released Envoy Delta and TTL interoperability
 
+This task report preserves its original implementation-time status and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Completes the remaining harness scope of [issue #29](https://github.com/knightfall/envoy-dotnet-control-plane/issues/29), retaining the [twenty SotW checks](T23-PREVIEW-ENVOY.md). The maintained command is unchanged: repository CLI, envoy verify. It runs the exact released proxy binary beside the actual .NET libraries in the pinned SDK container, with external networking disabled. No library behavior, package dependency, schema, generated fingerprint or image pin changes. The official Buf 1.75.0 Linux arm64 executable is added to the existing tool lock for the new CI runner; its downloaded SHA-256 matches the official release asset digest (00eb190aa82df17f393e05b04889cc60a0b13b3259d336e21a87d5f23ab4fd26). Compiler/plugin versions are unchanged.
 
 ## Advertised matrix and evidence

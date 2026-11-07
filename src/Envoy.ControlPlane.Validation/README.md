@@ -1,6 +1,6 @@
-# Optional validation candidate
+# Optional validation
 
-NuGet candidate: `Knightfall.Envoy.ControlPlane.Validation` 1.0.0-rc.1 (explicit optional evaluator). The assembly remains `Envoy.ControlPlane.Validation`.
+NuGet package: `Knightfall.Envoy.ControlPlane.Validation` 1.0.0-rc.1 (explicit optional evaluator). The assembly remains `Envoy.ControlPlane.Validation`.
 
 This optional package builds the pinned TELUS ProtoValidate evaluator source against the separately owned annotation contracts. It does not reference the published ProtoValidate or Celly.Protovalidate packages. CEL and ordinary .NET dependencies remain centrally pinned.
 
@@ -12,7 +12,7 @@ This is a missing-migration check, not a runtime PGV translator or a proof that 
 
 Ordinary message descriptors must have a CLR parser. Metadata-only descriptor graphs throw `CompilationException` instead of returning a successful result without evaluating constraints. Evaluator caches and recursive compilation use descriptor identity, so a different descriptor with the same protobuf name cannot replace a generated message's rules or satisfy its closed-set registration.
 
-T26 verifies the pinned catalog's 59 populated PGV rule paths and 86 path combinations using real Envoy field boundaries, whole-message cases, selected PGV fixtures and stable Protovalidate conformance. Four declared NaN range differences and seven relative-time exclusions qualify that evidence. Opaque Any payloads are not unpacked automatically. See the repository T26 report for exact pins, coverage and acceptance results. This release candidate is not a universal PGV replacement; publication remains a separate release step.
+T26 verifies the pinned catalog's 59 populated PGV rule paths and 86 path combinations using real Envoy field boundaries, whole-message cases, selected PGV fixtures and stable Protovalidate conformance. Four declared NaN range differences and seven relative-time exclusions qualify that evidence. Opaque Any payloads are not unpacked automatically. See the repository T26 report for exact pins, coverage and acceptance results. This prerelease is not a universal PGV replacement.
 
 Unknown encoded Protovalidate constraints and unsupported metadata enum values fail compilation. Malformed CEL and rule/type mismatches are compilation faults; causes are retained. Registered predefined CEL extensions remain supported. These checks prevent unsupported metadata from being silently reported as valid.
 
@@ -23,7 +23,7 @@ Unknown encoded Protovalidate constraints and unsupported metadata enum values f
 Verify the original upload artifact downloaded from the matching GitHub release:
 
 ```sh
-gh attestation verify Knightfall.Envoy.ControlPlane.Validation.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --deny-self-hosted-runners
+gh attestation verify Knightfall.Envoy.ControlPlane.Validation.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --source-digest 000438a9c4d0bc0b58a5ec7bc55af10f5f9c0ccd --deny-self-hosted-runners
 ```
 
 NuGet adds its repository signature after upload, changing archive bytes. For a NuGet download, verify that signature with `dotnet nuget verify <package.nupkg> --all` and compare its payload with the attested release artifact using the release verification instructions. The signed bundles are external release evidence; the locator inside the package is not itself an attestation.

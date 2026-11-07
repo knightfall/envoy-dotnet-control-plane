@@ -1,6 +1,6 @@
 # Concerns
 
-Reviewed 24 October 2026. Source paths below are relative to go-control-plane/.
+Historical review from 24 October 2026. Source paths below refer to the upstream Go repository. The [current compatibility report](../compatibility/root-1.0.md), [validation report](../plan/T26-VALIDATION-CONFORMANCE.md) and [publishing process](../releases/PUBLISHING.md) record subsequent decisions and evidence.
 
 ## Scope and maintenance risks
 

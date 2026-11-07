@@ -1,5 +1,7 @@
 # Design deliverable audit — 24 October 2026
 
+This task report preserves its original implementation-time status and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Scope: consistency and provenance of the architecture and implementation-plan documents. This is not runtime verification or release-gate evidence.
 
 ## Observed checks

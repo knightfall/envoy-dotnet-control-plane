@@ -1,5 +1,7 @@
 # T22 — Root concurrency, callbacks and cleanup
 
+This task report preserves its original implementation-time status and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Completes the remaining root-library lifecycle scope in [issue #28](https://github.com/knightfall/envoy-dotnet-control-plane/issues/28), building on [preview evidence](T22-PREVIEW-LIFECYCLE.md). The implementation adds seven cases and extends one timer case. Production APIs, coordination policies, dependencies, schemas, generated fingerprints and source pins are unchanged.
 
 ## Added boundaries

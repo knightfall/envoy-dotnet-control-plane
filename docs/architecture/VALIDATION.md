@@ -1,6 +1,6 @@
 # Optional schema validation
 
-Reviewed **28 October 2026**. The user selected an implementation built from pinned ProtoValidate source. [T03 evidence](../../schemas/VALIDATION.md) records separate annotation ownership, the derived metadata correction and the 33-case Go comparison. The provider arrangement is implemented for bounded local review. The [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) records the implemented declared-scope GV evidence, accepted NaN differences, exclusions and current-head acceptance gates. Optional-validator publication remains a separate step.
+Reviewed **28 October 2026**. The user selected an implementation built from pinned ProtoValidate source. [T03 evidence](../../schemas/VALIDATION.md) records separate annotation ownership, the derived metadata correction and the 33-case Go comparison. The provider arrangement is implemented for bounded local review. The [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) records the implemented declared-scope GV evidence, accepted NaN differences, exclusions and current-head acceptance gates. The optional evaluator was subsequently published in [1.0.0-rc.1](../releases/1.0.0-rc.1.md).
 
 ## 1. Compatibility boundary
 
@@ -45,7 +45,7 @@ Reject a provider arrangement that prevents required metadata access or introduc
 
 ## 4. Optional package and explicit invocation — T26
 
-The candidate Envoy.ControlPlane.Validation package owns the source evaluator and references the shared annotation contracts. It accepts Protocol resources through IMessage without referencing Protocol itself. Protocol references the annotation-only package; Core and ASP.NET Core do not reference the evaluator or its CEL/runtime dependencies.
+The `Knightfall.Envoy.ControlPlane.Validation` package owns the source evaluator and references the shared annotation contracts. It accepts Protocol resources through `IMessage` without referencing Protocol itself. Protocol references the annotation-only package; Core and ASP.NET Core do not reference the evaluator or its CEL/runtime dependencies.
 
 Callers explicitly invoke validation before deciding whether to publish configuration. Return distinguishable outcomes:
 
@@ -84,7 +84,7 @@ Unknown, unsupported, or changed unevaluated rules block validation-package acce
 
 ## 7. Task sequencing
 
-T03 is active foundation work and a G1 prerequisite. T26 is active optional-package work with its own GV gate; optional means consumers can omit it, not that the task is deferred. Matcher and broader catalogs remain T27/T28 deferred scope.
+T03 completed the foundation feasibility work before G1. T26 subsequently completed the declared optional-package scope and its GV evidence, with the exceptions documented in its report. Optional means consumers can omit the evaluator. Matcher and broader catalogs remain T27/T28 deferred scope.
 
 The linked assessment separates bounded source/metadata/package proof from full T26/GV conformance. No official conformance or Envoy interoperability result is established by this design document.
 

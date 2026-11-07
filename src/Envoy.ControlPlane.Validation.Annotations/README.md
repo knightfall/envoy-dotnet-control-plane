@@ -1,6 +1,6 @@
 # Validation annotation contracts
 
-NuGet candidate: `Knightfall.Envoy.ControlPlane.Validation.Annotations` 1.0.0-rc.1 (root candidate). The assembly remains `Envoy.ControlPlane.Validation.Annotations`.
+NuGet package: `Knightfall.Envoy.ControlPlane.Validation.Annotations` 1.0.0-rc.1 (annotation contracts). The assembly remains `Envoy.ControlPlane.Validation.Annotations`.
 
 Generated `buf.validate` rule, option and violation types, with one CLR owner shared by Protocol and the optional validator. This package depends only on Google.Protobuf and contains no evaluator or CEL runtime.
 
@@ -13,7 +13,7 @@ Generation uses the pinned original annotation schema and official Buf C# plugin
 Verify the original upload artifact downloaded from the matching GitHub release:
 
 ```sh
-gh attestation verify Knightfall.Envoy.ControlPlane.Validation.Annotations.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --deny-self-hosted-runners
+gh attestation verify Knightfall.Envoy.ControlPlane.Validation.Annotations.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --source-digest 000438a9c4d0bc0b58a5ec7bc55af10f5f9c0ccd --deny-self-hosted-runners
 ```
 
 NuGet adds its repository signature after upload, changing archive bytes. For a NuGet download, verify that signature with `dotnet nuget verify <package.nupkg> --all` and compare its payload with the attested release artifact using the release verification instructions. The signed bundles are external release evidence; the locator inside the package is not itself an attestation.

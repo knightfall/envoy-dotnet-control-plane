@@ -1,10 +1,12 @@
 # Implementation plan: tasks and subtasks
 
-Reviewed **26 October 2026**. T01/T02 merged in PRs #33/#34, with [provenance evidence](../../schemas/PROVENANCE.md) and [binding evidence](../../schemas/BINDINGS.md). T03 has a user-selected source arrangement and [bounded local feasibility evidence](../../schemas/VALIDATION.md), merged in PR #35 for the bounded binding decision. T01 brought the test framework/runner and tooling CI forward from T04; T04 merged in PR #38 with the [build/package foundation](T04-BUILD-FOUNDATION.md). T05 merged in PR #39 with [resource/snapshot primitives](T05-RESOURCES-AND-SNAPSHOTS.md). T06 merged in PR #40 with [watch primitives and custom response contracts](T06-WATCHES.md). T07 merged in PR #41 with the [SotW SnapshotCache](T07-SNAPSHOT-CACHE.md). T08 implements [SotW subscription transitions](T08-SOTW-SUBSCRIPTIONS.md); T09 adds the [core SotW loop and callbacks](T09-SOTW-STREAM-ENGINE.md). T10 adds [channel-based ordered ADS](T10-ORDERED-ADS.md). T11 adds the [ASP.NET Core SotW host](T11-ASP-NET-HOST.md). Delta cache delivery remains **planned**. T26 delivers optional schema validation behind GV. T27/T28 remain **deferred** until a separate scope decision. T05 evidence covers resource primitives and snapshot behavior; it does not establish an operational control-plane server. This backlog implements the [architecture](../architecture/ARCHITECTURE.md) and [parity matrix](PARITY-MATRIX.md); [traceability](TRACEABILITY.md) defines requirements, cases, and gates.
+The selected root-library tasks T01–T25 and T26's declared optional-validation scope are implemented. All five packages were published as [1.0.0-rc.1](../releases/1.0.0-rc.1.md). The [root compatibility report](../compatibility/root-1.0.md), [T26 report](T26-VALIDATION-CONFORMANCE.md) and [release record](../releases/root-1.0.md) describe the verified scope, exceptions and immutable execution evidence. T27/T28 remain deferred until a separate scope decision.
+
+The task definitions and dependencies below preserve the implementation plan. Test counts and intermediate status details attached to a task describe that task's original execution, rather than today's aggregate suite or outstanding queue. Later task reports record the subsequent cache, stream, transport, validation and release work.
 
 ## Execution rules
 
-Each task below identifies dependencies, proposed outputs, numbered subtasks, and acceptance criteria. Output paths are future artifacts inside this .NET repository unless explicitly described as reference evidence. Do not edit the sibling Go checkout to make a differential case pass. Preserve source/spec divergences in a decision record tied to the baseline.
+Each task below identifies dependencies, proposed outputs, numbered subtasks, and acceptance criteria. Output paths identify artifacts inside this .NET repository unless explicitly described as reference evidence. Never modify the upstream reference source to make a differential case pass. Preserve source/spec divergences in a decision record tied to the baseline.
 
 **Feature ceiling:** implement the selected Go root-library surface, its approved optional schema-validation constraints, and necessary .NET adaptations. Use idiomatic C# APIs and synchronization to preserve observable behavior; translating Go implementation structure is not a requirement. A task does not authorize extra options, frameworks, stronger ownership guarantees, or performance APIs. T03/T26 are active scope; T27/T28 remain deferred. Automatic validation-on-publication is excluded.
 
@@ -86,7 +88,7 @@ Subtasks:
 
 **Scope:** foundation / R02, R04. **Depends on:** T01. **Outputs:** candidate provider decision, pinned toolchain/package lock, generation/restore script, original annotation/descriptor inventory, clean-consumer evidence. G1 freezes the choice after T03.
 
-**Status:** Merged in PR #34. Buf CLI generates the full selected catalog from unchanged upstream schemas; Protocol targets net10.0 with centralized package management. The merged CI passed 24 offline tests, eight binding tests and eight clean-package consumer tests on Linux/macOS/Windows. Three exact-fingerprint C# generator naming corrections are explicit limitations. See [T02 evidence and requirement mapping](../../schemas/BINDINGS.md). T03 and G1 remain open.
+**Status:** Merged in PR #34. Buf CLI generates the full selected catalog from unchanged upstream schemas; Protocol targets net10.0 with centralized package management. The merged CI passed 24 offline tests, eight binding tests and eight clean-package consumer tests on Linux/macOS/Windows. Three exact-fingerprint C# generator naming corrections are explicit limitations. See [T02 evidence and requirement mapping](../../schemas/BINDINGS.md). T03 subsequently completed the bounded feasibility proof and closed G1.
 
 Subtasks:
 
@@ -435,7 +437,7 @@ Subtasks:
 
 ### T25 — Review scope and prepare the 1.0 release
 
-Release preparation is implemented in [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72), with exact-head CI and automatic review results recorded in that PR. The [root report](../compatibility/root-1.0.md), [public API contracts](../public-api.md), [usage/migration](../usage.md) and [release checklist](../releases/root-1.0.md) record the selected Knightfall package family, locally verified 1.0.0-rc.1 root candidates, retained CLR/protobuf identities and separate T26/GV boundary. No publication is authorized.
+Release preparation is implemented in [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72), with exact-head CI and automatic review results recorded in that PR. The [root report](../compatibility/root-1.0.md), [public API contracts](../public-api.md), [usage/migration](../usage.md) and [release checklist](../releases/root-1.0.md) record the selected Knightfall package family, locally verified 1.0.0-rc.1 root candidates, retained CLR/protobuf identities and separate T26/GV boundary. The packages were subsequently published; see [issue #74](https://github.com/knightfall/envoy-dotnet-control-plane/issues/74).
 
 **Scope:** 1.0 / R01, R22, R25. **Depends on:** T12, T24. **Outputs:** final API review, usage/migration docs, compatibility report, release checklist and candidate packages.
 
@@ -452,7 +454,7 @@ Subtasks:
 
 ### T26 — Implement explicit schema validation and conformance
 
-**Status:** Implemented in [PR #73](https://github.com/knightfall/envoy-dotnet-control-plane/pull/73), pending current-head CI/review and merge. [The conformance report](T26-VALIDATION-CONFORMANCE.md) records all 59 populated paths / 86 combinations, actual Go comparisons, 2,748 stable native cases, four accepted NaN differences, explicit exclusions and current-input update acceptance. Package publishing remains a separate step.
+**Status:** Merged in [PR #73](https://github.com/knightfall/envoy-dotnet-control-plane/pull/73). [The conformance report](T26-VALIDATION-CONFORMANCE.md) records all 59 populated paths / 86 combinations, actual Go comparisons, 2,748 stable native cases, four accepted NaN differences, explicit exclusions and current-input update acceptance. The optional evaluator was subsequently included in the five-package [1.0.0-rc.1 release](../releases/1.0.0-rc.1.md).
 
 **Scope:** optional package / R24. **Depends on:** T03, T04. **Outputs:** isolated validation package, rule-coverage manifest, comparison corpus, and equivalence report. This work can proceed alongside the root runtime; its GV gate is separate.
 

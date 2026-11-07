@@ -1,6 +1,6 @@
 # Architecture decision register
 
-Reviewed 24 October 2026. **Recommended** means a design default for implementation, not an approval attributed to the user. **Proof required** means the specified experiment must close before the decision is frozen. All decisions remain revisable with recorded compatibility consequences.
+This decision register preserves planning-time context and dated decisions. The [root compatibility report](../compatibility/root-1.0.md) and [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) record subsequent implementation, publication and limits. Reviewed 24 October 2026. **Recommended** means a design default for implementation, not an approval attributed to the user. **Proof required** means the specified experiment must close before the decision is frozen. All decisions remain revisable with recorded compatibility consequences.
 
 The user has required feature availability to stop at parity and included optional schema validation. ADR10 records early validation feasibility and a separate package gate; ADR13 retains the ceiling for other features. Implementation choices remain recommendations within that scope.
 
@@ -46,7 +46,7 @@ See [architecture](ARCHITECTURE.md), [validation](VALIDATION.md), and [implement
 
 **Alternatives:** A monolith couples all consumers to hosting/validation dependencies. Multiple overlapping generated catalogs cause ambiguous types. A third-party or Buf SDK is acceptable only after exact input/service/descriptor and clean-consumption proofs; availability alone is insufficient.
 
-**Consequence:** Keep the three root packages and a separate optional validator. If an external provider owns the messages, Protocol becomes a dependency facade rather than regenerating overlapping classes. T02 proposes binding/annotation ownership; T03 proves validation feasibility before G1 freezes it. The T03 evaluator consumes those same message instances through IMessage and references the shared annotation owner; it owns evaluator dependencies. The annotation-only package contains no CEL/evaluator dependency. Any derived annotation overlay must preserve wire identity and have recorded provenance. An incompatible provider change after publication may require a major version.
+**Consequence:** Keep Protocol, Core and hosting separate, with shared annotation contracts and an optional evaluator. If an external provider owns the messages, Protocol becomes a dependency facade rather than regenerating overlapping classes. T02 proposes binding/annotation ownership; T03 proves validation feasibility before G1 freezes it. The T03 evaluator consumes those same message instances through IMessage and references the shared annotation owner; it owns evaluator dependencies. The annotation-only package contains no CEL/evaluator dependency. Any derived annotation overlay must preserve wire identity and have recorded provenance. An incompatible provider change after publication may require a major version.
 
 ## ADR05 — Resource lifetime safety
 
