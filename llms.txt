@@ -1,0 +1,34 @@
+# .NET Envoy control plane
+
+> A .NET 10 library for xDS management servers, targeting the selected v3 root-library behavior of Envoy's Go control plane. Applications own configuration, authentication and rollout policy. Semantic validation is explicit and optional.
+
+## Getting started and contracts
+
+- [README](README.md): Project scope, packages, example and verification overview.
+- [Repository guidance](AGENTS.md): Bootstrap, contribution and verification rules.
+- [Usage and migration](docs/usage.md): Hosting, configuration updates and migration.
+- [Root compatibility](docs/compatibility/root-1.0.md): Implemented surface, source pins, evidence and limits.
+- [Public API](docs/public-api.md): API, ownership and lifetime contracts.
+- [Example](examples/Envoy.ControlPlane.Example/README.md): Run the sample management server.
+
+## Release and validation
+
+- [Release record](docs/releases/root-1.0.md): Package identity and publication evidence.
+- [1.0.0-rc.1 release notes](docs/releases/1.0.0-rc.1.md): Release scope and known limits.
+- [Publishing](docs/releases/PUBLISHING.md): Protected release and verification process.
+- [T26 validation conformance](docs/plan/T26-VALIDATION-CONFORMANCE.md): Declared validation scope, exceptions and recorded evidence.
+
+## Sources, generation and verification
+
+- [Upstream source lock](schemas/upstream.lock.json): Source pins, checksums and provenance metadata.
+- [Binding lock](schemas/bindings.lock.json): Generation toolchain and output fingerprints.
+- [Provenance](schemas/PROVENANCE.md): Historical T01 input evidence and source-lock guide.
+- [Bindings](schemas/BINDINGS.md): Historical T02 binding proof and generation details.
+- [Tools](tools/README.md): Generation, verification and maintenance commands.
+- [Tests](tests/README.md): Test suites and verification evidence; task-specific counts are historical.
+
+## Historical milestones
+
+- [SotW preview](docs/preview/README.md): Earlier, narrower preview acceptance record.
+- [Implementation plan](docs/plan/IMPLEMENTATION-PLAN.md): Original task definitions and intermediate status, with links to later evidence.
+- [Architecture](docs/architecture/ARCHITECTURE.md): Runtime design context; use the public API and compatibility guides for current contracts.

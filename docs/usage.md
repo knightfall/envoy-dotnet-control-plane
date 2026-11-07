@@ -4,7 +4,7 @@ The root library targets .NET 10. Five packages are published as prerelease `1.0
 
 ## Run the maintained application
 
-Generate bindings and start the example from the repository root:
+Generate bindings and start the example from the repository root, replacing `<source-cache>` with a writable path outside the checkout:
 
 ```sh
 dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache <source-cache>

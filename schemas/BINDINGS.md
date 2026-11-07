@@ -2,7 +2,7 @@
 
 T02 baseline evidence below is retained from PR #34. The current T03 source-built validator adds derived metadata and a separate annotation owner; see [current validation evidence](VALIDATION.md) and its binding lock for final runtime descriptors and generated-source fingerprints.
 
-Candidate: **owned generation through the Buf CLI**, using the original T01 schema inputs. Protocol targets **net10.0**. T03 must prove validation feasibility before G1 freezes this provider. No upstream `.proto` files are changed and no custom `.proto` files are added to the library or its binding tests.
+T02 selected **owned generation through the Buf CLI** as its candidate, using the original T01 schema inputs. Protocol targets **net10.0**. T03 subsequently established validation feasibility and closed the binding decision; see [validation evidence](VALIDATION.md). No upstream `.proto` files are changed and no custom `.proto` files are added to the library or its binding tests.
 
 ## Provider assessment
 
@@ -34,7 +34,7 @@ The selected catalog contains **523 schemas**. Protocol owns **516** source desc
 
 Protocol owns selected Envoy, xDS/UDPA, ratelimit, CEL, Google API/RPC, PGV, OpenTelemetry and Prometheus types and annotation definitions. Namespaces follow upstream `csharp_namespace` options or standard C# generator defaults. Examples include `Envoy.Config.Listener.V3`, `Ratelimit.Config.Ratelimit.V3`, `Validate` and `Google.Api`. Under a namespace rooted in `Envoy`, qualify `System.Type` because `Envoy.Type` is also a generated namespace.
 
-Consumers must use this one owner for those definitions; adding Google.Api.CommonProtos or another overlapping Envoy catalog introduces duplicate identities. Protocol references only Google.Protobuf **3.35.1** and Grpc.Core.Api **2.84.0** at runtime. Callers choose their channel/hosting transports. No validator or CEL evaluator is added.
+Consumers must use this one owner for those definitions; adding Google.Api.CommonProtos or another overlapping Envoy catalog introduces duplicate identities. At T02, Protocol referenced Google.Protobuf **3.35.1** and Grpc.Core.Api **2.84.0** at runtime. T03 added the separately owned annotation-contract dependency; Protocol still has no validator or CEL evaluator. Callers choose their channel/hosting transports.
 
 ## C# generator limitations
 
@@ -50,7 +50,7 @@ Official Buf generation reproduces three compilation failures in the unchanged u
 
 The ext-proc collision is documented in [protobuf issue #18063](https://github.com/protocolbuffers/protobuf/issues/18063); maintainers reported no accessor-renaming option. The [C# generator options](https://protobuf.dev/reference/csharp/csharp-generated/) do not supply a solution. The v36.1 generator source was also inspected: it still emits the static `Descriptor` property and per-field `Clear…` helpers. That source inspection is not a v36.1 execution result.
 
-Excluding these messages would reduce the selected catalog; changing their schema names would change descriptor identity. The candidate therefore keeps the upstream schemas and records the C# corrections explicitly. T03 must assess any validation runtime's assumptions about those two static property names before G1.
+Excluding these messages would reduce the selected catalog; changing their schema names would change descriptor identity. The selected provider keeps the upstream schemas and records the C# corrections explicitly. T03 assessed the validation runtime against the corrected generated bindings; its [feasibility report](VALIDATION.md) records the resulting ownership and descriptor proof.
 
 ## Descriptor and original-option proof
 
@@ -61,7 +61,7 @@ The comparison has two declared normalizations:
 1. C# compact descriptors omit inferred `json_name` strings. Tests compare every effective field/extension JSON name first, then normalize its encoded presence.
 2. Runtime descriptors omit extension-range `declaration` and `verification` values marked `RETENTION_SOURCE` in `descriptor.proto`. Their original values remain in the embedded source set. Tests do not remove PGV or other runtime annotation values.
 
-The inventory records **22 extension definitions**, **1,244 PGV field-rule options**, and **127 oneof-required options**, with a fingerprint of original PGV values and top-level field-rule case counts. `None` means no scalar/collection case is selected; a message rule can still apply. T03 expands nested rule inventory and semantic feasibility; these counts do not claim that rules have been evaluated.
+The inventory records **22 extension definitions**, **1,244 PGV field-rule options**, and **127 oneof-required options**, with a fingerprint of original PGV values and top-level field-rule case counts. `None` means no scalar/collection case is selected; a message rule can still apply. T03 subsequently expanded the nested rule inventory and assessed semantic feasibility; these T02 counts alone do not claim that rules were evaluated.
 
 Ratelimit configuration uses the original API-root descriptor name `ratelimit/config/ratelimit/v3/rls_conf.proto`. The Go embedded descriptor's extra `api/` prefix is the known T01 difference. Field definitions, including metadata field 8, remain unchanged. The separate rate-limit configuration service has Stream/Fetch contracts and no Delta method.
 

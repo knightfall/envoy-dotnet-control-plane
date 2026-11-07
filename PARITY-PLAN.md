@@ -1,6 +1,6 @@
 # .NET parity plan for go-control-plane
 
-Design baseline reviewed on **24 October 2026**. The proposal below records that review, rather than current implementation status. The [SotW preview guide](docs/preview/README.md), [compatibility manifest](docs/preview/compatibility.json) and [README](README.md) record subsequent implementation and proof.
+Design baseline reviewed on **24 October 2026**. The proposal below records that review, rather than current implementation status. The [root compatibility report](docs/compatibility/root-1.0.md) and [T26 report](docs/plan/T26-VALIDATION-CONFORMANCE.md) record subsequent implementation, validation evidence and limits; the [SotW preview guide](docs/preview/README.md) retains the earlier milestone.
 
 ## Recommendation
 
@@ -14,7 +14,7 @@ The root release claim should be “v3 server/cache/client behavior at the pinne
 
 The caller supplies Envoy configuration. The library supplies in-memory caches, discovery protocol handling, and hosting integration. Resource translation, durable storage, and deployment orchestration remain application concerns, matching the upstream scope.
 
-The [detailed architecture](docs/architecture/ARCHITECTURE.md), [decision register](docs/architecture/DECISIONS.md), [implementation tasks and subtasks](docs/plan/IMPLEMENTATION-PLAN.md), and [verification traceability](docs/plan/TRACEABILITY.md) expand this proposal into an actionable design. The implementation plan tracks the remaining scope; current evidence is linked from the preview guide.
+The [detailed architecture](docs/architecture/ARCHITECTURE.md), [decision register](docs/architecture/DECISIONS.md), [implementation tasks and subtasks](docs/plan/IMPLEMENTATION-PLAN.md), and [verification traceability](docs/plan/TRACEABILITY.md) expand this proposal into an actionable design. The implementation plan retains task definitions and historical status; the root compatibility and T26 reports linked above record the later evidence.
 
 ## Baseline and repository layout
 

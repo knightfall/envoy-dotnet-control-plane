@@ -15,7 +15,7 @@ The root [.gitattributes](../.gitattributes) keeps tracked text at LF on all pla
 
 ## Bootstrap
 
-Use the .NET SDK in [global.json](../global.json) and Go version in [sources.lock.json](../schemas/validation/sources.lock.json). Choose a writable source-cache directory outside the checkout. The commands retrieve and verify pinned remote artifacts; initial package restore and Buf remote-plugin generation require network access.
+Use the .NET SDK in [global.json](../global.json) and Go version in [sources.lock.json](../schemas/validation/sources.lock.json). Choose a writable source-cache directory outside the checkout and replace `<external-source-cache>` with its path in the commands below. The commands retrieve and verify pinned remote artifacts; initial package restore and Buf remote-plugin generation require network access.
 
 ```sh
 dotnet restore tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj --locked-mode
@@ -27,10 +27,10 @@ dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no
 
 ```sh
 dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream sync --cache <external-source-cache>
-dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream inspect --cache <external-source-cache> --offline
+dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream inspect --cache <external-source-cache>
 ```
 
-`sync` verifies source archives, licenses, baseline pins, module replacements and catalog/import closure. `export` additionally writes selected inputs beneath Protocol's `obj/upstream/`. `inspect` performs the separately pinned provenance compiler check; its executable is currently limited to macOS arm64. See [provenance evidence](../schemas/PROVENANCE.md).
+`sync` verifies source archives, licenses, baseline pins, module replacements and catalog/import closure. `export` additionally writes selected inputs beneath Protocol's `obj/upstream/`. `inspect` performs the separately pinned provenance compiler check; its executable is currently limited to macOS arm64. An initial online inspection also caches the pinned compiler and inspection packages; after that, `inspect --offline` can reuse the verified source and tool cache. See [provenance evidence](../schemas/PROVENANCE.md).
 
 ## Binding generation and package proof
 

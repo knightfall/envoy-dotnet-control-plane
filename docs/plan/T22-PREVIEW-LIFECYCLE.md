@@ -1,5 +1,7 @@
 # T22 — Preview concurrency and lifecycle evidence
 
+This report preserves the preview-stage scope and evidence. The later [root lifecycle report](T22-ROOT-LIFECYCLE.md) and [root compatibility report](../compatibility/root-1.0.md) describe subsequent work.
+
 Implements the preview subset of [issue #15](https://github.com/knightfall/envoy-dotnet-control-plane/issues/15). Existing deterministic cache/stream tests and the pinned [T21 Go comparisons](T21-PREVIEW-DIFFERENTIAL.md) remain the foundation. The additions exercise missing cancellation boundaries and repeated real HTTP/2 calls. No runtime API, coordination policy, dependency, schema, generated fingerprint or package lock changes.
 
 ## Deterministic boundaries

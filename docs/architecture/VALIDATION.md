@@ -1,6 +1,6 @@
 # Optional schema validation
 
-Reviewed **28 October 2026**. The user selected an implementation built from pinned ProtoValidate source. [T03 evidence](../../schemas/VALIDATION.md) records separate annotation ownership, the derived metadata correction and the 33-case Go comparison. The provider arrangement is implemented for bounded local review. The [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) records the implemented declared-scope GV evidence, accepted NaN differences, exclusions and current-head acceptance gates. The optional evaluator was subsequently published in [1.0.0-rc.1](../releases/1.0.0-rc.1.md).
+Reviewed **28 October 2026**. The user selected an implementation built from pinned ProtoValidate source. [T03 evidence](../../schemas/VALIDATION.md) records separate annotation ownership, the derived metadata correction and the 33-case Go comparison. The initial provider arrangement was implemented for bounded T03 review. The [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) records the declared-scope GV evidence observed at T26, accepted NaN differences, exclusions and input-bound acceptance rules for later updates. The optional evaluator was subsequently published in [1.0.0-rc.1](../releases/1.0.0-rc.1.md).
 
 ## 1. Compatibility boundary
 
@@ -41,7 +41,7 @@ Existing Envoy PGV annotations do not become executable by adding a Protovalidat
 
 A controlled overlay may add derived Protovalidate options alongside original PGV options if the proof supports it. Record the input revision, tool version, every changed option, unsupported migration, and descriptor fingerprints. Preserve message/field/service identity and binary behavior. Treat added options as derived metadata, not an unchanged upstream descriptor. Keep one authoritative Envoy type assembly; do not distribute original and migrated copies of the same messages.
 
-Reject a provider arrangement that prevents required metadata access or introduces overlapping definitions. Owning pinned generation remains an alternative if an existing SDK cannot satisfy the proof. The actual evaluator and package name are selected only after this assessment.
+Reject a provider arrangement that prevents required metadata access or introduces overlapping definitions. Owning pinned generation remains an alternative if an existing SDK cannot satisfy the proof. T03 subsequently selected the source-built evaluator; the published package uses the `Knightfall.Envoy.ControlPlane.Validation` name.
 
 ## 4. Optional package and explicit invocation — T26
 

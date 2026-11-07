@@ -1,5 +1,7 @@
 # T23 — Released Envoy preview interoperability
 
+This report preserves the preview-stage scope and evidence. The later [root Envoy report](T23-ROOT-ENVOY.md) and [root compatibility report](../compatibility/root-1.0.md) describe subsequent work.
+
 Implements the preview subset of [issue #16](https://github.com/knightfall/envoy-dotnet-control-plane/issues/16). The selected proxy is **Envoy 1.40.1**, released on 23 October 2026 at source commit `86af01fdec40c31d025c495a4aa303c4126b2fd0`. [The official release](https://github.com/envoyproxy/envoy/releases/tag/v1.40.1) and registry manifests were inspected before pinning. Proxy and SDK image indices and per-platform digests are recorded in [envoy-images.lock.json](../../tests/resources/envoy-images.lock.json).
 
 These pins are independent of the Go behavior revision `67c5345367582741334e34ffc66a561b0ce32946` and schema revision `82a4424f760b6ba3ffc9f2911389d061656f35c8`. Neither changes for this proof. No replacement schemas, descriptors, generators or library dependencies are added.

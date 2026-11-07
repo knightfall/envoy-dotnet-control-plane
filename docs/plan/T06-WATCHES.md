@@ -1,5 +1,7 @@
 # T06 — One-shot watches and custom contracts
 
+This report preserves the T06 implementation-time scope and evidence. Later [cache](T07-SNAPSHOT-CACHE.md), [stream](T09-SOTW-STREAM-ENGINE.md) and [root compatibility](../compatibility/root-1.0.md) reports describe subsequent work.
+
 Implemented 25 October 2026 on the T05 foundation merged in PR #39 (`840d0480768dc6242faac84d3c2bca3436f3d238`). Behavior reference: `67c5345367582741334e34ffc66a561b0ce32946`. This task supplies completion/cancellation primitives and contracts for custom watchers; actual cache publication and stream engines remain T07 onward.
 
 ## Source and .NET adaptation

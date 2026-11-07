@@ -925,8 +925,8 @@
     }
   },
   "generationToolchain": {
-    "status": "pending-T02",
-    "note": "Inspection tools are not a .NET generator/provider decision. No C# binding generation input is floating; no compiler/plugin/runtime has been selected for release generation."
+    "status": "selected",
+    "note": "T02 selected owned generation through Buf; T03 closed the binding decision. The canonical Buf executable, C# and gRPC plugin, configuration and generated-output pins are in schemas/bindings.lock.json. Inspection tools above are separate from the generation toolchain."
   },
   "catalogSha256": "6af96cd168d1808563d66bcb316fadf853a22e55647616aa37c972ff91afe713"
 }

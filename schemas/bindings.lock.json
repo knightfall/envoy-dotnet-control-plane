@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "provider": "owned-generation",
-  "status": "candidate-until-T03-G1",
+  "status": "selected",
   "targetFramework": "net10.0",
   "catalogSha256": "6af96cd168d1808563d66bcb316fadf853a22e55647616aa37c972ff91afe713",
   "descriptorSetSha256": "c34501434b0580470167d4a257269e25d921dbd5c6ba4968255642cf1e3d10a4",

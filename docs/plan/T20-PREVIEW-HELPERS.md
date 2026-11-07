@@ -1,6 +1,6 @@
 # T20 preview — resource and reference helpers
 
-Work for [preview issue #13](https://github.com/knightfall/envoy-dotnet-control-plane/issues/13). This is the preview subset of T20; message/Struct conversion and the full helper inventory remain in the separate 1.0 deliverable. Behavior reference: `67c5345367582741334e34ffc66a561b0ce32946`. Schema, generator and descriptor pins are unchanged.
+Work for [preview issue #13](https://github.com/knightfall/envoy-dotnet-control-plane/issues/13). This report preserves the preview subset of T20. Message/Struct conversion and the full helper inventory were completed subsequently; see the [full T20 report](T20-HELPER-COMPATIBILITY.md) and [root compatibility report](../compatibility/root-1.0.md). Behavior reference: `67c5345367582741334e34ffc66a561b0ce32946`. Schema, generator and descriptor pins are unchanged.
 
 ## Source-to-C# mapping
 
@@ -15,10 +15,10 @@ Work for [preview issue #13](https://github.com/knightfall/envoy-dotnet-control-
 | `GetHTTPConnectionManager` | Existing `ResourceReferences.GetHttpConnectionManager`; typed protobuf unpacking, null for absent/unrelated/malformed configuration |
 | EDS/RDS reference helpers | Existing `ResourceReferences.GetReferences` and explicit `Snapshot.EnsureConsistent` |
 | `wellknown.HTTPConnectionManager`, `wellknown.Router` | Two canonical preview labels in `WellKnownFilterNames` |
-| Remaining `wellknown` constants | Outside this preview subset; retain their inventory for the 1.0 decision |
-| Eight Fetch URL constants | T18/full helper inventory, rather than unused preview endpoint APIs |
+| Remaining `wellknown` constants | Outside the preview subset; subsequently covered by full T20 |
+| Eight Fetch URL constants | Outside the preview subset; subsequently covered by full T20 |
 | Marshal/hash helpers | Existing `ResourceSerialization`; no Go vtprotobuf API clone or universal cross-runtime hash claim |
-| Message/Struct conversion and JSON descriptor registry errors | Separate full T20 task; binary typed-Any extraction needs no custom registry |
+| Message/Struct conversion and JSON descriptor registry errors | Outside the preview subset; subsequently covered by full T20. Binary typed-Any extraction needs no custom registry |
 | Go logging facade | T11 uses ordinary `ILogger`; no duplicate logging interface |
 
 The pinned Go `wellknown` package is explicitly deprecated: extension selection uses the typed-config protobuf URL, and that package is no longer receiving new names. The two labels make the sample readable and retain familiar names; they do not become a registry or constrain extension identity. The shared cases include a different filter label and a custom valid type-URL prefix. Unknown custom types return no HCM instead of being silently decoded as one.
@@ -47,4 +47,4 @@ The sample explicitly calls `EnsureConsistent` before publication. This is an ap
 
 Local macOS arm64 `repository verify` passes: 227 solution tests, zero failed/skipped, zero build warnings/errors with Roslynator; all five package/symbol pairs; fresh Protocol (12), Validation (18), Core (147) and Hosting (25) test consumers; executable Core/ASP.NET consumers. The Go helper comparison matches eight HCM/Any cases, both labels, API version, graph consistency/names/versions and exact references. Existing comparisons remain passing: 33 PGV, 19 snapshot, 22 cache, 14 subscription and 16 stream cases. The SDK pin is 10.0.400 and Go is 1.26.4. Exact-head remote CI and independent Astra medium review belong to the implementing PR. The earlier approval-service failure was resolved by a later approved retry; no check was bypassed. The static pairing helper remains unavailable due to its missing parser dependency; no static-pairing or percentage-coverage claim is made.
 
-Released-Envoy bootstrap, accepted configuration, traffic and reconnect remain preview T23/T12 evidence. Native/helper/gRPC checks do not establish those outcomes. The accepted transport performance tradeoff is unchanged, and no package publication is authorized by this task.
+Released-Envoy bootstrap, accepted configuration, traffic and reconnect were separate preview T23/T12 evidence. Native/helper/gRPC checks do not establish those outcomes. The accepted transport performance tradeoff was unchanged, and this task did not authorize publication; the later [release record](../releases/root-1.0.md) documents publication.

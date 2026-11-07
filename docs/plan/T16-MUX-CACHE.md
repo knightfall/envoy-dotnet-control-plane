@@ -10,7 +10,7 @@ Every watch receives the original request, subscription and channel writer. Its 
 
 `IConfigFetcher.FetchAsync(request, ResponseContext)` returns `Task<ISotwResponse>`, retaining the existing request/cancellation/caller-state vocabulary. The mux returns the child's task directly. A selected child without this capability returns an explicit unsupported-operation failure. LinearCache implements the capability through its existing unsupported Fetch operation and retains its token-based public convenience method.
 
-This is Fetch **delegation**, not the shared Fetch engine, SnapshotCache polling implementation, HTTP gateway or gRPC Fetch adapters. Those remain T18. SnapshotCache remains a watcher-only child until then, and Fetch through that route explicitly reports unsupported. Custom children can provide real Fetch responses now. No default successful response or fabricated unchanged result is supplied.
+T16 established Fetch **delegation**; at that stage, the shared Fetch engine, SnapshotCache polling implementation, HTTP gateway and gRPC Fetch adapters were later work. SnapshotCache was then a watcher-only child, so Fetch through that route reported unsupported; custom children could provide real Fetch responses. [T18](T18-FETCH-GATEWAY.md) subsequently implemented those Fetch components, including SnapshotCache polling. Watcher-only children and LinearCache still report unsupported Fetch; no default successful response or fabricated unchanged result is supplied.
 
 ## Source and evidence
 

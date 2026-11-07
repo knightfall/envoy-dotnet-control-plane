@@ -1,5 +1,7 @@
 # T13 Delta subscription state
 
+This report preserves T13 implementation-time status and evidence. Subsequent [Delta cache](T14-DELTA-CACHE.md), [stream](T14-DELTA-STREAMS.md) and [transport](T14-DELTA-GRPC.md) reports cover T14.
+
 `DeltaSubscription` implements the existing `ISubscription` view with stream-owned ordinal sets/dictionaries. It matches the pinned Go `pkg/server/stream/v3/subscription.go` transitions, using ordinary .NET collections and read-only input contracts. It adds no locks, ACK ledger, state-machine framework or response-selection policy. Delta cache/watch/server delivery remains T14.
 
 ## State and initialization

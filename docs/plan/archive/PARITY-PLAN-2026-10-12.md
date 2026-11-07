@@ -1,6 +1,6 @@
 # .NET parity plan for go-control-plane
 
-**Status:** Draft; the scope questions at the end need answers before implementation starts.
+**Historical draft, 12 October 2026:** The proposal and its open questions below describe the original planning stage. The later [root compatibility report](../../compatibility/root-1.0.md) and [release record](../../releases/root-1.0.md) describe implemented scope and publication.
 
 ## Workspace layout and baseline
 

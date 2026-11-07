@@ -1,5 +1,7 @@
 # T21 — Preview differential harness
 
+This report preserves the preview-stage scope and evidence. The later [root differential report](T21-ROOT-DIFFERENTIAL.md) and [root compatibility report](../compatibility/root-1.0.md) describe subsequent work.
+
 Implements the preview subset of [issue #14](https://github.com/knightfall/envoy-dotnet-control-plane/issues/14). Existing snapshot, cache, subscription and stream drivers are retained. Go imports the actual implementations at behavior revision `67c5345367582741334e34ffc66a561b0ce32946`; the schema source remains `82a4424f760b6ba3ffc9f2911389d061656f35c8`. The verifier checks both module revisions and rejects replacements before execution. [Attribution](../../tests/resources/UPSTREAM-TESTS.md) and the original Apache-2.0 license remain in place.
 
 ## Execution and observations

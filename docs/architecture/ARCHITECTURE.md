@@ -80,7 +80,7 @@ Select a standard Envoy input catalog that includes usable common extensions. St
 
 `IMessage` resources and `Any` extension payloads remain supported. Use the protobuf runtime's descriptor/type-registration facilities for JSON handling; a separate registry framework is not required. Keep one owner for each protobuf full name. Binary paths preserve unknown fields using the protobuf runtime; JSON conversion may reject unresolved `Any` descriptors and must not silently replace unknown payloads with empty messages.
 
-T02 preserves original upstream validation annotations and required option definitions, owned once with the other descriptors, from the first binding release. T03 inventories the selected catalog and proves metadata access, single-owner integration, and representative valid/invalid outcomes before G1. A controlled PGV-to-Protovalidate overlay is permitted for the proof, with every derived option recorded and wire/message/service identity preserved. It must not create a second Envoy message assembly. Full rule conformance remains T26/GV; see the [validation plan](VALIDATION.md).
+T02 preserves original upstream validation annotations and required option definitions, owned once with the other descriptors, from the first binding release. T03 inventories the selected catalog and proves metadata access, single-owner integration, and representative valid/invalid outcomes before G1. A controlled PGV-to-Protovalidate overlay is permitted for the proof, with every derived option recorded and wire/message/service identity preserved. It must not create a second Envoy message assembly. The later [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) records declared-scope conformance and exceptions; see the [validation plan](VALIDATION.md).
 
 ## 4. Proposed contracts
 
@@ -122,7 +122,7 @@ T10 makes SotW producer delivery channel-based: ordinary streams supply individu
 
 `Watch<T>` remains a standalone one-shot primitive with asynchronous continuations and idempotent synchronous disposal. Consumers of the task adapter use a disposal scope around `Completion.WaitAsync(cancellationToken)`; canceling that wait alone does not dispose the registration. Cache delivery must not invoke network I/O inside publication locks, and an immediate result must remain valid before the stream begins reading it. These API choices prioritize behavioral parity using standard .NET coordination rather than translating Go's synchronization structure.
 
-Use `FetchResult` with `Response` and `NotModified` cases. Model unsupported fetch, missing classifier, missing snapshot, materialization failure, and callback rejection separately; preserve transport mappings rather than flattening every failure into `InvalidArgument`. Exceptions may expose library error types internally; host adapters own transport translation.
+The early design proposed `FetchResult` with `Response` and `NotModified` cases. The implemented `IConfigFetcher` returns `ISotwResponse` and uses `SkipFetchException` for an unchanged version. Unsupported fetch, missing classifier, missing snapshot, materialization failure and callback rejection remain distinct; host adapters own transport translation. See [public API contracts](../public-api.md#source-specific-protocol-and-errors).
 
 Callbacks cover the same open, request, response, close, and fetch hooks as Go, in the same mode-specific order. Await asynchronous hooks in the processing loop; open/request hooks can reject. T09 must define one exception-to-call-failure and cleanup mapping for .NET, since Go response/close hooks do not return errors. Do not add hook-policy options, retry stages, or a middleware pipeline. Preserve effective request/response mutation where the upstream callback permits it.
 
@@ -138,7 +138,7 @@ Preserve upstream lazy materialization/version computation where used. Do not ca
 
 ### 6.1 SnapshotCache
 
-State is keyed by `INodeHasher`; default behavior is `Node.Id`, with empty string for absent node. Each node entry holds a stable snapshot reference, SotW and Delta watch indexes, and source-equivalent status. Start with the cache-level synchronization used by Go; per-node locks and additional lock layers are not prescribed. Clear removes snapshot and indexed status; it neither completes/cancels old watches nor synthesizes deletion responses. A previously obtained status handle retains its old state. T07 implements this SotW cache; Delta delivery and heartbeats remain T14/T17.
+State is keyed by `INodeHasher`; default behavior is `Node.Id`, with empty string for absent node. Each node entry holds a stable snapshot reference, SotW and Delta watch indexes, and source-equivalent status. Start with the cache-level synchronization used by Go; per-node locks and additional lock layers are not prescribed. Clear removes snapshot and indexed status; it neither completes/cancels old watches nor synthesizes deletion responses. A previously obtained status handle retains its old state. T07 implemented the SotW cache; [T14](../plan/T14-DELTA-CACHE.md) and [T17](../plan/T17-TTL-HEARTBEATS.md) subsequently added Delta delivery and heartbeats.
 
 Publication algorithm:
 
@@ -159,7 +159,7 @@ Owns a single type URL and shared resource collection, with exact/prefix/wildcar
 
 Routes SotW and Delta through separate classification functions and delegates Fetch using the SotW classifier. Classifier output selects a registered child cache; missing keys are errors. The mux copies its fixed child index, never disposes children and exposes no ownership-transfer option. It preserves LinearCache's unsupported Fetch result and adds no aggregate snapshot transaction.
 
-T16 implements this using a constructor-copied ordinal routing index, caller-owned children, direct channel/registration/task delegation and a separate `IConfigFetcher` capability. The public routing table is fixed, rather than copying Go's mutable struct fields. Fetch preserves `ResponseContext`; watch-only children explicitly report unsupported Fetch. SnapshotCache polling and Fetch transports remain T18. See [T16 evidence](../plan/T16-MUX-CACHE.md) for the implemented boundary and source/native comparisons.
+T16 implements this using a constructor-copied ordinal routing index, caller-owned children, direct channel/registration/task delegation and a separate `IConfigFetcher` capability. The public routing table is fixed, rather than copying Go's mutable struct fields. Fetch preserves `ResponseContext`; watch-only children explicitly report unsupported Fetch. [T18](../plan/T18-FETCH-GATEWAY.md) subsequently added SnapshotCache polling and Fetch transports. See [T16 evidence](../plan/T16-MUX-CACHE.md) for the implemented boundary and source/native comparisons.
 
 ### 6.4 Status
 
@@ -251,7 +251,7 @@ Routes: `/v3/discovery:endpoints`, `:clusters`, `:listeners`, `:routes`, `:scope
 
 ## 13. ASP.NET Core integration and lifecycle
 
-T11 implements parameterless `AddEnvoyControlPlane()` using application-registered singleton cache, optional callbacks and initialized SotW options. `MapEnvoyControlPlane()` returns a standard route group for the nine preview SotW services and application endpoint conventions. HTTP/Fetch mapping and JSON descriptor registry configuration remain T18. Runtime caches are shared singletons unless the application deliberately supplies another lifetime. Stream sessions are per-call objects. Use ordinary ASP.NET Core dependency injection and call lifetimes; do not add a callback-factory framework.
+T11 introduced parameterless `AddEnvoyControlPlane()` with an application-registered singleton cache, optional callbacks and initialized SotW options. `MapEnvoyControlPlane()` returns a standard route group; the later [T14](../plan/T14-DELTA-GRPC.md) and [T18](../plan/T18-FETCH-GATEWAY.md) work added Delta and Fetch methods, the optional HTTP gateway and JSON descriptor registry configuration. See the [hosting guide](../usage.md#add-a-management-endpoint) for the current mapping. Runtime caches are shared singletons unless the application deliberately supplies another lifetime. Stream sessions are per-call objects. Use ordinary ASP.NET Core dependency injection and call lifetimes; do not add a callback-factory framework.
 
 Hosting registers the protocol engines and adapters; it starts no cache heartbeat task. Applications own any heartbeat loop and cancel and await it during shutdown. Host stopping reaches stream sessions through a linked token; session cleanup releases watches and awaits owned readers. Cleanup runs on open-hook rejection, EOF, reader failure, writer failure, callback failure, and host stop. Close notification occurs once after watch cleanup even if open was rejected, matching source lifecycle intent.
 
@@ -281,7 +281,7 @@ Use named cases in [traceability](../plan/TRACEABILITY.md). The differential har
 
 Run actual released Envoy images for initial bootstrap, update, NACK, reconnect/resubscribe, Delta removal, and TTL refresh/expiry. Inspect config dump and observable traffic/admin counters as well as control-plane logs. A successful TCP/gRPC connection alone is insufficient.
 
-CI stages cover pinned generation/descriptor checks, compilation and unit cases, Go differential cases, transport/lifecycle cases, real Envoy, pack/clean-consumer tests, and a compatibility report. Choose test framework and platforms in T04; Linux runs Envoy containers, with Windows/macOS build and relevant host tests. Pin CI actions/toolchain and keep substantial logic in versioned scripts. Protocol package inputs and annotation/runtime choices must be reproducible in a clean environment.
+CI stages cover pinned generation/descriptor checks, compilation and unit cases, Go differential cases, transport/lifecycle cases, real Envoy, pack/clean-consumer tests, and a compatibility report. T04 selected the test framework and platforms; Linux runs Envoy containers, with Windows/macOS build and relevant host tests. Pin CI actions/toolchain and keep substantial logic in versioned scripts. Protocol package inputs and annotation/runtime choices must be reproducible in a clean environment.
 
 Upstream update tooling records old/new behavior and schema pins, regenerates selected inputs, and inventories added/changed/removed validation rules. Compare original annotations and any derived overlay, coverage, and Go/.NET outcomes before accepting a validation-package update. Changed or unsupported unevaluated constraints block the validation claim for that candidate. Root-only updates retain annotations and publish the gap explicitly; they cannot imply validation coverage. Keep historical evidence tied to its immutable pin.
 

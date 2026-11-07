@@ -104,13 +104,13 @@ The original catalog contains **523 files**, **1,244 field-rule entries**, **127
 
 T03 pins source-built `telus-labs/protovalidate-net` at `88e9c909e82c569bba7d6d722dd5c6b76ba9e965`, migration metadata at `04cd1e0187b7e570f3bb0f86a31daf1f2ad7237e`, and CEL 0.3.3 only in the separate evaluator. The historical T03 33-case PGV corpus SHA-256 was `d65996c87fbedc83bad927ec17b268f6d039e6318e6c4764f5e318016e2b1f52`. [The feasibility report](../../schemas/VALIDATION.md) records the bounded source adaptations and oneof migration correction. Published ProtoValidate/Celly packages are not runtime dependencies of this source implementation; historical provider research remains retained.
 
-These counts are inventory, not conformance coverage. The [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) records declared-scope rule and combination conformance, Any/unsupported/evaluator-fault distinctions, per-update acceptance and exclusions. T24 originally reported validation as unproven; T26 added acceptance evidence bound to the current descriptors, sources, fixtures, tests and verification configuration. Missing or stale coverage stays unproven. Cache publication invokes no evaluator, and root-only consumers contain no evaluator/CEL dependencies. A green root gate cannot approve GV by omitting unknown rules.
+These counts are inventory, not conformance coverage. The [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) records declared-scope rule and combination conformance, Any/unsupported/evaluator-fault distinctions, per-update acceptance and exclusions. T24 originally reported validation as unproven; T26 added acceptance evidence bound to its descriptors, sources, fixtures, tests and verification configuration. Missing or stale coverage stays unproven for later inputs. Cache publication invokes no evaluator, and root-only consumers contain no evaluator/CEL dependencies. A green root gate cannot approve GV by omitting unknown rules.
 
 ## Verification evidence and remaining gates
 
 The T24 baseline in PR #70 merged after all eighteen exact-head checks and automatic Codex review cleared. Its local repository verification observed **484 solution tests**, sixteen actual Go comparison modes / **260 cases**, fifteen injected semantic mismatches plus two nonce negatives, five package/symbol pairs, fresh Protocol/Validation/Core/Hosting suites of **14/18/264/109** and both executable package-graph consumers. These results belong to the earlier immutable revision and are not relabeled as T25 execution. T22 additionally records 192 repeated transport streams / 768 responses with explicit cleanup assertions. T23's two architecture runs are recorded separately above.
 
-For the candidate, regenerate and verify from the repository root:
+To regenerate and verify the current source from the repository root, replace `<source-cache>` with a writable path outside the checkout:
 
 ```sh
 dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache <source-cache>
@@ -118,7 +118,7 @@ dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify
 dotnet run --project tools/Envoy.ControlPlane.Tools -- envoy verify
 ```
 
-Retain the generated fingerprints, packages, consumer locks and reports. Linux/macOS/Windows CI establishes its own native/package results; the proxy workflow establishes Linux amd64/arm64 results. Exact-head automatic Codex PR review is the review gate. The [release checklist](../releases/root-1.0.md) must record the candidate's observed results and outstanding items before claiming G5 or closing T25. Source provenance/binding proof remains G0/G1, implemented root coverage G3, tested interop/lifecycle G4, final package/docs/API readiness G5, and optional conformance GV. Candidate preparation alone authorizes neither NuGet publication nor a GitHub release.
+Retain the generated fingerprints, packages, consumer locks and reports. Linux/macOS/Windows CI establishes its own native/package results; the proxy workflow establishes Linux amd64/arm64 results. Exact-head automatic Codex PR review is the review gate. The [release checklist](../releases/root-1.0.md) records the candidate's observed results and later publication; T25 required those results and outstanding items before claiming G5. Source provenance/binding proof remains G0/G1, implemented root coverage G3, tested interop/lifecycle G4, final package/docs/API readiness G5, and optional conformance GV. Candidate preparation alone authorizes neither NuGet publication nor a GitHub release.
 
 ## T25 candidate execution
 

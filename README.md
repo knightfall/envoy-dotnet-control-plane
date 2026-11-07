@@ -16,7 +16,7 @@ Generated Protocol types cover the pinned standard schema catalog, including com
 
 ## Run the example
 
-Use the SDK in [global.json](global.json). A fresh checkout must generate bindings before building the example. Choose a writable cache directory outside this checkout:
+Use the SDK in [global.json](global.json). A fresh checkout must generate bindings before building the example. Choose a writable cache directory outside this checkout and replace `<source-cache>` with its path:
 
 ```sh
 dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache <source-cache>
@@ -61,4 +61,4 @@ The second command requires Docker and runs the locked released-Envoy graph prob
 
 Source/tool locks, catalog and descriptor manifests are authoritative. The behavior reference is Go commit `67c5345367582741334e34ffc66a561b0ce32946`; the schema source is Envoy commit `82a4424f760b6ba3ffc9f2911389d061656f35c8`. See [upstream-baseline.json](upstream-baseline.json), [schemas/upstream.lock.json](schemas/upstream.lock.json) and the compatibility report for the independent proxy axis.
 
-[AGENTS.md](AGENTS.md) describes contribution rules, centralized dependencies, Roslynator and verification. [The implementation plan](docs/plan/IMPLEMENTATION-PLAN.md) tracks remaining work. The [architecture](docs/architecture/ARCHITECTURE.md), [decisions](docs/architecture/DECISIONS.md) and [original proposal](PARITY-PLAN.md) supply design context; plans do not establish implementation or interoperability proof.
+[AGENTS.md](AGENTS.md) describes contribution rules, centralized dependencies, Roslynator and verification. [The implementation plan](docs/plan/IMPLEMENTATION-PLAN.md) records task definitions, historical status and deferred scope. The [architecture](docs/architecture/ARCHITECTURE.md), [decisions](docs/architecture/DECISIONS.md) and [original proposal](PARITY-PLAN.md) supply design context; plans do not establish implementation or interoperability proof.
