@@ -11,7 +11,9 @@
   "requiredChecks": {
     "Workflow locks and security": "github-actions",
     "Build release candidate": "github-actions",
-    "CodeQL": "github-advanced-security",
+    "Analyze (actions)": "github-actions",
+    "Analyze (csharp)": "github-actions",
+    "Analyze (go)": "github-actions",
     "Offline CLI tests (ubuntu-latest)": "github-actions",
     "Offline CLI tests (macos-latest)": "github-actions",
     "Offline CLI tests (windows-latest)": "github-actions",

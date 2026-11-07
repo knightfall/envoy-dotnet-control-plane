@@ -12,6 +12,8 @@ The publishing job verifies the protected lightweight `v1.0.0-rc.1` tag points t
 
 ## Workflow and repository controls
 
+The release preflight requires all three CodeQL analysis jobs on the exact main commit: `Analyze (actions)`, `Analyze (csharp)` and `Analyze (go)`, each from GitHub Actions. Main branch protection separately requires GitHub's aggregate `CodeQL` PR check, which evaluates the pull request and is not emitted on main commits. Recorded main check data exercises the real PowerShell preflight in CI, including rejection of a failed analysis or wrong application.
+
 All six tracked workflows are onboarded to the machine-generated `.github/workflows/actions.lock`, including transitive action dependencies and repository identities. Regenerate with the checksummed `gh-actions-lock` version in `.github/security/tools.json`; never edit the lock manually. `workflows verify --cache <external-tool-cache>` runs actionlint, zizmor and online lock provenance verification. The lock verification command is read-only. Container images and reusable workflow calls are outside native action-lock coverage; existing Envoy images retain their independent digest lock.
 
 The sole zizmor exception is the isolated Dorny `workflow_run` reporter recommended for fork PRs. It checks the producing repository/workflow path, reads report artifacts through the pinned parser and writes checks. It never checks out parent code, runs shell commands, restores caches or executes artifacts. Changes to that boundary require owner review.

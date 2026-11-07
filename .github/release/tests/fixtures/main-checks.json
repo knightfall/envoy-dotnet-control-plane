@@ -1,0 +1,97 @@
+{
+  "provenance": {
+    "source": "https://api.github.com/repos/knightfall/envoy-dotnet-control-plane/commits/62a9bef2a74b3c829937bc52bc28396d64c4c500/check-runs",
+    "commit": "62a9bef2a74b3c829937bc52bc28396d64c4c500",
+    "note": "Selected main CI names, application identities and successful outcomes. GitHub emits its aggregate CodeQL check on PR commits, not main."
+  },
+  "check_runs": [
+    {
+      "name": "Analyze (actions)",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    },
+    {
+      "name": "Analyze (csharp)",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    },
+    {
+      "name": "Analyze (go)",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    },
+    {
+      "name": "Buf binding proof (macos-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    },
+    {
+      "name": "Buf binding proof (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    },
+    {
+      "name": "Buf binding proof (windows-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    },
+    {
+      "name": "Build release candidate",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    },
+    {
+      "name": "Offline CLI tests (macos-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    },
+    {
+      "name": "Offline CLI tests (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    },
+    {
+      "name": "Offline CLI tests (windows-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    },
+    {
+      "name": "Workflow locks and security",
+      "status": "completed",
+      "conclusion": "success",
+      "app": {
+        "slug": "github-actions"
+      }
+    }
+  ]
+}
