@@ -1,5 +1,7 @@
 # Stack
 
+This is a historical upstream-source review. Its proposed .NET directions and TODOs reflect the 24 October 2026 planning stage. For the implemented surface and evidence, see the [root compatibility report](../compatibility/root-1.0.md), [public API contracts](../public-api.md) and [validation conformance report](../plan/T26-VALIDATION-CONFORMANCE.md).
+
 Reviewed 24 October 2026 at the Go and Envoy commits in ../../upstream-baseline.json. Source paths below are relative to the go-control-plane checkout.
 
 ## Upstream reference

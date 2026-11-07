@@ -4,11 +4,11 @@ This is the root 1.0 API review for T25. The [compatibility report](compatibilit
 
 ## Package boundaries and versions
 
-Protocol owns generated messages, gRPC contracts and original PGV definitions. Validation.Annotations owns shared derived annotation definitions without an evaluator. Core references Protocol and supplies transport-independent behavior. ASP.NET Core references Core and provides hosting. Only the separate experimental Validation project adds the source-built evaluator and CEL. Core-only consumption must retain that separation.
+Protocol owns generated messages, gRPC contracts and original PGV definitions. Validation.Annotations owns shared derived annotation definitions without an evaluator. Core references Protocol and supplies transport-independent behavior. ASP.NET Core references Core and provides hosting. Only the separate optional Validation project adds the source-built evaluator and CEL. Core-only consumption must retain that separation.
 
 Every maintained library targets `net10.0`; the SDK is pinned in `global.json`. Older .NET targets, trimming and Native AOT have no acceptance proof. Generated protobuf full names and wire fields remain upstream identities. The three documented C# generator corrections in [BINDINGS.md](../schemas/BINDINGS.md) change colliding CLR member names only. Do not load overlapping generated binding packages.
 
-The four root candidate packages use `1.0.0-rc.1` and the owner-selected `Knightfall.Envoy.ControlPlane` prefix: Core uses the root ID, with `.Protocol`, `.Validation.Annotations` and `.AspNetCore` siblings. Namespaces and assembly names retain their existing `Envoy.ControlPlane` identities. Clean consumers verify both the new package graph and the retained assembly identities. `Knightfall.Envoy.ControlPlane.Validation` keeps experimental version `0.1.0-t03` and remains outside this candidate. No stable 1.0 package has been published by this work. Before a final release, review source/schema updates against both the public C# API and wire/behavior contracts; record any breaking change in the release notes rather than assuming an upstream update is compatible.
+The five packages use prerelease version `1.0.0-rc.1` and the `Knightfall.Envoy.ControlPlane` prefix: Core uses the root ID, with `.Protocol`, `.Validation.Annotations`, `.AspNetCore` and optional `.Validation` siblings. They are published on NuGet.org and GitHub Packages. Namespaces and assembly names retain their existing `Envoy.ControlPlane` identities. Clean consumers verify the package graph and retained assembly identities. The optional evaluator remains separate and its [T26 conformance](plan/T26-VALIDATION-CONFORMANCE.md) has explicit scope and exceptions. No stable 1.0 package has been published by this work. Before a final release, review source/schema updates against both the public C# API and wire/behavior contracts; record any breaking change in the release notes rather than assuming an upstream update is compatible.
 
 ## Retained data and publication
 
@@ -54,7 +54,7 @@ Core streams own their input enumeration and watch registrations. Inputs, writer
 
 SotW request hooks run after normalization and before stale-nonce filtering. Ordered ADS captures its dispatch type before the hook; ordinary mode uses the effective type afterward. SotW response hooks run after nonce/bookkeeping updates with the cache response's creation context, which can differ from the stream-open context.
 
-Delta drains queued responses before request mutation and runs the request hook before node/type normalization. Returned versions advance after a successful send. Its source loop does not apply SotW stale-nonce rejection or an ACK-committed ledger. NACKs in either mode do not roll back application snapshots. Fetch hooks run request, producer, materialization and response in order; the source Fetch response hook has no context/cancellation parameter.
+Delta drains queued responses before request mutation and runs the request hook before node/type normalization. Returned versions advance after a successful send. Its source loop does not apply SotW stale-nonce rejection or an ACK-committed ledger. NACKs in either mode do not roll back application snapshots. Fetch hooks run request, producer, materialization and response in order; the source Fetch response hook has no context/cancellation parameter. Producer failure or a missing envelope bypasses that response hook. A materialization failure invokes it with null; if the hook also fails, its exception takes precedence over the materialization failure.
 
 | Failure | Observable contract |
 |---|---|
@@ -63,7 +63,7 @@ Delta drains queued responses before request mutation and runs the request hook 
 | Unchanged Fetch | `SkipFetchException`; HTTP gateway maps it, including ordinary wrapping, to empty 304. |
 | Unsupported Fetch | `NotSupportedException` for LinearCache or a selected watch-only child. Hosting keeps streaming available. |
 | Core protocol rejection | `SotwProtocolException` / `DeltaProtocolException` with protocol status; adapters map InvalidArgument/Unavailable to gRPC status. |
-| Ordinary processing / callback error | Original exception retained. Ordered main-queue response failures map to Unavailable with the inner cause; drain failures preserve source-specific propagation. |
+| Stream processing / callback error | Original exception retained. Ordered main-queue response failures map to Unavailable with the inner cause; drain failures preserve source-specific propagation. |
 | Multiple processing / cleanup errors | Aggregate retains processing failure first and subsequent cleanup failures. Close is attempted once. |
 | Application `RpcException` | Existing gRPC status retained; unexpected transport failures follow framework handling. |
 | HTTP gateway | 200 protobuf JSON, empty 304 unchanged, 400 bad/read-failed JSON, 404 unknown path, 500 Fetch/materialization/format failure. Host failures may prevent any response. |

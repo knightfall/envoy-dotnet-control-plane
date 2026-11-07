@@ -1,5 +1,7 @@
 # T05 — Resource entries and snapshots
 
+This task report preserves its implementation-time scope and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Implemented 25 October 2026 against behavior baseline `67c5345367582741334e34ffc66a561b0ce32946`. T04 merged in PR #38; T05 implements Core resource primitives without a cache, stream engine or hosting adapter. Those remain T06 onward. This evidence covers the stable-resource convention and V03–V07 portions relevant to snapshots; it does not establish live Envoy interoperability or full optional-validator conformance.
 
 ## Source contract

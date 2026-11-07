@@ -1,6 +1,6 @@
 # T01: upstream input provenance
 
-Recorded 24 October 2026 for [T01 / issue #2](https://github.com/knightfall/envoy-dotnet-control-plane/issues/2). Source work and V01 verification are complete on `feat/t01-upstream-input-lock`, awaiting PR review. This report records source and descriptor inspections plus automated CLI acceptance/rejection checks. It does not establish C# binding-provider compatibility, validator equivalence, or Envoy interoperability.
+Recorded 24 October 2026 for [T01 / issue #2](https://github.com/knightfall/envoy-dotnet-control-plane/issues/2). Source work and V01 verification were completed on `feat/t01-upstream-input-lock` and subsequently merged in [PR #33](https://github.com/knightfall/envoy-dotnet-control-plane/pull/33). This report records source and descriptor inspections plus automated CLI acceptance/rejection checks. It does not establish C# binding-provider compatibility, validator equivalence, or Envoy interoperability.
 
 ## Artifacts
 
@@ -28,7 +28,7 @@ Recorded 24 October 2026 for [T01 / issue #2](https://github.com/knightfall/envo
 
 Every source archive URL uses its full commit, with a SHA-256 in the lock. Registry metadata uses the content hashes recorded in Envoy's `MODULE.bazel.lock`. The referenced registry patches were inspected: they change build files or C++ sources, with no `.proto` edits. Their checksums and touched paths are locked; they are not applied to the schema inputs. Envoy's separate `api/buf.lock` remains available as evidence in the pinned archive; this catalog follows its Bazel schema origins rather than mixing the two dependency selections.
 
-Go module requirements are recorded separately from schema origins. In particular, the Go xDS dependency resolves to `dba9d589def2`, while Envoy's schema build selects `ee656c7534f5d7dc23d44dd611689568f72017a6`. These are distinct inputs. T02 must compare the selected provider's descriptors, imported options and type ownership against this catalog; a Go dependency version is not evidence of a schema source revision.
+Go module requirements are recorded separately from schema origins. In particular, the Go xDS dependency resolves to `dba9d589def2`, while Envoy's schema build selects `ee656c7534f5d7dc23d44dd611689568f72017a6`. These are distinct inputs. The later [T02 binding proof](BINDINGS.md) compares the selected provider's descriptors, imported options and type ownership against this catalog; a Go dependency version is not evidence of a schema source revision.
 
 The root Go module replaces Envoy and ratelimit with `./envoy` and `./ratelimit`. The child modules and the version-qualified Envoy replacement are preserved verbatim in `goModules`. A version-qualified replacement is not treated as an unconditional override. The source archive, module-file fingerprints and `go.sum` fingerprints identify the actual reviewed module set, including deferred and tooling modules.
 
@@ -47,7 +47,7 @@ The seed is the standard Go-mirrored `/v3/` and `/v3alpha/` catalog, Envoy's ann
 
 There are **523 selected inputs**: 488 Envoy, 16 CNCF xDS/UDPA, seven protobuf, five Google APIs, two CEL, two ratelimit, and one each from PGV, OpenTelemetry and Prometheus. `catalog.json` records every individual file and checksum, including deferred/excluded Envoy API files. Unused files in external archives are not release inputs. Runtime library source files and the matcher test proto are not schema-generation inputs.
 
-Original validation options and their definitions are retained. No PGV-to-Protovalidate overlay has been created; annotation migration and rule inventory belong to T03. Imported matcher descriptors do not authorize the standalone matcher engine deferred under T27. Catalog service definitions do not expand the runtime service matrix. Protobuf well-known types must have one runtime owner in T02, rather than being regenerated into a competing assembly.
+Original validation options and their definitions are retained. At T01, no PGV-to-Protovalidate overlay had been created; [T03](VALIDATION.md) subsequently added derived metadata and inventoried the rules. Imported matcher descriptors do not authorize the standalone matcher engine deferred under T27. Catalog service definitions do not expand the runtime service matrix. T02 established Google.Protobuf as the single owner of well-known types instead of generating a competing assembly.
 
 No application-specific custom extension is selected for release generation. T05 supplies descriptor/`Any` handling for application messages. Adding a custom schema to the release catalog requires an immutable source and checksum through the same process.
 
@@ -64,7 +64,7 @@ The configuration source at the selected revision includes `RateLimitDescriptor.
 
 The Go configuration header names `ratelimit/config/ratelimit/v3/rls_conf.proto`, but its embedded descriptor names **`api/ratelimit/config/ratelimit/v3/rls_conf.proto`**. The selected source compiled under its `api/` import root names it without that prefix. This is the sole allowed normalization in the comparison, explicitly locked alongside both original descriptor hashes. The service descriptor already uses the name without `api/`.
 
-This resolves source provenance by matching definitions. The historical generation invocation is not recorded upstream. **T02 must make the descriptor filename/ownership decision explicit before G1**; this report does not silently rename generated provider metadata.
+This resolves source provenance by matching definitions. The historical generation invocation is not recorded upstream. The subsequent [T02 binding proof](BINDINGS.md) records the descriptor filename and ownership decision; this T01 report does not silently rename generated provider metadata.
 
 ## Retrieval and inspection
 
@@ -81,7 +81,7 @@ dotnet run --project tools/Envoy.ControlPlane.Tools --no-restore -- upstream syn
 dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream inspect --cache ../upstream-sources
 ```
 
-`--offline` controls source/tool downloads. For an entirely offline run, first restore/build the CLI project and populate the artifact cache, then use `--no-build --no-restore` with `--offline`. Source synchronization uses framework archive/HTTP/JSON APIs and is portable; the currently locked **protoc inspection executable is macOS arm64 only**. Add an explicitly checksummed compiler artifact before claiming inspection support on another platform. T04 will establish the runtime package/CI toolchains separately.
+`--offline` controls source/tool downloads. For an entirely offline run, first restore/build the CLI project and populate the artifact cache, then use `--no-build --no-restore` with `--offline`. Source synchronization uses framework archive/HTTP/JSON APIs and is portable; the currently locked **protoc inspection executable is macOS arm64 only**. Add an explicitly checksummed compiler artifact before claiming inspection support on another platform. T04 subsequently established the runtime package/CI toolchains separately.
 
 Intentional input updates change the source lock first, then reconstruct the catalog:
 
@@ -127,4 +127,4 @@ DOTNET_CLI_HOME=/private/tmp/envoy-dotnet-cli NUGET_PACKAGES=/private/tmp/envoy-
 
 The [CI workflow](../.github/workflows/upstream-verification.yml) executes the same offline test project on Linux, macOS and Windows for PRs, pushes to `main` and manual runs, retaining TRX results. The full protoc inspection is recorded separately on macOS arm64 and is not claimed as part of that portable fixture CI matrix.
 
-**V01 and G0 source-provenance checks pass.** PR review and merge remain pending; [issue #2](https://github.com/knightfall/envoy-dotnet-control-plane/issues/2) can close when the reviewed change merges. There are no unresolved source-origin blockers in the selected catalog. T02/T03 binding/metadata decisions remain separate gates. No C# runtime bindings, library test results, validator conformance or live Envoy exercise is claimed.
+**V01 and G0 source-provenance checks passed.** The T01 work subsequently merged in [PR #33](https://github.com/knightfall/envoy-dotnet-control-plane/pull/33). No source-origin blockers were identified for the selected catalog in this proof. This T01 evidence alone does not establish C# binding compatibility, validator conformance or live Envoy interoperability; see the [root compatibility report](../docs/compatibility/root-1.0.md) and [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) for later evidence.

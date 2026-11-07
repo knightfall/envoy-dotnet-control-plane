@@ -1,5 +1,7 @@
 # T24 — Root package and upstream-update readiness
 
+This task report preserves its original implementation-time status and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Completes the remaining tooling scope in [issue #30](https://github.com/knightfall/envoy-dotnet-control-plane/issues/30). It reuses [preview packaging](T24-PREVIEW-READINESS.md), the completed root differential/lifecycle commands and [released-proxy harness](T23-ROOT-ENVOY.md). No runtime APIs, package dependencies, schema transformations or generated fingerprints change. Preparation does not publish packages or approve the optional validator.
 
 ## Root package proof

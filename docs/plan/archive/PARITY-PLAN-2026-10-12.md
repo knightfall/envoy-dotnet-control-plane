@@ -1,6 +1,6 @@
 # .NET parity plan for go-control-plane
 
-**Status:** Draft; the scope questions at the end need answers before implementation starts.
+**Historical draft, 12 October 2026:** The proposal and its open questions below describe the original planning stage. The later [root compatibility report](../../compatibility/root-1.0.md) and [release record](../../releases/root-1.0.md) describe implemented scope and publication.
 
 ## Workspace layout and baseline
 
@@ -89,7 +89,7 @@ No tests were run or added during this planning pass. Before release, use the pi
 
 ## Source map and scope divergences
 
-The seven files in [`docs/codebase/`](docs/codebase/) map the upstream structure and evidence used for this draft.
+The seven files in [`docs/codebase/`](../../codebase/) map the upstream structure and evidence used for this draft.
 
 - **Requested outcome:** a .NET parity library. **Reference reality:** the main README explicitly limits the project to generic server/cache infrastructure and excludes resource translation.
 - **“Parity” ambiguity:** the active control-plane implementation is v3, but the mirrored generated API module includes old and current API packages. Full generated-proto parity is a much broader commitment than matching the current v3 server/cache.

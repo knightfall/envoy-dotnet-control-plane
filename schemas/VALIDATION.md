@@ -1,6 +1,6 @@
 # T03: source-built Protovalidate feasibility
 
-Updated **25 October 2026**. The user selected a Protovalidate-based implementation built from pinned ProtoValidate source. The maintained path now has separate annotation contracts, derived Protocol metadata and an optional evaluator. The first 33-case comparison matches the pinned Go PGV outcomes. This is bounded T03 evidence; full T26/GV conformance and package publication remain separate gates.
+Updated **25 October 2026**. The user selected a Protovalidate-based implementation built from pinned ProtoValidate source. The maintained path now has separate annotation contracts, derived Protocol metadata and an optional evaluator. The first 33-case comparison matches the pinned Go PGV outcomes. This is bounded historical T03 evidence. The later [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) records declared-scope conformance and exceptions; the five packages were subsequently published as [1.0.0-rc.1](../docs/releases/1.0.0-rc.1.md).
 
 The [earlier candidate assessment](validation/assessment-2026-10-25.md) and its artifacts remain historical evidence. Celly cleanup is deferred at the user's request. Neither the published ProtoValidate package nor Celly.Protovalidate is used by the maintained implementation or its CI entry points.
 
@@ -12,9 +12,9 @@ The [earlier candidate assessment](validation/assessment-2026-10-25.md) and its 
 | Envoy.ControlPlane.Protocol | The original selected Envoy/import/PGV contracts, with added derived validation options | Annotations, Google.Protobuf, Grpc.Core.Api |
 | Envoy.ControlPlane.Validation | Source-built TELUS ProtoValidate evaluator and its existing `ProtoValidate` API | Annotations, Cel, Microsoft.Extensions.Options and their locked dependencies |
 
-Protocol has no evaluator or CEL dependency. The evaluator accepts `IMessage` and does not depend on Protocol. Generated Envoy types, annotation types and well-known types each have one owner. Core/cache/hosting implementation remains future work; validation is explicitly invoked, with no automatic validation on publication.
+Protocol has no evaluator or CEL dependency. The evaluator accepts `IMessage` and does not depend on Protocol. Generated Envoy types, annotation types and well-known types each have one owner. Core/cache/hosting are implemented; validation is explicitly invoked, with no automatic validation on snapshot publication.
 
-The original T03 proof used three local candidates at **0.1.0-t03**. T25 selects the `Knightfall.Envoy.ControlPlane` package family and promotes Protocol/Annotations to **1.0.0-rc.1**, retaining CLR/protobuf identities; the optional evaluator stays **0.1.0-t03**. All target **net10.0** and use central package management. The [current root report](../docs/compatibility/root-1.0.md) tracks candidate verification separately from this bounded research. The annotation and evaluator packages carry the original Apache-2.0 license and source manifest. Generated annotation types are produced by Buf, not Grpc.Tools.
+The original T03 proof used three local candidates at **0.1.0-t03**. The later release uses the `Knightfall.Envoy.ControlPlane` package family at **1.0.0-rc.1** for all five packages, including the optional evaluator, retaining CLR/protobuf identities. All target **net10.0** and use central package management. The [current root report](../docs/compatibility/root-1.0.md) tracks candidate verification separately from this bounded research. The annotation and evaluator packages carry the original Apache-2.0 license and source manifest. Generated annotation types are produced by Buf, not Grpc.Tools.
 
 ## Pinned source and adaptations
 
@@ -54,7 +54,7 @@ Original sources remain unchanged. The original descriptor set has **523 files**
 
 Generated C# retains the upstream message and field explanations. Protocol and Annotations include XML documentation in their packages. `GeneratedDocumentation_MessageAndFieldComments_PreserveUpstreamExplanations` checks representative message and field comments through project references and fresh package consumption. Generator formatting and serialization code remain standard upstream output.
 
-The derived set fingerprint is `7403284aec07c54c08d450dbc5ccea77f9c713e88c971c22421c37283e59e9f9`. The final 540-file C# fingerprint is `3d68c6a4dd31907c29c8c8de05136ded90ada8de0bf9c4efe118429d2ebca51d`. The separate one-file annotation fingerprint and configuration checksums are locked as well.
+At T03, the derived set fingerprint was `7403284aec07c54c08d450dbc5ccea77f9c713e88c971c22421c37283e59e9f9` and the 540-file C# fingerprint was `3d68c6a4dd31907c29c8c8de05136ded90ada8de0bf9c4efe118429d2ebca51d`. Later T26 changes produced the release fingerprints recorded in the [root compatibility report](../docs/compatibility/root-1.0.md). The separate one-file annotation fingerprint and configuration checksums are locked as well.
 
 ## The oneof compatibility correction
 
@@ -105,6 +105,6 @@ The schema helper's `inventory` command remains available to write the complete 
 
 The selected arrangement is owned Buf generation, a single annotation assembly and an optional source-built ProtoValidate evaluator. T03's claim is bounded feasibility for the pinned catalog and tested rule combinations. G1 can review that arrangement and its local package evidence; it does not establish complete validation parity or authorize package publication.
 
-T26/GV still requires full claimed rule/combinations coverage, applicable official evaluator conformance, unsupported-rule detection, evaluator fault/limit cases, custom descriptors and Any behavior, diagnostics and clean-consumer evidence for the final API. Non-finite numbers, timestamp rules, regex differences, collection combinations and the full catalog are not established by this 33-case proof. Exact Go error text/order and method shapes are not promised. Live Envoy acceptance is a separate interoperability gate.
+At T03, T26/GV still required claimed rule/combinations coverage, applicable official evaluator conformance, unsupported-rule detection, evaluator fault/limit cases, custom descriptors and Any behavior, diagnostics and clean-consumer evidence for the final API. The later [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) records the work completed and its explicit exclusions. Non-finite numbers, timestamp rules, regex differences, collection combinations and the full catalog are not established by this 33-case proof. Exact Go error text/order and method shapes are not promised. Live Envoy acceptance is a separate interoperability gate.
 
-A schema/tool/source update must report original and derived rule changes and rerun affected comparisons. Locked fingerprints prevent an unevaluated change being accepted silently. Public package names/API remain experimental until the release review and GV requirements pass.
+A schema/tool/source update must report original and derived rule changes and rerun affected comparisons. Locked fingerprints prevent an unevaluated change being accepted silently. The package family and declared T26 validation scope were subsequently released as a prerelease; see the [release record](../docs/releases/1.0.0-rc.1.md) and [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) for the evidence and limits.

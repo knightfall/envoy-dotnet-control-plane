@@ -1,6 +1,6 @@
 # SotW preview
 
-The preview supplies .NET 10 bindings, SnapshotCache, eight standard SotW discovery streams and SotW ADS through ASP.NET Core gRPC/Kestrel. Its listener/HCM/router/route/cluster/endpoint example has released-Envoy traffic, live update, NACK/repair and reconnect proof. [compatibility.json](compatibility.json) records exact packages, source/tool/binding pins, RPCs, defaults, intentional .NET differences and immutable evidence commits. **No NuGet packages or images have been published.** T12's implementing PR records its final review/CI gate.
+The preview supplies .NET 10 bindings, SnapshotCache, eight standard SotW discovery streams and SotW ADS through ASP.NET Core gRPC/Kestrel. Its listener/HCM/router/route/cluster/endpoint example has released-Envoy traffic, live update, NACK/repair and reconnect proof. [compatibility.json](compatibility.json) records exact packages, source/tool/binding pins, RPCs, defaults, intentional .NET differences and immutable evidence commits. This is a historical milestone record. The later [1.0.0-rc.1 release](../releases/1.0.0-rc.1.md) published five NuGet packages; T12's implementing PR records the preview review/CI gate.
 
 This is the accepted **SotW preview** record. Current source additionally implements [Delta cache/streams and eleven gRPC methods](../plan/T14-DELTA-GRPC.md); that later HTTP/2 evidence does not expand the preview's released-Envoy acceptance. The manifest's `outsidePreview` list describes its acceptance boundary, not current source availability.
 
@@ -31,37 +31,15 @@ The command builds the actual example/probe projects, extracts the pinned offici
 
 The image lock separates proxy release/source/platform from schema revision. Its SDK image runs **.NET 10.0.11**, recorded by the probe. Local arm64 and CI amd64 passed. This is one release and a four-family plaintext graph; other advertised methods have generated-client HTTP/2 evidence rather than complete Envoy workloads.
 
-## Use local candidate packages
+## Use the published packages
 
-`repository verify` creates packages/symbols under `src/Envoy.ControlPlane.Protocol/bin/packages/`, then restores full test and executable consumers with fresh caches and no source-project references. Versions in the manifest are local candidates, not public-feed versions.
-
-A standalone Web SDK application can reference `Envoy.ControlPlane.AspNetCore` version `0.1.0-t04`:
+The preview manifest records historical local candidate versions, not current package identities. The five packages are now available at prerelease version `1.0.0-rc.1` on NuGet.org and GitHub Packages. For example, a standalone Web SDK application can reference the hosting package:
 
 ```xml
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Envoy.ControlPlane.AspNetCore" Version="0.1.0-t04" />
-  </ItemGroup>
-</Project>
+<PackageReference Include="Knightfall.Envoy.ControlPlane.AspNetCore" Version="1.0.0-rc.1" />
 ```
 
-Within this repository use central package management and omit inline versions. Outside it, configure the absolute candidate feed and nuget.org for third-party dependencies:
-
-```xml
-<configuration>
-  <packageSources>
-    <clear />
-    <add key="candidate" value="/absolute/path/to/checkout/src/Envoy.ControlPlane.Protocol/bin/packages" />
-    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-  </packageSources>
-</configuration>
-```
-
-Use [the hosting readme](../../src/Envoy.ControlPlane.AspNetCore/README.md) for the complete minimal host: register shared `IConfigWatcher`, optional callbacks/options, call `AddEnvoyControlPlane` and map `MapEnvoyControlPlane`. [Core's readme](../../src/Envoy.ControlPlane/README.md) explains snapshots and channel ownership. Core-only consumers have no ASP.NET framework, evaluator or CEL runtime dependency. Protocol's annotation-only dependency preserves contracts without evaluating them.
+Use [the hosting readme](../../src/Envoy.ControlPlane.AspNetCore/README.md) for the complete minimal host and [Core's readme](../../src/Envoy.ControlPlane/README.md) for snapshots and channel ownership. Core-only consumers have no ASP.NET framework, evaluator or CEL runtime dependency. Protocol's annotation-only dependency preserves contracts without evaluating them. To test newly built source packages instead, see the [consumer guide](../../tests/consumers/README.md).
 
 ## Behavior and ownership
 
@@ -92,4 +70,4 @@ CI retains reports, consumer locks, packages/symbols and separate live-proxy dia
 
 The accepted preview covers **SotW ADS/CDS/EDS/LDS/RDS/SRDS/SDS/RTDS/ECDS**. Current source also hosts eleven Delta methods, including VHDS/LEDS, with the separate T14 evidence linked above. Current source also provides nine unary Fetch methods, dedicated rate-limit SotW streaming and an optional eight-route HTTP gateway; see [T18 evidence](../plan/T18-FETCH-GATEWAY.md). These are later scope than the accepted SotW preview. External authorization, rate-limit decisions and other generated services remain outside this host. Descriptors alone do not implement a service.
 
-Full root parity still needs remaining T15–T20 cache/fetch/client/helper work and broader interop/API-release gates. Automatic TTL/heartbeat scheduling is pending; matcher and broader contrib/legacy catalogs stay deferred. **Validation is not included:** preserved options and the viable 33-case source-adaptation proof do not establish T26/GV. [Update reports](../plan/T24-PREVIEW-READINESS.md) keep new/changed constraints unproven and never approve validator acceptance. Publishing packages requires a separate explicit instruction.
+At the preview milestone, T15–T20 and the broader root interoperability and release gates remained future work; the later [root compatibility report](../compatibility/root-1.0.md) records their evidence. The [T26 report](../plan/T26-VALIDATION-CONFORMANCE.md) separately records optional validation coverage and exceptions. Matcher and broader contrib/legacy catalogs remain deferred. TTL behavior and the caller-owned SotW heartbeat scheduler are described in the root report; automatic Delta heartbeat scheduling is not provided.

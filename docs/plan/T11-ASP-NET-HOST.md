@@ -1,5 +1,7 @@
 # T11 — ASP.NET Core SotW streaming host
 
+This task report preserves its implementation-time scope and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Implements [issue #12](https://github.com/knightfall/envoy-dotnet-control-plane/issues/12) using the T09/T10 channel-based Core engine, generated upstream contracts, `Grpc.AspNetCore.Server` 2.84.0 and Kestrel. The behavior pin remains `67c5345367582741334e34ffc66a561b0ce32946`. No schema, generator, descriptor or generated-code fingerprint changes are needed.
 
 ## Hosting design

@@ -1,6 +1,6 @@
 # .NET parity plan for go-control-plane
 
-Design baseline reviewed on **24 October 2026**. The proposal below records that review, rather than current implementation status. The [SotW preview guide](docs/preview/README.md), [compatibility manifest](docs/preview/compatibility.json) and [README](README.md) record subsequent implementation and proof.
+Design baseline reviewed on **24 October 2026**. The proposal below records that review, rather than current implementation status. The [root compatibility report](docs/compatibility/root-1.0.md) and [T26 report](docs/plan/T26-VALIDATION-CONFORMANCE.md) record subsequent implementation, validation evidence and limits; the [SotW preview guide](docs/preview/README.md) retains the earlier milestone.
 
 ## Recommendation
 
@@ -14,7 +14,7 @@ The root release claim should be “v3 server/cache/client behavior at the pinne
 
 The caller supplies Envoy configuration. The library supplies in-memory caches, discovery protocol handling, and hosting integration. Resource translation, durable storage, and deployment orchestration remain application concerns, matching the upstream scope.
 
-The [detailed architecture](docs/architecture/ARCHITECTURE.md), [decision register](docs/architecture/DECISIONS.md), [implementation tasks and subtasks](docs/plan/IMPLEMENTATION-PLAN.md), and [verification traceability](docs/plan/TRACEABILITY.md) expand this proposal into an actionable design. The implementation plan tracks the remaining scope; current evidence is linked from the preview guide.
+The [detailed architecture](docs/architecture/ARCHITECTURE.md), [decision register](docs/architecture/DECISIONS.md), [implementation tasks and subtasks](docs/plan/IMPLEMENTATION-PLAN.md), and [verification traceability](docs/plan/TRACEABILITY.md) expand this proposal into an actionable design. The implementation plan retains task definitions and historical status; the root compatibility and T26 reports linked above record the later evidence.
 
 ## Baseline and repository layout
 
@@ -52,7 +52,7 @@ Rate-limit configuration discovery is included: the Go server implements StreamR
 | Envoy.ControlPlane.AspNetCore | Concrete gRPC service adapters, HTTP fetch endpoints, and DI/endpoint registration |
 | Envoy.ControlPlane.Validation | Optional explicitly invoked schema validation; evaluator/provider selected by T03 |
 
-The validation package depends on the authoritative Protocol types and owns evaluator integration. Its final name follows the provider proof; a Protovalidate-specific name is appropriate only if that runtime is selected. Core and ASP.NET Core do not depend on it. No validated-publication decorator or general validation framework is planned. See the [validation plan](docs/architecture/VALIDATION.md).
+The optional validation package consumes generated messages through `IMessage`, depends on the shared annotation contracts, and owns evaluator integration. It does not reference Protocol directly. Core and ASP.NET Core do not depend on it. No validated-publication decorator or general validation framework is planned. See the [validation plan](docs/architecture/VALIDATION.md).
 
 Package names are provisional. Core depends on the protocol package but does not require an ASP.NET Core host. The host package depends on both. The ADS helper accepts an application-owned gRPC call invoker/channel abstraction. Use Task/ValueTask and CancellationToken for I/O; use ILogger for logging instead of reproducing Go's logging facade.
 
@@ -111,7 +111,7 @@ Release gates:
 
 No Go or .NET runtime tests, SDK restore, protocol generation, package build, or live Envoy interop were run during this proposal review. Git synchronization, source inspection, documentation checks, and primary-source research establish the planning evidence only.
 
-Subsequent implementation evidence is consolidated in the [preview guide](docs/preview/README.md). T01–T11 and the preview portions of T20–T24 now have source, binding, runtime, package and released-Envoy evidence; full root parity and T26/GV remain separate gates.
+The [preview guide](docs/preview/README.md) records the earlier SotW milestone. Subsequent evidence for the selected root scope and optional validation is in the [root compatibility report](docs/compatibility/root-1.0.md) and [T26 report](docs/plan/T26-VALIDATION-CONFORMANCE.md), with explicit limits and exceptions. The five packages were published as [1.0.0-rc.1](docs/releases/1.0.0-rc.1.md).
 
 ## Implementation sequence
 

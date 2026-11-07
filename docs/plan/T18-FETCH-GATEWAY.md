@@ -1,5 +1,7 @@
 # T18 — Fetch and HTTP gateway evidence
 
+This task report preserves its original implementation-time status and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 This implements issue #24 / R17–R18 through the existing optional Fetch capability. It adds no runtime dependency, alternate cache engine, JSON codec, timer or retry policy. Behavioral source remains `67c5345367582741334e34ffc66a561b0ce32946`; schema/generator/descriptor fingerprints are unchanged. The Go oracle additionally pins the rate-limit module required by the actual upstream server to `v0.1.1-0.20261023125212-67c534536758`, with its two checksum entries; module verification rejects a different revision or replacement.
 
 ## Implementation and boundaries

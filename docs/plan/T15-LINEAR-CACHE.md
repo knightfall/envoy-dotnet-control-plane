@@ -1,5 +1,7 @@
 # T15 LinearCache
 
+This report preserves T15 implementation-time status and evidence. The later [MuxCache](T16-MUX-CACHE.md), [Fetch](T18-FETCH-GATEWAY.md) and [released-Envoy](T23-ROOT-ENVOY.md) reports cover subsequent work.
+
 `LinearCache` manages one arbitrary type URL across nodes. Callers supply resource names; message fields do not determine the index. It implements the channel-based `IConfigWatcher` contract used by the existing SotW/Delta stream engines. Mux routing remains T16; released-Envoy Delta acceptance remains a separate T23 gate.
 
 ## Collection and versions

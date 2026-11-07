@@ -1,5 +1,7 @@
 # T14 Delta cache and response foundation
 
+This report preserves T14.1 implementation-time status and evidence. The later [Delta stream](T14-DELTA-STREAMS.md), [gRPC](T14-DELTA-GRPC.md) and [released-Envoy](T23-ROOT-ENVOY.md) reports cover subsequent work.
+
 This increment implements T14.1: SnapshotCache Delta selection/publication, raw and pass-through response envelopes, status and asynchronous watch ownership. It builds on T13 subscription state. Delta stream processing, callbacks, first-request per-type dispatch and gRPC adapters remain the next T14 increment; issue #20 stays open. The existing SotW preview's recorded scope does not change.
 
 ## Contract and implementation

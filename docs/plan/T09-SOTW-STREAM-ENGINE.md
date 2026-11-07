@@ -1,5 +1,7 @@
 # T09 — SotW stream engine and callbacks
 
+This task report preserves its implementation-time scope and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Implements [issue #10](https://github.com/knightfall/envoy-dotnet-control-plane/issues/10) against Go behavior commit `67c5345367582741334e34ffc66a561b0ce32946`. The [completed investigation](T09-SOTW-STREAM-INVESTIGATION.md) records the source reading and accepted gRPC/Kestrel decision. The measured transport performance penalty is accepted for now; performance tuning is not a T09 prerequisite.
 
 ## Runtime behavior

@@ -9,13 +9,13 @@ Run the project-based CLI from the repository root. The pinned SDK, central pack
 
 The main CLI builds before any generated contracts exist. Generation exports verified source inputs, generates annotation contracts and bootstrap Protocol through Buf, builds the schema helper, then applies the typed overlay and generates final Protocol. This order avoids a circular build dependency. The main CLI calls its source-export and correction code directly; only the generation-dependent schema helper runs as another .NET application.
 
-`Upstream/`, `Bindings/`, `Validation/`, `Repository/`, `Transport/` and `Envoy/` contain focused implementation files. `Program.cs` only routes commands. Common tooling build settings live in [Directory.Build.props](Directory.Build.props); package versions remain in [Directory.Packages.props](../Directory.Packages.props).
+`Upstream/`, `Bindings/`, `Validation/`, `Repository/`, `Transport/`, `Envoy/` and `Release/` contain focused implementation files. `Program.cs` only routes commands. Common tooling build settings live in [Directory.Build.props](Directory.Build.props); package versions remain in [Directory.Packages.props](../Directory.Packages.props).
 
 The root [.gitattributes](../.gitattributes) keeps tracked text at LF on all platforms, including Windows checkouts with `core.autocrlf=true`. Configuration fingerprints verify exact bytes. Generated-source fingerprints normalize LF contents and forward-slash paths before ordinal sorting.
 
 ## Bootstrap
 
-Use the .NET SDK in [global.json](../global.json) and Go version in [sources.lock.json](../schemas/validation/sources.lock.json). Choose a writable source-cache directory outside the checkout. The commands retrieve and verify pinned remote artifacts; initial package restore and Buf remote-plugin generation require network access.
+Use the .NET SDK in [global.json](../global.json) and Go version in [sources.lock.json](../schemas/validation/sources.lock.json). Choose a writable source-cache directory outside the checkout and replace `<external-source-cache>` with its path in the commands below. The commands retrieve and verify pinned remote artifacts; initial package restore and Buf remote-plugin generation require network access.
 
 ```sh
 dotnet restore tools/Envoy.ControlPlane.Tools/Envoy.ControlPlane.Tools.csproj --locked-mode
@@ -27,10 +27,10 @@ dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no
 
 ```sh
 dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream sync --cache <external-source-cache>
-dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream inspect --cache <external-source-cache> --offline
+dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream inspect --cache <external-source-cache>
 ```
 
-`sync` verifies source archives, licenses, baseline pins, module replacements and catalog/import closure. `export` additionally writes selected inputs beneath Protocol's `obj/upstream/`. `inspect` performs the separately pinned provenance compiler check; its executable is currently limited to macOS arm64. See [provenance evidence](../schemas/PROVENANCE.md).
+`sync` verifies source archives, licenses, baseline pins, module replacements and catalog/import closure. `export` additionally writes selected inputs beneath Protocol's `obj/upstream/`. `inspect` performs the separately pinned provenance compiler check; its executable is currently limited to macOS arm64. An initial online inspection also caches the pinned compiler and inspection packages; after that, `inspect --offline` can reuse the verified source and tool cache. See [provenance evidence](../schemas/PROVENANCE.md).
 
 ## Binding generation and package proof
 
@@ -64,9 +64,9 @@ dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache
 dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify
 ```
 
-`repository verify` checks solution registration, verifies pinned validation inputs, performs locked solution restore/build/test, compares validation, snapshot, SotW cache and subscription corpora with the pinned Go implementations, and packs all five runtime packages with symbols. It inspects readmes, licenses, assemblies, XML documentation where supplied, and separate portable-symbol packages. The source-built evaluator retains upstream's existing XML-documentation limitation.
+`repository verify` checks solution registration, verifies pinned validation inputs, performs locked solution restore/build/test, compares the declared validation, resource/helper, SotW/Delta cache/subscription/stream, Linear/Mux, heartbeat, Fetch/gateway, ADS-client and conversion corpora with pinned Go implementations, and packs all five runtime packages with symbols. It inspects readmes, licenses, assemblies, XML documentation where supplied, and separate portable-symbol packages. The source-built evaluator retains upstream's existing XML-documentation limitation.
 
-The command runs the full Protocol, Validation, Core and Hosting suites against fresh NuGet packages, then runs the Core and ASP.NET consumers under [tests/consumers/](../tests/consumers/README.md). Each consumer restores into a separate empty NuGet cache. Core's exact package graph excludes hosting and evaluator dependencies; ASP.NET adds its shared framework and Core dependency without an evaluator. Core consumers exercise resource snapshots, explicit consistency and Delta version construction. The full Core suite also verifies one-shot watches and custom contracts. The complete selected root surface, including SotW/Delta, Fetch, Linear/Mux and caller-owned SotW heartbeat scheduling, is implemented. Root candidate packages use the `Knightfall.Envoy.ControlPlane` prefix while retaining assembly names; the optional evaluator remains experimental. See the [root compatibility report](../docs/compatibility/root-1.0.md) for scope and proxy limits.
+The command runs the full Protocol, Validation, Core and Hosting suites against fresh NuGet packages, then runs the Core and ASP.NET consumers under [tests/consumers/](../tests/consumers/README.md). Each consumer restores into a separate empty NuGet cache. Core's exact package graph excludes hosting and evaluator dependencies; ASP.NET adds its shared framework and Core dependency without an evaluator. Core consumers exercise resource snapshots, explicit consistency and Delta version construction. The full Core suite also verifies one-shot watches and custom contracts. The complete selected root surface, including SotW/Delta, Fetch, Linear/Mux and caller-owned SotW heartbeat scheduling, is implemented. Released packages use the `Knightfall.Envoy.ControlPlane` prefix while retaining assembly names. See the [root compatibility report](../docs/compatibility/root-1.0.md) for scope and proxy limits and the [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) for optional validation coverage.
 
 Solution tests use native MTP through `dotnet test --solution Envoy.ControlPlane.slnx`. All five maintained suites are registered, including Core and Hosting. Reports and consumer locks are under Protocol's `obj/upstream/results/`; packages and `.snupkg` files remain under its `bin/packages/`. This is local candidate packaging, not a NuGet publishing command.
 
@@ -95,7 +95,20 @@ The earlier provider experiments and orchestration under [scripts/](../scripts/R
 
 `upstream report` runs after generation and records source/tool pins, schema fingerprints, original PGV rules, derived options and validation coverage. Verified coverage is reused only when its descriptor, source, test and configuration fingerprints still match; otherwise coverage remains unproven. It does not fetch newer sources or approve changed locks. `upstream diff` needs no generated Protocol and retains exact added/changed/removed values. Save baselines outside `obj/upstream`, which generation replaces. [T24 readiness](../docs/plan/T24-PREVIEW-READINESS.md) documents update and verification gates. `repository verify` retains its snapshot and every consumer lock under `obj/upstream/results/` for CI upload.
 
-## Migration verification
+## Workflow security and release preparation
+
+These commands use the checksummed native tools in [.github/security/tools.json](../.github/security/tools.json), currently pinned for Linux x64 and macOS arm64:
+
+```sh
+dotnet run --project tools/Envoy.ControlPlane.Tools -- workflows verify --cache <external-tool-cache>
+dotnet run --project tools/Envoy.ControlPlane.Tools -- release prepare --output <new-output-directory> --cache <external-tool-cache>
+```
+
+`workflows verify` runs actionlint, zizmor and the native Actions lock verifier. It needs network access for lock provenance verification; it does not regenerate `actions.lock` or change repository protections. Pinned tool downloads are verified before execution.
+
+`release prepare` requires a clean committed checkout and a successful `repository verify` snapshot for that exact commit, including current validation coverage. It checks the five package/symbol pairs against their expected identities, versions and source commit, copies verification evidence, generates source/build SPDX SBOMs, validates the build SBOM and locked dependency inventory, then writes a file-digest manifest. The output directory must not already exist. The version comes from [.github/release/policy.json](../.github/release/policy.json), currently `1.0.0-rc.1`. This command neither signs nor publishes packages; a later release requires reviewed version-specific changes and the [protected publication process](../docs/releases/PUBLISHING.md).
+
+## Historical tooling migration verification
 
 Observed on 25 October 2026 on macOS arm64, starting from merged T03 commit `4473df9748368f531240a0491e8eb8ecb95ad390`. Verification used an isolated copy with no `bin/`, `obj/` or generated contracts, the pinned .NET SDK **10.0.400**, Go **1.26.4**, and Buf **1.75.0**. The external source cache contained checksummed artifacts; each package-consumer proof used a fresh NuGet cache.
 
@@ -132,7 +145,7 @@ The [transport report](../docs/plan/GRPC-KESTREL-VALIDATION.md) describes worklo
 
 After generation, run `dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release -- envoy verify` on a Linux/macOS Docker client connected to a supported Linux amd64/arm64 engine. [The image lock](../tests/resources/envoy-images.lock.json) pins Envoy 1.40.1 and SDK 10.0.400 by official per-platform manifest digest. The command builds the dedicated Envoy probe, extracts the exact proxy binary, and runs control plane/backends/proxy in one container with no external network or published host ports. Caller-owned output is retained under Protocol `obj/upstream/results/envoy/`; temporary binaries and owned containers are removed.
 
-The command enforces all twenty V31 checks, including actual traffic, endpoint/route updates, NACK version/nonce/config retention, explicit repair, outage and same-proxy reconnect. [T23 evidence](../docs/plan/T23-PREVIEW-ENVOY.md) qualifies local/CI execution and scope. `repository verify` builds the probe and runs report-verifier tests without requiring Docker; `.github/workflows/envoy-interop.yml` runs the external proof and uploads its exact-head results. No NuGet or Docker image publication occurs.
+The command enforces all 35 V31–V33 checks: twenty SotW/ADS checks, nine Delta/ADS checks and six explicit Delta TTL checks. These include actual traffic, endpoint/route updates, NACK version/nonce/config retention, explicit repair, outage and same-proxy reconnect. [T23 root evidence](../docs/plan/T23-ROOT-ENVOY.md) qualifies local/CI execution and scope, including the default SotW CDS heartbeat limitation. `repository verify` builds the probe and runs report-verifier tests without requiring Docker; `.github/workflows/envoy-interop.yml` runs the external proof and uploads its exact-head results. No NuGet or Docker image publication occurs.
 
 The binding tool lock includes the official Buf 1.75.0 Linux arm64 executable for the native arm64 released-Envoy CI runner. Existing macOS/Windows/Linux x64 entries and output fingerprints are unchanged. A missing platform entry fails before generation; a downloaded or cached executable must match its locked checksum and version.
 

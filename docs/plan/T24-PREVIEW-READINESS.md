@@ -1,6 +1,6 @@
 # T24 preview packaging and reproducibility
 
-This task completes preview tooling for V01–V04/V37/V38, building on T04's package consumers, T03's original/derived metadata checks and T23's separate live-proxy proof. It does not publish packages or establish complete root-library or optional-validator parity. T12 assembles the preview acceptance record.
+This report preserves T24's preview-stage results for V01–V04/V37/V38, building on T04's package consumers, T03's original/derived metadata checks and T23's separate live-proxy proof. At that stage, it did not publish packages or establish complete root-library or optional-validator parity; T12 assembled the preview acceptance record. The later [T26 report](T26-VALIDATION-CONFORMANCE.md) records declared-scope validation conformance and exceptions, and the [release record](../releases/root-1.0.md) records subsequent publication.
 
 ## Existing package and generation proof
 
@@ -8,7 +8,7 @@ This task completes preview tooling for V01–V04/V37/V38, building on T04's pac
 
 `repository verify` builds/tests the solution, runs the Go corpora, packs five local candidates and checks assemblies, XML documentation where supplied, readmes, license declarations and portable symbols. It now verifies the exact bytes of the twelve locked schema notices, Core's upstream license, annotation/evaluator notices and redistributed manifests. The evaluator retains its existing upstream XML-documentation limitation.
 
-Full Protocol, Validation, Core and Hosting suites run against fresh packages without project references and with empty NuGet caches. Executable Core/ASP.NET consumers assert exact package/shared-framework graphs. Protocol tests verify descriptor ownership and required Any payloads. Core has no ASP.NET host, evaluator or CEL dependency. The optional evaluator's local package remains research evidence; publication and validation-parity claims require T26/GV.
+Full Protocol, Validation, Core and Hosting suites run against fresh packages without project references and with empty NuGet caches. Executable Core/ASP.NET consumers assert exact package/shared-framework graphs. Protocol tests verify descriptor ownership and required Any payloads. Core has no ASP.NET host, evaluator or CEL dependency. At T24, the optional evaluator's local package was research evidence; publication and validation-parity claims required the later T26/GV work.
 
 ## Update procedure
 
@@ -31,7 +31,7 @@ Snapshots record library revision/dirty state; source/schema, generator, migrati
 
 Diffs retain ordered added/changed/removed entries and exact **before/after values** for inputs, files and rules. Rule-value changes remain visible when rule names are unchanged. Explicit false options and empty duration boundaries remain present. Unknown descriptor data is covered by file fingerprints; interpreting future options and establishing support still requires review.
 
-Catalog-wide conformance is **unproven**, including recorded PGV paths, message/oneof and derived constraints. Unsupported constraints are **not assessed**, rather than an empty supported set. The bounded 33-case corpus is identified by its lock/hash; a snapshot does not claim those cases ran. Every diff has `validationAcceptance: false`. Changed inputs/rules require regeneration and the entire declared Go/.NET corpus. Affected new/changed constraints additionally need T26/GV evidence before validator acceptance. Root preview reports retain metadata and expose the gap.
+At T24, catalog-wide conformance was **unproven**, including recorded PGV paths, message/oneof and derived constraints. Unsupported constraints were **not assessed**, rather than an empty supported set. The later [T26 report](T26-VALIDATION-CONFORMANCE.md) states the scope and exceptions of its conformance evidence. The bounded 33-case corpus is identified by its lock/hash; a snapshot does not claim those cases ran. Every diff has `validationAcceptance: false`. Changed inputs/rules require regeneration and the entire declared Go/.NET corpus. Affected new/changed constraints additionally require relevant conformance evidence before validator acceptance. The T24 preview reports retained metadata and exposed the then-existing gap.
 
 Keep before/after reports with their verification artifacts. Do not overwrite historical evidence or reuse old passes for changed inputs. A metadata diff does not prove runtime or proxy behavior; run the relevant behavioral suites and the separate `envoy verify` command for the live preview graph.
 
@@ -48,6 +48,6 @@ Keep before/after reports with their verification artifacts. Do not overwrite hi
 
 `repository verify` writes `obj/upstream/results/reproducibility/snapshot.json` and retains all four test-consumer locks beside their reports. Executable consumers retain locks/runtime configurations separately. Cross-platform CI uploads results, locks, metadata proof and candidate packages with its existing read-only permissions. T23's exact-head Linux workflow uploads proxy/image/traffic/admin evidence separately. Readiness requires no publishing credentials or write permissions.
 
-Added cases bring tooling to 59, Protocol to 14 and solution discovery to 271. The implementing PR records observed local/CI results; registration and workflow configuration alone are not a pass. Full root 1.0 update coverage, T26/GV and publication remain separate.
+Added cases bring tooling to 59, Protocol to 14 and solution discovery to 271. The implementing PR records observed local/CI results; registration and workflow configuration alone are not a pass. At T24, full root 1.0 update coverage, T26/GV and publication were separate later work.
 
 Observed locally on macOS arm64 with SDK 10.0.400: complete `repository verify` passed **271 tests**, zero failed/skipped and zero compiler/Roslynator warnings/errors; all Go comparisons, five package/symbol pairs and fresh Protocol (14), Validation (18), Core (149), Hosting (31) suites plus executable consumers passed. The real report contains 523 original/524 derived schema fingerprints and 1,371 entries in each rule set. The CLI comparison of that complete report with itself has no deltas and still denies validator acceptance. A final Protocol rerun passed after strengthening exact derived-rule assertions. Cross-platform implementing-PR CI remains separately observed evidence. Solution pack emits the existing three non-packable example/probe notices.

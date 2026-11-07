@@ -1,5 +1,7 @@
 # T04 build and package foundation
 
+This task report preserves its original implementation-time status and evidence. For subsequent work and publication, see the [root compatibility report](../compatibility/root-1.0.md) and [release record](../releases/root-1.0.md).
+
 Implemented 25 October 2026 after the T03 source decision in PR #35 and project-based tooling migration in PR #37. This is build/package evidence; Core resource/cache behavior and ASP.NET xDS endpoints remain later tasks. No NuGet package has been published by this task.
 
 ## Structure and boundaries

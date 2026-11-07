@@ -1,5 +1,7 @@
 # T14 Delta stream processing
 
+This task report preserves its implementation-time status and evidence. For subsequent Delta transport and proxy results, see [T14.4](T14-DELTA-GRPC.md), [T23](T23-ROOT-ENVOY.md) and the [root compatibility report](../compatibility/root-1.0.md).
+
 This increment implements **T14.2/T14.3** in Core: `DeltaServer`, channel-based `DeltaSession`, `DeltaOptions` and `IDeltaCallbacks`. T14.1's cache/response work was merged in PR #57. Delta gRPC adapters and their real HTTP/2 matrix remain **T14.4**. The SotW preview and its released-Envoy proof do not establish Delta proxy acceptance.
 
 ## Source and behavior

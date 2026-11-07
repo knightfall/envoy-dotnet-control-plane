@@ -1,6 +1,6 @@
 # Root 1.0 release preparation
 
-T25 prepares a concrete root candidate and its review evidence. Publication needs separate explicit authorization and an authorized repository/package workflow. This change does not create a NuGet release, a tag or a GitHub release. The optional evaluator passed its separate T26 declared-scope gate in PR #73 and joins the five-package release candidate while retaining its separate dependency graph and documented exceptions.
+T25 prepared the root candidate and its review evidence. The optional evaluator passed its separate T26 declared-scope gate in PR #73 and retains its separate dependency graph and documented exceptions. All five packages were subsequently published as [1.0.0-rc.1](https://github.com/knightfall/envoy-dotnet-control-plane/releases/tag/v1.0.0-rc.1); [issue #74](https://github.com/knightfall/envoy-dotnet-control-plane/issues/74) records the protected publication and verification evidence.
 
 ## Candidate identity and version
 
@@ -14,7 +14,7 @@ The owner selected the `Knightfall.Envoy.ControlPlane` NuGet family. Assembly na
 | Knightfall.Envoy.ControlPlane.AspNetCore | 1.0.0-rc.1 | Root candidate |
 | Knightfall.Envoy.ControlPlane.Validation | 1.0.0-rc.1 | Explicit optional evaluator; T26 declared-scope conformance |
 
-The distinct prefix avoids reusing the existing public `Envoy.ControlPlane` ID. Choosing a name does not reserve it or prove publishing rights. Confirm final repository branding/visibility and publishing rights through the separate publication checklist below. Package-content and executable consumer checks verify new IDs/versions with unchanged assembly names and dependency ownership.
+The distinct prefix avoids reusing the existing public `Envoy.ControlPlane` ID. Publication confirmed the selected package identities and publishing rights for this release. Package-content and executable consumer checks verify new IDs/versions with unchanged assembly names and dependency ownership.
 
 ## Candidate release notes
 
@@ -33,12 +33,8 @@ Known limits include stable caller-owned messages, source SnapshotCache prefix/r
 - [x] Locally verify unchanged binding/descriptor fingerprints and run required source/native/lifecycle/update checks against the candidate working tree; retain its dirty-tree status accurately.
 - [x] Record Linux/macOS/Windows and Linux amd64/arm64 proxy results for runtime/package commit `eebfe5783cae67c840f29c86a1a347f83962402e`; link immutable workflow runs and retain scope limits in the compatibility report.
 
-Final signoff is recorded in [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72) and [issue #31](https://github.com/knightfall/envoy-dotnet-control-plane/issues/31): address automatic Codex findings, verify all CI/review gates on the final head and record its immutable merge result before closing T25. The earlier runtime/package pass does not waive verification of a later documentation head. Keep T26/GV separate.
+Final T25 signoff is recorded in [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72) and [issue #31](https://github.com/knightfall/envoy-dotnet-control-plane/issues/31). The earlier runtime/package pass remains distinct from later documentation-head verification. T26/GV is reported separately.
 
-## Publication checklist — separate authorization required
+## Publication evidence
 
-- [ ] Confirm final repository branding, remote visibility and package publishing rights for every ID.
-- [ ] Explicitly authorize the exact packages/version and publication workflow, using the verified immutable candidate and reviewed release notes.
-- [ ] Publish only through that authorized workflow and verify actual package availability and clean external consumption.
-
-An unchecked publication item does not authorize a workaround or imply a package was published. T25's engineering preparation may complete without publication; it must leave the distinction explicit.
+The owner approved production publication. The [original production run](https://github.com/knightfall/envoy-dotnet-control-plane/actions/runs/42336411459) attested and pushed the packages and symbols from source commit `000438a9c4d0bc0b58a5ec7bc55af10f5f9c0ccd`. After correcting external-consumer verification, the [recovery run](https://github.com/knightfall/envoy-dotnet-control-plane/actions/runs/42340393784) verified consumption from both registries and announced the existing release. The later verification workflow did not rebuild or republish the candidate. See [issue #74](https://github.com/knightfall/envoy-dotnet-control-plane/issues/74) for the full evidence and [publishing process](PUBLISHING.md) for the trust boundaries.
