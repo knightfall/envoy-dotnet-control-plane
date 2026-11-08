@@ -33,7 +33,7 @@ jobs:
             tests/Envoy.ControlPlane.TransportProbe/packages.lock.json
             src/Envoy.ControlPlane.Protocol/packages.lock.json
             src/Envoy.ControlPlane.Validation.Annotations/packages.lock.json
-      - uses: actions/setup-go@v6.5.0
+      - uses: actions/setup-go@v7.0.0
         with:
           go-version: '1.26.4'
           cache-dependency-path: tests/resources/GoOracle/go.sum
