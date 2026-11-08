@@ -16,6 +16,9 @@ workflows:
         - 'actions/setup-go@v6.5.0'
         - 'actions/upload-artifact@v7.0.2'
         - 'nuget/login@v1.2.0'
+    '.github/workflows/scorecard.yml':
+        - 'actions/upload-artifact@v7.0.2'
+        - 'ossf/scorecard-action@v2.5.0'
     '.github/workflows/test-report.yml':
         - 'dorny/test-reporter@v3.2.0'
     '.github/workflows/transport-performance.yml':
@@ -76,3 +79,8 @@ dependencies:
         commit: 'sha1-8d196754b4036150537f80ac539e15c2f1028841'
         owner_id: 968310
         repo_id: 1037624552
+    'ossf/scorecard-action@v2.5.0':
+        ref: 'v2.5.0'
+        commit: 'sha1-fa7117db83c52d787ae5a89f350999701505d78e'
+        owner_id: 67707773
+        repo_id: 421101922

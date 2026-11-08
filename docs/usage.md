@@ -2,6 +2,52 @@
 
 The root library targets .NET 10. Five packages are published as prerelease `1.0.0-rc.1`; their identities and release evidence are in the [release record](releases/root-1.0.md). These instructions apply to the current source and the published package surface.
 
+## Consume the published packages
+
+The examples below target `net10.0` and use the published packages on NuGet.org. Reference Core directly for a transport-independent cache or stream engine:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Knightfall.Envoy.ControlPlane" Version="1.0.0-rc.1" />
+</ItemGroup>
+```
+
+For ASP.NET Core gRPC hosting, reference the hosting package. Its Core and Protocol dependencies resolve transitively:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Knightfall.Envoy.ControlPlane.AspNetCore" Version="1.0.0-rc.1" />
+</ItemGroup>
+```
+
+Add the separate Validation package only when the application wants explicit semantic validation. The application must also have access to the generated message package, for example through Core or an explicit Protocol reference:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Knightfall.Envoy.ControlPlane.Validation" Version="1.0.0-rc.1" />
+</ItemGroup>
+```
+
+Validation is caller-owned. For example, invoke it before publishing if that is the application's acceptance policy:
+
+```csharp
+using System;
+using Envoy.Config.Listener.V3;
+
+var listener = new Listener { Name = "listener" };
+var result = new ProtoValidate.Validator().Validate(listener, failFast: false);
+
+if (!result.IsSuccess)
+{
+    foreach (var violation in result.Violations)
+    {
+        Console.WriteLine($"{violation.Field}: {violation.Message} [{violation.RuleId}]");
+    }
+}
+```
+
+Constraint failures return a result containing violations. Constraint compilation or evaluation faults throw exceptions; they are not converted into violations. Core, `SnapshotCache` and hosting never invoke the evaluator automatically.
+
 ## Run the maintained application
 
 Generate bindings and start the example from the repository root, replacing `<source-cache>` with a writable path outside the checkout:
@@ -52,6 +98,93 @@ Apply the application's authorization policy to that mapping too. It exposes the
 Construct a replacement graph using the authoritative generated messages and `ResourceEntry`, optionally call `EnsureConsistent`, and await `SetSnapshotAsync` with the node's cache key. The [example resource factory](../examples/Envoy.ControlPlane.Example/ExampleResources.cs) constructs the full four-family graph. Reference consistency checks only the selected upstream EDS/RDS sets. It establishes neither protobuf-rule validity nor proxy acceptance.
 
 Messages, requests and retained snapshot indexes must stay stable while the library retains them. A new version string without a changed payload does not change a Delta resource hash. Change payloads by creating replacements, then publish a new snapshot. Type versions are opaque strings; avoid using them as a cross-runtime content-hash contract. Successful publication means eligible responses have been enqueued; it does not mean Envoy ACKed them or applied a cross-type transaction.
+
+### Add a custom resource family
+
+For a custom family, generate a protobuf message whose field is named `name`; `ResourceCollection` uses that string field to index resources. For example, this schema produces the `Example.V1.Widget` type used below:
+
+```proto
+syntax = "proto3";
+package example.v1;
+option csharp_namespace = "Example.V1";
+
+message Widget {
+  string name = 1;
+}
+```
+
+The following snapshot keeps a stable collection and read-only resource indexes, returns an empty type version and null indexes for other families, and constructs its per-resource Delta versions once from the same serialization and hash helpers used by the cache:
+
+```csharp
+#nullable enable
+using System;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Envoy.ControlPlane.Cache;
+using Envoy.ControlPlane.Resources;
+using Example.V1;
+using Google.Protobuf;
+
+public sealed class WidgetSnapshot : IResourceSnapshot
+{
+    public const string TypeUrl = "type.googleapis.com/example.v1.Widget";
+
+    private readonly ResourceCollection collection;
+    private readonly IReadOnlyDictionary<string, ResourceEntry> entries;
+    private readonly IReadOnlyDictionary<string, IMessage?> resources;
+    private readonly object versionMapLock = new();
+    private IReadOnlyDictionary<string, string>? versionMap;
+
+    public WidgetSnapshot(string typeVersion, IEnumerable<Widget> widgets)
+    {
+        collection = new ResourceCollection(typeVersion,
+            widgets.Select(widget => new ResourceEntry(widget)));
+        entries = new ReadOnlyDictionary<string, ResourceEntry>(
+            collection.Items.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal));
+        resources = new ReadOnlyDictionary<string, IMessage?>(
+            entries.ToDictionary(pair => pair.Key, pair => pair.Value.Resource, StringComparer.Ordinal));
+    }
+
+    public string GetVersion(string typeUrl) => typeUrl == TypeUrl ? collection.Version : "";
+
+    public IReadOnlyDictionary<string, ResourceEntry>? GetResourcesAndTtl(string typeUrl) =>
+        typeUrl == TypeUrl ? entries : null;
+
+    public IReadOnlyDictionary<string, IMessage?>? GetResources(string typeUrl) =>
+        typeUrl == TypeUrl ? resources : null;
+
+    public void ConstructVersionMap()
+    {
+        lock (versionMapLock)
+        {
+            versionMap ??= new ReadOnlyDictionary<string, string>(entries.ToDictionary(
+                pair => pair.Key,
+                pair => ResourceSerialization.ComputeHash(ResourceSerialization.Serialize(pair.Value.Resource)),
+                StringComparer.Ordinal));
+        }
+    }
+
+    public IReadOnlyDictionary<string, string>? GetVersionMap(string typeUrl) =>
+        typeUrl == TypeUrl ? versionMap : null;
+}
+
+public static class Program
+{
+    public static async Task Main()
+    {
+        var widget = new Widget { Name = "primary" };
+        var snapshot = new WidgetSnapshot("widgets-v1", new[] { widget });
+        snapshot.ConstructVersionMap();
+
+        var cache = new SnapshotCache();
+        await cache.SetSnapshotAsync("node", snapshot);
+    }
+}
+```
+
+Type versions are opaque equality tokens; the per-resource versions above are deterministic payload hashes. Keep retained messages and indexes stable, and publish replacement messages and snapshots for updates. Delta cache paths also call `ConstructVersionMap`, so make that method idempotent and cache the result. The built-in `Snapshot` handles only its known resource families. Custom messages carried inside `Any` need their descriptors registered in the `TypeRegistry` used by JSON/reference conversion or hosting.
 
 Select cache readiness with `new SnapshotCache(ads: true)` and ordered SotW ADS with a registered `SotwOptions { OrderedAds = true }`. Both default to false and solve separate source behaviors. Legacy initial empty-request wildcard behavior defaults to enabled in both stream engines. See [the API contract](public-api.md) before changing those options.
 
