@@ -2,7 +2,13 @@
 
 A .NET library for building xDS management servers, with behavioral parity for the selected v3 root-library surface of Envoy's Go control plane. Applications supply configuration and own rollout policy, persistence and authentication. The library supplies caches, subscriptions, protocol engines, generated messages and ASP.NET Core transports.
 
-The selected root implementation and T25 candidate preparation are implemented in [PR #72](https://github.com/knightfall/envoy-dotnet-control-plane/pull/72), which records exact-head CI and automatic review. **T26 optional validation has a separate [conformance report](docs/plan/T26-VALIDATION-CONFORMANCE.md), with explicit scope and exceptions. Release publishing follows the [protected publishing workflow](docs/releases/PUBLISHING.md), with SBOMs and attestations.** Read the [root compatibility report](docs/compatibility/root-1.0.md) for the exact implemented scope, source pins, observed evidence and compatibility limits. The [SotW preview report](docs/preview/README.md) records the earlier, narrower milestone.
+[![Upstream verification](https://github.com/knightfall/envoy-dotnet-control-plane/actions/workflows/upstream-verification.yml/badge.svg?branch=main)](https://github.com/knightfall/envoy-dotnet-control-plane/actions/workflows/upstream-verification.yml)
+[![Released Envoy interoperability](https://github.com/knightfall/envoy-dotnet-control-plane/actions/workflows/envoy-interop.yml/badge.svg?branch=main)](https://github.com/knightfall/envoy-dotnet-control-plane/actions/workflows/envoy-interop.yml)
+[![NuGet](https://img.shields.io/nuget/vpre/Knightfall.Envoy.ControlPlane?label=NuGet)](https://www.nuget.org/packages/Knightfall.Envoy.ControlPlane)
+[![GitHub release](https://img.shields.io/github/v/release/knightfall/envoy-dotnet-control-plane?include_prereleases)](https://github.com/knightfall/envoy-dotnet-control-plane/releases)
+[![License](https://img.shields.io/github/license/knightfall/envoy-dotnet-control-plane)](LICENSE)
+
+PR #72 records the selected root implementation, T25 candidate preparation, exact-head CI and automatic review. **T26 optional validation has a separate [conformance report](docs/plan/T26-VALIDATION-CONFORMANCE.md), with explicit scope and exceptions. Release publishing follows the [protected publishing workflow](docs/releases/PUBLISHING.md), with SBOMs and attestations.** Read the [root compatibility report](docs/compatibility/root-1.0.md) for the exact implemented scope, source pins, observed evidence and compatibility limits. The [SotW preview report](docs/preview/README.md) records the earlier, narrower milestone.
 
 ## What is implemented
 
