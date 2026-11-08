@@ -90,7 +90,7 @@ Repeated local generation hit Buf's remote-service limit during the readability 
 
 ## Reproduce
 
-Use SDK **10.0.400** and Go **1.26.4**, then run from the checkout root with an external source cache:
+Use the SDK specified in [global.json](../global.json) and the Go version recorded in [sources.lock.json](validation/sources.lock.json), then run from the checkout root with an external source cache:
 
 ```sh
 dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings verify --cache <external-source-cache>

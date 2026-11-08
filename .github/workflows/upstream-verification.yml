@@ -83,7 +83,7 @@ jobs:
             tests/Envoy.ControlPlane.Validation.Tests/packages.lock.json
       - uses: actions/setup-go@v6.5.0
         with:
-          go-version: '1.26.4'
+          go-version: '1.26.10'
           cache-dependency-path: |
             tests/validation/GoOracle/go.sum
             tests/resources/GoOracle/go.sum
