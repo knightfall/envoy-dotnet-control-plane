@@ -28,7 +28,7 @@
       "Knightfall.Envoy.ControlPlane.Protocol": {
         "type": "Project",
         "dependencies": {
-          "Google.Protobuf": "[3.35.1, )",
+          "Google.Protobuf": "[3.36.2, )",
           "Grpc.Core.Api": "[2.84.0, )",
           "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.1, )"
         }
@@ -36,14 +36,14 @@
       "Knightfall.Envoy.ControlPlane.Validation.Annotations": {
         "type": "Project",
         "dependencies": {
-          "Google.Protobuf": "[3.35.1, )"
+          "Google.Protobuf": "[3.36.2, )"
         }
       },
       "Google.Protobuf": {
         "type": "CentralTransitive",
-        "requested": "[3.35.1, )",
-        "resolved": "3.35.1",
-        "contentHash": "pxtkuXhR8svkvDTQrYew9GZQt6eWhblz/V/WKUFrQgkHYlQPsumJTeF6ppHRJpe6j9ffukkd5lQULiiKaek4xA=="
+        "requested": "[3.36.2, )",
+        "resolved": "3.36.2",
+        "contentHash": "Ci1q1iJg74qAE5riTA2FbMS0wPbpruPQI/JQ9DrAsRo2VsSxgt1e/pmxGxgrci+pXJEgrSYg2vPl8rrStZkclQ=="
       },
       "Grpc.Core.Api": {
         "type": "CentralTransitive",

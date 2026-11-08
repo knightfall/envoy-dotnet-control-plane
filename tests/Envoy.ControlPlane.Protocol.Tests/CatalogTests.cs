@@ -71,7 +71,7 @@ public sealed class CatalogTests
             {
                 field.ClearJsonName();
             }
-            Assert.True(expected.Equals(actual), "Descriptor differs: " + file.Name + "\nSOURCE: " + expected + "\nC#: " + actual);
+            Assert.True(DescriptorsMatch(expected, actual), "Descriptor differs: " + file.Name + "\nSOURCE: " + expected + "\nC#: " + actual);
             if (source.TryGetValue(file.Name, out var original))
             {
                 OverlayTransform.RemoveDerivedMetadata(actual);
@@ -81,8 +81,46 @@ public sealed class CatalogTests
                 {
                     field.ClearJsonName();
                 }
-                Assert.True(normalizedOriginal.Equals(actual), "Original options or contract changed: " + file.Name);
+                Assert.True(DescriptorsMatch(normalizedOriginal, actual), "Original options or contract changed: " + file.Name);
             }
         }
+    }
+
+    [Fact]
+    public void DescriptorRuntimeException_RejectsSourceAndRuntimeDrift()
+    {
+        var source = FileDescriptorSet.Parser.ParseFrom(ProtocolCatalog.ReadEmbeddedResource("validation.catalog.pb"))
+            .File.Single(f => f.Name == "google/protobuf/descriptor.proto").Clone();
+        var runtime = ProtocolCatalog.Files.Value.Single(f => f.Name == source.Name).ToProto();
+        DescriptorComparison.NormalizeRuntimeDescriptorMetadata(source.MessageType);
+        DescriptorComparison.NormalizeRuntimeDescriptorMetadata(runtime.MessageType);
+
+        Assert.True(DescriptorsMatch(source, runtime));
+        var changedSource = source.Clone();
+        changedSource.MessageType[0].Field[0].Number++;
+        Assert.False(DescriptorsMatch(changedSource, runtime));
+        var changedRuntime = runtime.Clone();
+        changedRuntime.MessageType[0].Field.RemoveAt(0);
+        Assert.False(DescriptorsMatch(source, changedRuntime));
+        changedRuntime = runtime.Clone();
+        changedRuntime.MessageType[0].Field[0].Options = new FieldOptions { Deprecated = true };
+        Assert.False(DescriptorsMatch(source, changedRuntime));
+    }
+
+    /// <summary>
+    /// Pins the full normalized source and runtime descriptors independently so
+    /// the 35.1 source and 3.36.2 runtime difference cannot hide further drift.
+    /// </summary>
+    private static bool DescriptorsMatch(FileDescriptorProto expected, FileDescriptorProto actual)
+    {
+        if (expected.Equals(actual))
+        {
+            return true;
+        }
+
+        return expected.Name == "google/protobuf/descriptor.proto"
+            && actual.Name == expected.Name
+            && Convert.ToHexStringLower(SHA256.HashData(expected.ToByteArray())) == "b21e5ddcc0eb5ad054804d1112a9a70dbcff0697d5b3deae9a58ed69af725d71"
+            && Convert.ToHexStringLower(SHA256.HashData(actual.ToByteArray())) == "2f04a0c1e3119244e70302f150ae5f020315a07b071ed92742e21d80bdb1ab52";
     }
 }

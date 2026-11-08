@@ -904,15 +904,15 @@
       "source": "global.json"
     },
     "googleProtobuf": {
-      "version": "3.35.1",
-      "url": "https://api.nuget.org/v3-flatcontainer/google.protobuf/3.35.1/google.protobuf.3.35.1.nupkg",
-      "sha256": "6ba51589915e3640e1ffdd384863dd0d73f0ca6a8aac591ec81c42c6a3ee55ce",
-      "sha512": "AogNfWrqhkPBdXlAGMcP2Z1zZm6TcaEg7+WFZxosVcCwLZZAWjYTVts4/vM2wTNRKMOmCUW3UsJ/3qtlbkimrg==",
-      "assemblySha256": "e0deb31c17ad585eaf844fdca5b19a774594813401cace58d30d5996ba094da2",
-      "assemblyPath": "lib/net5.0/Google.Protobuf.dll",
+      "version": "3.36.2",
+      "url": "https://api.nuget.org/v3-flatcontainer/google.protobuf/3.36.2/google.protobuf.3.36.2.nupkg",
+      "sha256": "1182590db175f9057707857a1df48b217226d0732716cd353fa4aa4683d38dcb",
+      "sha512": "EmqX4khA/D63NGBn4GYxc6wJjrCeJqx6dbk6rFBudIR987jsq5r1YGRWRrLwyy7qDu4y1/5To/pdDbWwEgekpA==",
+      "assemblySha256": "0f93ce18692e0b789c41299d0d2af2b477644fc4b13482bd0680b29289603996",
+      "assemblyPath": "lib/net8.0/Google.Protobuf.dll",
       "license": "BSD-3-Clause",
       "repository": "https://github.com/protocolbuffers/protobuf.git",
-      "commit": "35cd01f9fe9afbeea38cc7b979a3b6bfcde82c03"
+      "commit": "2c74169b34066ceb8ddb6b882fcb3fb32d737a55"
     },
     "roslynatorAnalyzers": {
       "version": "5.0.1",
