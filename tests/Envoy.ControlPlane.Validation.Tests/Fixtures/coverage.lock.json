@@ -10,8 +10,8 @@
   "fieldGroupCount": 90,
   "fieldCaseCount": 310,
   "configurationSha256": {
-    "schemas/validation/sources.lock.json": "e34ebf53f5aed0bca47980a58dc44f7d9e19753c3680be0560e55ab9abad1ecf",
-    "schemas/validation/bindings.lock.json": "9857fd0ccb7fbec01ad3669ddbf6c802b1a6da2b2cb5ff2ca4020a9f8cfda039",
+    "schemas/validation/sources.lock.json": "9b1f309ea40a7c9136638ee561c686702a07582ec4fb9650f2f8c720d419409f",
+    "schemas/validation/bindings.lock.json": "149dd2397a87b396ae4cd9d0457bd078261269fedcdb50cc0fa4bd30309c5671",
     "schemas/validation/rules.recognized.json": "7bd8b4f793a8522b592b96baf3882db567dc57833206ee58e3b82459732b0df3",
     "schemas/validation/conformance.lock.json": "87e26e8c38ec581ca0128742015ad713f3d621ef0a04e7142d388dee8e6b7d1d",
     "schemas/validation/pgv-conformance.lock.json": "dadfa24dfc49a3575fcae3f7db9631fac3af221ca7ef78d28494491bc3278485",
