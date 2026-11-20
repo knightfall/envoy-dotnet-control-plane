@@ -29,7 +29,7 @@
         "type": "Project",
         "dependencies": {
           "Google.Protobuf": "[3.35.1, )",
-          "Grpc.Core.Api": "[2.84.0, )",
+          "Grpc.Core.Api": "[2.85.0, )",
           "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.1, )"
         }
       },
@@ -47,7 +47,7 @@
       },
       "Grpc.Core.Api": {
         "type": "CentralTransitive",
-        "requested": "[2.84.0, )",
+        "requested": "[2.85.0, )",
         "resolved": "2.85.0",
         "contentHash": "cpYu/nw/QhwHcRZMJbYD8lEllKrdwYMiDS4U3oH61nhYPUMNkcCcef4ulv11svHvTBThYV+ju332N9bCrfe7cQ=="
       }
