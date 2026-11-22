@@ -68,6 +68,7 @@ jobs:
             src/Envoy.ControlPlane.AspNetCore/packages.lock.json
             src/Envoy.ControlPlane.Protocol/packages.lock.json
             src/Envoy.ControlPlane.Validation.Annotations/packages.lock.json
+            src/Envoy.ControlPlane.Validation/packages.lock.json
       - uses: actions/setup-go@v6.5.0
         with:
           go-version: '1.26.10'
@@ -79,11 +80,18 @@ jobs:
         run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- bindings generate --cache ../upstream-sources
       - name: Verify released Envoy SotW, Delta reconnect/removal and TTL refresh/expiry
         run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- envoy verify
-      - name: Verify host-to-container Envoy integration
+      - name: Publish the example and pack fresh smoke-test dependencies
+        id: smoke
         if: ${{ !cancelled() && steps.bindings.outcome == 'success' }}
         run: |
-          dotnet restore tests/Envoy.ControlPlane.Integration.Tests --locked-mode
-          dotnet test --project tests/Envoy.ControlPlane.Integration.Tests --configuration Release --no-restore --results-directory "$GITHUB_WORKSPACE/artifacts/envoy-integration" --report-xunit-trx
+          dotnet restore Envoy.ControlPlane.slnx --locked-mode
+          dotnet pack Envoy.ControlPlane.slnx --configuration Release --no-restore -p:WarnOnPackingNonPackableProject=false --output "$RUNNER_TEMP/envoy-smoke/packages"
+          dotnet publish examples/Envoy.ControlPlane.Example --configuration Release --no-restore --output "$RUNNER_TEMP/envoy-smoke/example"
+      - name: Verify Testcontainers Envoy integration
+        if: ${{ !cancelled() && steps.smoke.outcome == 'success' }}
+        env:
+          ENVOY_SMOKE_ARTIFACTS: ${{ runner.temp }}/envoy-smoke
+        run: dotnet test --project tests/Envoy.ControlPlane.Integration.Tests --configuration Release --no-restore --results-directory "$GITHUB_WORKSPACE/artifacts/envoy-integration" --report-xunit-trx
       - name: Upload proxy evidence, logs and integration test results
         if: always()
         uses: actions/upload-artifact@v7.0.2

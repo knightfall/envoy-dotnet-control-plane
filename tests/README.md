@@ -219,6 +219,19 @@ dotnet test --project tests/Envoy.ControlPlane.Integration.Tests --configuration
 
 The proxy records stdout, stderr and the admin config dump in xUnit output when startup or a test fails. The [Envoy workflow](../.github/workflows/envoy-interop.yml) runs the integration suite on Linux amd64 and arm64 and uploads its TRX alongside the separate `envoy verify` evidence. Projects marked `RequiresDocker` stay in the solution build and run in this dedicated workflow. Ordinary `repository verify` and its Coverlet mode execute only the Docker-free suites.
 
+## Containerized example and NuGet smoke tests
+
+The [black-box smoke tests](Envoy.ControlPlane.Integration.Tests/Smoke/) run the published example and a standalone package consumer inside the pinned .NET SDK image. Envoy reaches each process by its Docker DNS alias on a shared network. Both cases update the mounted `appsettings.json` and verify live traffic switches backends. The example accepts `BackendAddress` and `ListenerAddress` with loopback defaults. Docker must be able to mount the test process's temporary settings directory.
+
+Run the full integration command above or select the two smoke cases after binding generation and locked restore:
+
+```sh
+dotnet test --project tests/Envoy.ControlPlane.Integration.Tests --configuration Release --no-restore \
+  --filter-class Envoy.ControlPlane.Integration.Tests.Smoke.ContainerizedSmokeTests --report-xunit-trx
+```
+
+Locally the fixture publishes the example and packs the current checkout into a fresh temporary directory. CI does the same before the suite and supplies that directory through `ENVOY_SMOKE_ARTIFACTS`. The consumer starts with an empty private NuGet cache and restores from a local feed containing the fresh repository packages and the example's locked external dependencies. The test verifies the restored package archives against the freshly packed hashes.
+
 ## Root update-report verification
 
 [T24 root readiness](../docs/plan/T24-ROOT-READINESS.md) adds two focused cases for exact authored-input/corpus/workflow fingerprints and conservative full-root verification selection. It covers build-output exclusion, normalized path/LF identity, real source changes, all sixteen current Go/.NET groups, explicit commands and the distinction between selection and passing evidence. Existing rule deltas/original metadata, package graph and notice tests remain authoritative. At the T24 run, solution discovery was 484 (tooling/provenance 79), and the update report did not establish validation acceptance. The later [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) records declared-scope conformance and its limits.
