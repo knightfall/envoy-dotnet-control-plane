@@ -85,19 +85,35 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
 
     internal Task StopAsync(CancellationToken cancellationToken) => container.StopAsync(cancellationToken);
 
-    internal async Task RunWithDiagnosticsAsync(ITestOutputHelper output, Func<Task> test, CancellationToken cancellationToken)
+    internal async Task RunWithDiagnosticsAsync(ITestOutputHelper output, Func<Task> test, CancellationToken cancellationToken,
+        EnvoyProxyContainer? peer = null)
     {
         try
         {
-            await container.StartAsync(cancellationToken);
+            var start = container.StartAsync(cancellationToken);
+            if (peer is not null)
+            {
+                start = Task.WhenAll(start, peer.container.StartAsync(cancellationToken));
+            }
+            await start;
             await test();
         }
         catch (Exception error) when (error is not OutOfMemoryException)
         {
             await CaptureDiagnosticsAsync(output);
-            if (sensitiveValue is { Length: > 0 } && error.ToString().Contains(sensitiveValue, StringComparison.Ordinal))
+            if (peer is not null)
             {
-                throw new InvalidOperationException(Redact(error.ToString()));
+                await peer.CaptureDiagnosticsAsync(output);
+            }
+            string details = error.ToString();
+            string redacted = Redact(details);
+            if (peer is not null)
+            {
+                redacted = peer.Redact(redacted);
+            }
+            if (redacted != details)
+            {
+                throw new InvalidOperationException(redacted);
             }
             throw;
         }
@@ -157,8 +173,8 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
         ? text
         : text.Replace(sensitiveValue, "[redacted]", StringComparison.Ordinal);
 
-    internal static string RenderAdsBootstrap(string nodeId, int managementPort, bool delta = false) =>
-        RenderBootstrap(nodeId, managementPort, RenderAdsResources(delta));
+    internal static string RenderAdsBootstrap(string nodeId, int managementPort, bool delta = false, string nodeCluster = "integration") =>
+        RenderBootstrap(nodeId, managementPort, RenderAdsResources(delta), nodeCluster: nodeCluster);
 
     internal static string RenderTlsAdsBootstrap(string nodeId, int managementPort, bool delta, bool sendClientCertificate = false,
         string? bearerToken = null)
@@ -243,7 +259,7 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
             """), rest: true);
 
     private static string RenderBootstrap(string nodeId, int managementPort, string dynamicResources, bool rest = false,
-        string transportSocket = "")
+        string transportSocket = "", string nodeCluster = "integration")
     {
         string managementCluster = rest ? RestCluster : "xds";
         string protocolOptions = rest ? "http_protocol_options" : "http2_protocol_options";
@@ -253,7 +269,7 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
                 socket_address: { address: 0.0.0.0, port_value: {{AdminPort}} }
             node:
               id: {{JsonSerializer.Serialize(nodeId)}}
-              cluster: integration
+              cluster: {{JsonSerializer.Serialize(nodeCluster)}}
             {{dynamicResources}}
             static_resources:
               clusters:
