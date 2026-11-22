@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Envoy.Config.Cluster.V3;
 using Envoy.Config.Listener.V3;
@@ -13,26 +14,101 @@ namespace Envoy.ControlPlane.Tests;
 public sealed class SnapshotCacheChannelTests
 {
     [Fact]
-    public async Task QueuedPublication_CancelsBeforeInstallationWithoutWaitingForAnotherConsumer()
+    public async Task SameNodeQueuedPublication_CancelsBeforeInstallation()
     {
         var cache = new SnapshotCache();
-        await cache.SetSnapshotAsync("other", Listeners("retained"));
         var responses = Channel.CreateBounded<ISotwResponse>(1);
         Assert.True(responses.Writer.TryWrite(Response(StreamFixtures.Request())));
         using var watch = cache.CreateWatch(SnapshotCacheFixtures.Request(ResourceTypeUrls.Listener), Subscription(wildcard: true), responses.Writer);
         var blocked = cache.SetSnapshotAsync("node", Listeners("v1"));
         Assert.False(blocked.IsCompleted);
         using var cancellation = new CancellationTokenSource();
-        var queued = cache.SetSnapshotAsync("other", Listeners("canceled"), new ResponseContext(cancellation.Token));
+        var queued = cache.SetSnapshotAsync("node", Listeners("canceled"), new ResponseContext(cancellation.Token));
         Assert.False(queued.IsCompleted);
         cancellation.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Wait(queued));
         Assert.False(blocked.IsCompleted);
-        Assert.Equal("retained", cache.GetSnapshot("other").GetVersion(ResourceTypeUrls.Listener));
+        Assert.Equal("v1", cache.GetSnapshot("node").GetVersion(ResourceTypeUrls.Listener));
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
         await responses.Reader.ReadAsync(TestContext.Current.CancellationToken);
         await Wait(blocked);
         Assert.Equal("v1", (await responses.Reader.ReadAsync(TestContext.Current.CancellationToken)).ResponseVersion);
+    }
+
+    [Fact]
+    public async Task FullDestination_DoesNotDelayAnotherNodesInstallationOrDelivery()
+    {
+        var cache = new SnapshotCache();
+        var responses = Channel.CreateBounded<ISotwResponse>(1);
+        var marker = Response(StreamFixtures.Request());
+        Assert.True(responses.Writer.TryWrite(marker));
+        using var first = cache.CreateWatch(SnapshotCacheFixtures.Request(ResourceTypeUrls.Listener), Subscription(wildcard: true), responses.Writer);
+        using var other = cache.CreateWatch(SnapshotCacheFixtures.Request(ResourceTypeUrls.Listener, nodeId: "other"), Subscription(wildcard: true));
+
+        var blocked = cache.SetSnapshotAsync("node", Listeners("v1"));
+        Assert.False(blocked.IsCompleted);
+        await Wait(cache.SetSnapshotAsync("other", Listeners("other-v1")));
+
+        Assert.Equal("other-v1", cache.GetSnapshot("other").GetVersion(ResourceTypeUrls.Listener));
+        Assert.Equal("other-v1", (await Wait(other.Completion)).ResponseVersion);
+        Assert.False(blocked.IsCompleted);
+        Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
+        Assert.Same(marker, await responses.Reader.ReadAsync(TestContext.Current.CancellationToken));
+        await Wait(blocked);
+        Assert.Equal("v1", (await responses.Reader.ReadAsync(TestContext.Current.CancellationToken)).ResponseVersion);
+    }
+
+    [Fact]
+    public async Task ClearAndReuse_KeepsAnActiveNodesPublicationOrder()
+    {
+        var cache = new SnapshotCache();
+        var responses = Channel.CreateBounded<ISotwResponse>(1);
+        var marker = Response(StreamFixtures.Request());
+        Assert.True(responses.Writer.TryWrite(marker));
+        using var original = cache.CreateWatch(SnapshotCacheFixtures.Request(ResourceTypeUrls.Listener), Subscription(wildcard: true), responses.Writer);
+        var first = cache.SetSnapshotAsync("node", Listeners("v1"));
+        Assert.False(first.IsCompleted);
+
+        cache.ClearSnapshot("node");
+        Assert.Null(cache.GetStatusInfo("node"));
+        using var replacement = cache.CreateWatch(SnapshotCacheFixtures.Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
+        var queued = cache.SetSnapshotAsync("node", Listeners("v2"));
+        Assert.False(queued.IsCompleted);
+        Assert.Throws<KeyNotFoundException>(() => cache.GetSnapshot("node"));
+
+        Assert.Same(marker, await responses.Reader.ReadAsync(TestContext.Current.CancellationToken));
+        await Wait(Task.WhenAll(first, queued));
+        Assert.Equal("v1", (await responses.Reader.ReadAsync(TestContext.Current.CancellationToken)).ResponseVersion);
+        Assert.Equal("v2", (await Wait(replacement.Completion)).ResponseVersion);
+        Assert.Equal("v2", cache.GetSnapshot("node").GetVersion(ResourceTypeUrls.Listener));
+        Assert.Equal(0, cache.GetStatusInfo("node")!.NumWatches);
+    }
+
+    [Fact]
+    public void ClearedEphemeralNodes_DoNotRemainRootedByPublicationState()
+    {
+        var cache = new SnapshotCache();
+        var keys = PublishAndClearEphemeralNodes(cache);
+
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+        Assert.All(keys, key => Assert.False(key.TryGetTarget(out _)));
+        Assert.Empty(cache.GetStatusKeys());
+        GC.KeepAlive(cache);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static List<WeakReference<string>> PublishAndClearEphemeralNodes(SnapshotCache cache)
+    {
+        var snapshot = Listeners("v1");
+        var keys = new List<WeakReference<string>>();
+        for (int index = 0; index < 64; index++)
+        {
+            string key = "ephemeral-" + Guid.NewGuid().ToString("N");
+            keys.Add(new WeakReference<string>(key));
+            Assert.True(cache.SetSnapshotAsync(key, snapshot).IsCompletedSuccessfully);
+            cache.ClearSnapshot(key);
+        }
+        return keys;
     }
 
     [Fact]

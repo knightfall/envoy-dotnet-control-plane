@@ -10,7 +10,6 @@ namespace Envoy.ControlPlane.Cache;
 public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
 {
     private readonly object gate = new();
-    private readonly SemaphoreSlim publication = new(1, 1);
     private readonly Dictionary<string, IResourceSnapshot> snapshots = new(StringComparer.Ordinal);
     private readonly Dictionary<string, StatusInfo> status = new(StringComparer.Ordinal);
     private readonly bool ads;
@@ -33,15 +32,14 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
     /// <param name="nodeId">The cache key for the snapshot.</param>
     /// <param name="snapshot">The replacement snapshot, retained without validation or cloning.</param>
     /// <param name="context">The publication context forwarded to delivered responses.</param>
-    /// <remarks>Cancellation of a queued publication prevents installation; cancellation after it begins can leave its snapshot installed.</remarks>
+    /// <remarks>
+    /// Publishes in sequence per node key. Cancellation of a queued publication prevents installation.
+    /// Cancellation after it begins can leave its snapshot installed.
+    /// </remarks>
     public async Task SetSnapshotAsync(string nodeId, IResourceSnapshot snapshot, ResponseContext context = default)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
-        // Keep the source's install-before-cancellation behavior once publication can begin.
-        if (!publication.Wait(0))
-        {
-            await publication.WaitAsync(context.CancellationToken);
-        }
+        var publication = await EnterPublicationAsync(nodeId, context.CancellationToken);
         try
         {
             var deliveries = new List<Func<Task<bool>>>();
@@ -54,22 +52,27 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
             {
                 failure = error;
             }
-            try
-            {
-                await Task.WhenAll(deliveries.Select(start => start()));
-            }
-            catch (Exception error) when (error is not OutOfMemoryException)
-            {
-                failure ??= error;
-            }
-            if (failure is not null)
-            {
-                ExceptionDispatchInfo.Capture(failure).Throw();
-            }
+            await DeliverSelectedAsync(deliveries, failure);
         }
         finally
         {
-            publication.Release();
+            ExitPublication(nodeId, publication);
+        }
+    }
+
+    private static async Task DeliverSelectedAsync(List<Func<Task<bool>>> deliveries, Exception? failure)
+    {
+        try
+        {
+            await Task.WhenAll(deliveries.Select(start => start()));
+        }
+        catch (Exception error) when (error is not OutOfMemoryException)
+        {
+            failure ??= error;
+        }
+        if (failure is not null)
+        {
+            ExceptionDispatchInfo.Capture(failure).Throw();
         }
     }
 
