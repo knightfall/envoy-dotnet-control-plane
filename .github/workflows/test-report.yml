@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Report offline fixture tests
         if: '!cancelled()'
-        uses: dorny/test-reporter@v3.2.0
+        uses: dorny/test-reporter@main
         with:
           artifact: /upstream-tests-(.*)/
           name: Offline tests ($1)
@@ -34,7 +34,7 @@ jobs:
           fail-on-empty: true
       - name: Report repository and package-consumer tests
         if: '!cancelled()'
-        uses: dorny/test-reporter@v3.2.0
+        uses: dorny/test-reporter@main
         with:
           artifact: /repository-tests-(.*)/
           name: Repository and consumer tests ($1)
