@@ -170,7 +170,7 @@ internal sealed class DeltaSession(IConfigWatcher cache, IDeltaCallbacks? callba
             await callbacks.OnStreamResponseAsync(streamId, request, outgoing, cancellationToken);
         }
         await send(outgoing, cancellationToken);
-        current.Subscription.SetReturnedResources(response.ReturnedResources);
+        current.Subscription.SetReturnedResourcesFromResponse(response.ReturnedResources);
     }
 
     private async Task CleanupAsync(CancellationTokenSource cancellation, List<Exception> failures)

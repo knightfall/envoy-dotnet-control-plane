@@ -8,7 +8,8 @@ namespace Envoy.ControlPlane.Resources;
 public sealed class Snapshot : IResourceSnapshot
 {
     private readonly ResourceCollection?[] groups = new ResourceCollection?[(int)ResponseType.Unknown];
-    private Dictionary<string, IReadOnlyDictionary<string, string>>? versionMap;
+    private readonly object deltaGate = new();
+    private SnapshotDeltaResources[]? deltaResources;
 
     /// <summary>Creates a partial snapshot retaining messages and optional TTLs.</summary>
     /// <param name="version">The opaque version for supplied groups.</param>
@@ -65,29 +66,37 @@ public sealed class Snapshot : IResourceSnapshot
         .ToDictionary(pair => pair.Key, pair => pair.Value.Resource, StringComparer.Ordinal);
 
     /// <inheritdoc/>
-    public IReadOnlyDictionary<string, string>? GetVersionMap(string typeUrl) => versionMap?.GetValueOrDefault(typeUrl);
+    public IReadOnlyDictionary<string, string>? GetVersionMap(string typeUrl) => GetDeltaResources(typeUrl)?.Versions;
+
+    internal bool HasDeltaResources => Volatile.Read(ref deltaResources) is not null;
+
+    internal SnapshotDeltaResources? GetDeltaResources(string typeUrl)
+    {
+        var type = ResourceCatalog.GetResponseType(typeUrl);
+        return type == ResponseType.Unknown ? null : Volatile.Read(ref deltaResources)?[(int)type];
+    }
 
     /// <inheritdoc/>
     public void ConstructVersionMap()
     {
-        if (versionMap is not null)
+        if (HasDeltaResources)
         {
             return;
         }
-        versionMap = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal);
-        for (int index = 0; index < groups.Length; index++)
+        lock (deltaGate)
         {
-            var versions = new Dictionary<string, string>(StringComparer.Ordinal);
-            versionMap[ResourceCatalog.GetTypeUrl((ResponseType)index)] = versions;
-            if (groups[index] is not { } group)
+            if (deltaResources is not null)
             {
-                continue;
+                return;
             }
-            foreach (var entry in group.Items.Values)
+            var prepared = new SnapshotDeltaResources[groups.Length];
+            for (int index = 0; index < groups.Length; index++)
             {
-                byte[] bytes = ResourceSerialization.Serialize(entry.Resource);
-                versions[ResourceCatalog.GetName(entry.Resource)] = ResourceSerialization.ComputeHash(bytes);
+                prepared[index] = groups[index] is { } group
+                    ? new SnapshotDeltaResources(group.Items)
+                    : SnapshotDeltaResources.Empty;
             }
+            Volatile.Write(ref deltaResources, prepared);
         }
     }
 

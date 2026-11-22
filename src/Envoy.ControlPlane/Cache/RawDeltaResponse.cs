@@ -2,7 +2,6 @@
 // Adapted for lazy .NET serialization from the pinned RawDeltaResponse behavior.
 using Envoy.ControlPlane.Resources;
 using Envoy.Service.Discovery.V3;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using DiscoveryResource = Envoy.Service.Discovery.V3.Resource;
 
@@ -14,13 +13,13 @@ internal sealed class RawDeltaResponse : IDeltaResponse
 
     internal RawDeltaResponse(DeltaDiscoveryRequest request, string version,
         IReadOnlyDictionary<string, ResourceEntry> resources, IReadOnlyList<string> removed,
-        IReadOnlyDictionary<string, string> returned, ResponseContext context)
+        IReadOnlyDictionary<string, string> returned, ResponseContext context, SnapshotDeltaResources? prepared)
     {
         Request = request;
         ResponseVersion = version;
         ReturnedResources = returned;
         Context = context;
-        materialized = new Lazy<DeltaDiscoveryResponse>(() => Build(resources, removed));
+        materialized = new Lazy<DeltaDiscoveryResponse>(() => Build(resources, removed, prepared));
     }
 
     public DeltaDiscoveryRequest Request { get; }
@@ -29,17 +28,18 @@ internal sealed class RawDeltaResponse : IDeltaResponse
     public ResponseContext Context { get; }
     public DeltaDiscoveryResponse GetDeltaDiscoveryResponse() => materialized.Value;
 
-    private DeltaDiscoveryResponse Build(IReadOnlyDictionary<string, ResourceEntry> resources, IReadOnlyList<string> removed)
+    private DeltaDiscoveryResponse Build(IReadOnlyDictionary<string, ResourceEntry> resources, IReadOnlyList<string> removed,
+        SnapshotDeltaResources? prepared)
     {
         var response = new DeltaDiscoveryResponse { TypeUrl = Request.TypeUrl, SystemVersionInfo = ResponseVersion };
         foreach (var (name, entry) in resources)
         {
-            byte[] payload = ResourceSerialization.Serialize(entry.Resource);
+            var payload = prepared?.GetPayload(name) ?? ResourceSerialization.SerializeByteString(entry.Resource);
             response.Resources.Add(new DiscoveryResource
             {
                 Name = name,
-                Resource_ = new Any { TypeUrl = Request.TypeUrl, Value = ByteString.CopyFrom(payload) },
-                Version = ResourceSerialization.ComputeHash(payload),
+                Resource_ = new Any { TypeUrl = Request.TypeUrl, Value = payload },
+                Version = prepared?.Versions[name] ?? ResourceSerialization.ComputeHash(payload.Span),
             });
         }
         response.RemovedResources.Add(removed);

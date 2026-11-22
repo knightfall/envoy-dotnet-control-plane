@@ -1,4 +1,5 @@
 using Envoy.Config.Core.V3;
+using Envoy.Config.Route.V3;
 using Envoy.ControlPlane.Cache;
 using Envoy.ControlPlane.Resources;
 using Envoy.Service.Discovery.V3;
@@ -75,4 +76,23 @@ internal sealed class ThrowingResource(Exception failure) : INamedResource
     }
     public void WriteTo(CodedOutputStream output) => throw failure;
     public void MergeFrom(CodedInputStream input) => throw failure;
+}
+
+internal sealed class ObservedResource(RouteConfiguration route, Action beforeSerialization) : INamedResource
+{
+    private int attempts;
+
+    public string Name => route.Name;
+    public MessageDescriptor Descriptor => RouteConfiguration.Descriptor;
+    internal int Attempts => Volatile.Read(ref attempts);
+
+    public int CalculateSize()
+    {
+        Interlocked.Increment(ref attempts);
+        beforeSerialization();
+        return route.CalculateSize();
+    }
+
+    public void WriteTo(CodedOutputStream output) => route.WriteTo(output);
+    public void MergeFrom(CodedInputStream input) => route.MergeFrom(input);
 }
