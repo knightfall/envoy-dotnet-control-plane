@@ -13,11 +13,16 @@ namespace Envoy.ControlPlane.Integration.Tests.Harness;
 internal sealed class EnvoyProxyContainer : IAsyncDisposable
 {
     internal const string RestCluster = "rest_api_cluster";
+    internal const string ManagementHostname = "host.docker.internal";
+    internal const string ManagementCaFile = "/etc/envoy/integration-ca.pem";
+    internal const string ManagementClientCertificateFile = "/etc/envoy/integration-client.pem";
+    internal const string ManagementClientKeyFile = "/etc/envoy/integration-client-key.pem";
     internal static readonly TimeSpan RestRefreshDelay = TimeSpan.FromMilliseconds(300);
     internal static readonly TimeSpan RestRequestTimeout = TimeSpan.FromSeconds(30);
     private const ushort AdminPort = 9901;
     private const string ConfigPath = "/etc/envoy/integration-proxy.yaml";
     private readonly IContainer container;
+    private readonly string? sensitiveValue;
     private readonly HttpClient admin = new() { Timeout = TimeSpan.FromSeconds(5) };
 
     internal EnvoyProxyContainer(EnvoyImageLock images, INetwork network, string bootstrap, params int[] listenerPorts)
@@ -26,16 +31,22 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
     }
 
     internal EnvoyProxyContainer(EnvoyImageLock images, INetwork network, string bootstrap,
-        IReadOnlyList<int> listenerPorts, int? listenerDrainSeconds)
+        IReadOnlyList<int> listenerPorts, int? listenerDrainSeconds, IReadOnlyDictionary<string, byte[]>? files = null,
+        string? sensitiveValue = null)
     {
+        this.sensitiveValue = sensitiveValue;
         string[] command = ["envoy", "-c", ConfigPath, "--disable-hot-restart"];
         if (listenerDrainSeconds is { } seconds)
         {
             command = [.. command, "--drain-time-s", seconds.ToString(CultureInfo.InvariantCulture)];
         }
+        if (files is not null)
+        {
+            command = [.. command, "--component-log-level", "config:debug"];
+        }
         var builder = new ContainerBuilder(images.EnvoyIndex)
             .WithNetwork(network)
-            .WithExtraHost("host.docker.internal", "host-gateway")
+            .WithExtraHost(ManagementHostname, "host-gateway")
             .WithResourceMapping(Encoding.UTF8.GetBytes(bootstrap), FilePath.Of(ConfigPath))
             .WithCommand(command)
             .WithPortBinding(AdminPort, assignRandomHostPort: true)
@@ -54,10 +65,23 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
         {
             builder = builder.WithPortBinding(port, assignRandomHostPort: true);
         }
+        if (files is not null)
+        {
+            foreach (var (path, content) in files)
+            {
+                builder = builder.WithResourceMapping(content, FilePath.Of(path));
+            }
+        }
         container = builder.Build();
     }
 
     internal Uri ListenerAddress(int port) => Address(port);
+
+    internal async Task<string> GetErrorLogAsync(CancellationToken cancellationToken)
+    {
+        var (_, stderr) = await container.GetLogsAsync(ct: cancellationToken);
+        return Redact(stderr);
+    }
 
     internal Task StopAsync(CancellationToken cancellationToken) => container.StopAsync(cancellationToken);
 
@@ -71,6 +95,10 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
         catch (Exception error) when (error is not OutOfMemoryException)
         {
             await CaptureDiagnosticsAsync(output);
+            if (sensitiveValue is { Length: > 0 } && error.ToString().Contains(sensitiveValue, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(Redact(error.ToString()));
+            }
             throw;
         }
     }
@@ -107,7 +135,7 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
             try
             {
                 var (stdout, stderr) = await container.GetLogsAsync(ct: timeout.Token);
-                output.WriteLine($"Envoy stdout:\n{stdout}\nEnvoy stderr:\n{stderr}");
+                output.WriteLine($"Envoy stdout:\n{Redact(stdout)}\nEnvoy stderr:\n{Redact(stderr)}");
             }
             catch (Exception error) when (error is not OutOfMemoryException)
             {
@@ -117,7 +145,7 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
         try
         {
             string dump = await admin.GetStringAsync(new Uri(Address(AdminPort), "/config_dump"));
-            output.WriteLine($"Envoy /config_dump:\n{dump}");
+            output.WriteLine($"Envoy /config_dump:\n{Redact(dump)}");
         }
         catch (Exception error) when (error is not OutOfMemoryException)
         {
@@ -125,8 +153,54 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
         }
     }
 
+    private string Redact(string text) => string.IsNullOrEmpty(sensitiveValue)
+        ? text
+        : text.Replace(sensitiveValue, "[redacted]", StringComparison.Ordinal);
+
     internal static string RenderAdsBootstrap(string nodeId, int managementPort, bool delta = false) =>
-        RenderBootstrap(nodeId, managementPort, $$"""
+        RenderBootstrap(nodeId, managementPort, RenderAdsResources(delta));
+
+    internal static string RenderTlsAdsBootstrap(string nodeId, int managementPort, bool delta, bool sendClientCertificate = false,
+        string? bearerToken = null)
+    {
+        string clientCertificate = sendClientCertificate ? $$"""
+                      tls_certificates:
+                      - certificate_chain: { filename: {{ManagementClientCertificateFile}} }
+                        private_key: { filename: {{ManagementClientKeyFile}} }
+            """ : "";
+        string transportSocket = $$"""
+                transport_socket:
+                  name: envoy.transport_sockets.tls
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+                    sni: {{ManagementHostname}}
+                    common_tls_context:
+                      alpn_protocols: [h2]
+                      validation_context:
+                        trusted_ca: { filename: {{ManagementCaFile}} }
+                        match_typed_subject_alt_names:
+                        - san_type: DNS
+                          matcher: { exact: {{ManagementHostname}} }
+            {{clientCertificate}}
+            """;
+        return RenderBootstrap(nodeId, managementPort, RenderAdsResources(delta, bearerToken, tls: true),
+            transportSocket: transportSocket);
+    }
+
+    private static string RenderAdsResources(bool delta, string? bearerToken = null, bool tls = false)
+    {
+        // Envoy's native gRPC client lets its router derive :scheme from x-forwarded-proto.
+        string metadata = tls ? """
+                  initial_metadata:
+                  - key: x-forwarded-proto
+                    value: https
+            """ : "";
+        if (bearerToken is not null)
+        {
+            metadata += "\n      - key: authorization\n        value: " + JsonSerializer.Serialize("Bearer " + bearerToken);
+        }
+        string initialTimeout = tls ? ", initial_fetch_timeout: 1s" : "";
+        return $$"""
             dynamic_resources:
               ads_config:
                 api_type: {{(delta ? "DELTA_GRPC" : "GRPC")}}
@@ -134,9 +208,11 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
                 set_node_on_first_message_only: true
                 grpc_services:
                 - envoy_grpc: { cluster_name: xds }
-              cds_config: { resource_api_version: V3, ads: {} }
-              lds_config: { resource_api_version: V3, ads: {} }
-            """);
+            {{metadata}}
+              cds_config: { resource_api_version: V3, ads: {}{{initialTimeout}} }
+              lds_config: { resource_api_version: V3, ads: {}{{initialTimeout}} }
+            """;
+    }
 
     internal static string RenderSplitBootstrap(string nodeId, int managementPort, bool delta = false) =>
         RenderBootstrap(nodeId, managementPort, $$"""
@@ -166,7 +242,8 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
               lds_config: *rest_source
             """), rest: true);
 
-    private static string RenderBootstrap(string nodeId, int managementPort, string dynamicResources, bool rest = false)
+    private static string RenderBootstrap(string nodeId, int managementPort, string dynamicResources, bool rest = false,
+        string transportSocket = "")
     {
         string managementCluster = rest ? RestCluster : "xds";
         string protocolOptions = rest ? "http_protocol_options" : "http2_protocol_options";
@@ -188,13 +265,14 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
                   envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
                     "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
                     explicit_http_config: { {{protocolOptions}}: {} }
+            {{transportSocket}}
                 load_assignment:
                   cluster_name: {{managementCluster}}
                   endpoints:
                   - lb_endpoints:
                     - endpoint:
                         address:
-                          socket_address: { address: host.docker.internal, port_value: {{managementPort}} }
+                          socket_address: { address: {{ManagementHostname}}, port_value: {{managementPort}} }
             """);
     }
 }

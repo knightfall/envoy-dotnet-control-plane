@@ -48,6 +48,9 @@ internal sealed class LiveEnvoyScenario(EnvoyImageLock images, INetwork network,
     internal EnvoyProxyContainer Proxy(string bootstrap, IReadOnlyList<int> ports, int listenerDrainSeconds) =>
         new(images, network, bootstrap, ports, listenerDrainSeconds);
 
+    internal EnvoyProxyContainer Proxy(string bootstrap, IReadOnlyDictionary<string, byte[]> files, string? sensitiveValue, params int[] ports) =>
+        new(images, network, bootstrap, ports, listenerDrainSeconds: null, files, sensitiveValue);
+
     internal string AdsBootstrap(bool delta = false) => EnvoyProxyContainer.RenderAdsBootstrap(NodeId, Host.GrpcPort, delta);
 
     internal string SplitBootstrap(bool delta = false) => EnvoyProxyContainer.RenderSplitBootstrap(NodeId, Host.GrpcPort, delta);

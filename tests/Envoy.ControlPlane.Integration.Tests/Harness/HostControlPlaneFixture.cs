@@ -7,7 +7,9 @@ using Envoy.ControlPlane.Streams;
 using Google.Protobuf.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -16,7 +18,8 @@ namespace Envoy.ControlPlane.Integration.Tests.Harness;
 
 internal sealed class HostControlPlaneFixture(IConfigWatcher cache, bool enableHttpGateway = false,
     X509Certificate2? certificate = null, Action<IServiceCollection>? configureServices = null,
-    TypeRegistry? httpGatewayTypes = null, Action<WebApplication>? configureApplication = null) : IAsyncDisposable
+    TypeRegistry? httpGatewayTypes = null, Action<WebApplication>? configureApplication = null,
+    Action<HttpsConnectionAdapterOptions>? configureHttps = null, Action<RouteGroupBuilder>? configureDiscoveryEndpoints = null) : IAsyncDisposable
 {
     private WebApplication? application;
     private bool disposed;
@@ -44,8 +47,11 @@ internal sealed class HostControlPlaneFixture(IConfigWatcher cache, bool enableH
                 endpoint.Protocols = HttpProtocols.Http2;
                 if (certificate is not null)
                 {
-                    endpoint.Protocols = HttpProtocols.Http1AndHttp2;
-                    endpoint.UseHttps(certificate);
+                    endpoint.UseHttps(options =>
+                    {
+                        options.ServerCertificate = certificate;
+                        configureHttps?.Invoke(options);
+                    });
                 }
             });
             if (enableHttpGateway)
@@ -59,6 +65,7 @@ internal sealed class HostControlPlaneFixture(IConfigWatcher cache, bool enableH
         });
         builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(5));
         builder.Services.AddSingleton(cache);
+        builder.Services.AddSingleton(Observations);
         builder.Services.AddSingleton<ISotwCallbacks>(Observations);
         builder.Services.AddSingleton<IDeltaCallbacks>(Observations);
         builder.Services.AddSingleton<IFetchCallbacks>(Observations);
@@ -68,7 +75,8 @@ internal sealed class HostControlPlaneFixture(IConfigWatcher cache, bool enableH
         try
         {
             configureApplication?.Invoke(host);
-            host.MapEnvoyControlPlane();
+            var endpoints = host.MapEnvoyControlPlane();
+            configureDiscoveryEndpoints?.Invoke(endpoints);
             if (enableHttpGateway)
             {
                 host.MapEnvoyControlPlaneHttpGateway(httpGatewayTypes);
