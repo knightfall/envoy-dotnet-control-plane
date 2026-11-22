@@ -133,6 +133,8 @@ public sealed class SnapshotDeltaPreparationTests
         try
         {
             await Wait(entered.Task);
+            await Wait(cache.SetSnapshotAsync("other", initial));
+            Assert.Same(initial, cache.GetSnapshot("other"));
             second = await Wait(Task.Run(() =>
             {
                 Assert.Same(initial, cache.GetSnapshot("node"));

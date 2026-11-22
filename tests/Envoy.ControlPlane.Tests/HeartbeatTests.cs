@@ -141,16 +141,101 @@ public sealed class HeartbeatTests
         clock.Advance(Interval);
         await Wait(observed.Started.Task);
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
+        var queued = cache.SetSnapshotAsync("node", Routes("v2", Entry("a", TimeSpan.FromSeconds(5))));
+        Assert.False(queued.IsCompleted);
+        Assert.Equal("v1", cache.GetSnapshot("node").GetVersion(ResourceTypeUrls.Route));
+
         stop.Cancel();
         await Wait(loop);
         Assert.Equal(0, clock.ActiveTimers);
-        Assert.Same(marker, await channel.Reader.ReadAsync(TestContext.Current.CancellationToken));
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
-        await cache.SetSnapshotAsync("node", Routes("v2", Entry("a", TimeSpan.FromSeconds(5))));
+        Assert.Same(marker, await channel.Reader.ReadAsync(TestContext.Current.CancellationToken));
+        await Wait(queued);
         var response = await channel.Reader.ReadAsync(TestContext.Current.CancellationToken);
         Assert.Equal("v2", response.ResponseVersion);
         Assert.NotNull(Assert.Single(response.GetDiscoveryResponse().Resources).Unpack<DiscoveryResource>().Resource_);
         Assert.Equal(0, cache.GetStatusInfo("node")!.NumWatches);
+    }
+
+    [Fact]
+    public async Task BlockedHeartbeat_OtherNodeRefreshesOnSubsequentTicksAndStillPublishes()
+    {
+        var clock = new FakeTimeProvider();
+        var cache = new SnapshotCache(timeProvider: clock);
+        var snapshot = Routes("v1", Entry("a", TimeSpan.FromSeconds(5)));
+        await cache.SetSnapshotAsync("node", snapshot);
+        await cache.SetSnapshotAsync("other", snapshot);
+        var channel = Channel.CreateBounded<ISotwResponse>(1);
+        var marker = new TestSotwResponse(Request(ResourceTypeUrls.Route), "marker", new Dictionary<string, string>(), default, () => new DiscoveryResponse());
+        Assert.True(channel.Writer.TryWrite(marker));
+        var observed = new HeartbeatWriter(channel.Writer);
+        using var blocked = cache.CreateWatch(Request(ResourceTypeUrls.Route, "v1"), Known("a"), observed);
+        using var first = cache.CreateWatch(Request(ResourceTypeUrls.Route, "v1", nodeId: "other"), Known("a"));
+        using var stop = new CancellationTokenSource();
+        var loop = cache.RunHeartbeatsAsync(Interval, new ResponseContext(stop.Token));
+        try
+        {
+            clock.Advance(Interval);
+            await Wait(observed.Started.Task);
+            Assert.Null(Assert.Single((await Wait(first.Completion)).GetDiscoveryResponse().Resources).Unpack<DiscoveryResource>().Resource_);
+
+            using var second = cache.CreateWatch(Request(ResourceTypeUrls.Route, "v1", nodeId: "other"), Known("a"));
+            clock.Advance(Interval);
+            Assert.Null(Assert.Single((await Wait(second.Completion)).GetDiscoveryResponse().Resources).Unpack<DiscoveryResource>().Resource_);
+            Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
+
+            using var update = cache.CreateWatch(Request(ResourceTypeUrls.Route, "v1", nodeId: "other"), Known("a"));
+            await Wait(cache.SetSnapshotAsync("other", Routes("v2", Entry("a", TimeSpan.FromSeconds(5)))));
+            var response = await Wait(update.Completion);
+            Assert.NotNull(Assert.Single(response.GetDiscoveryResponse().Resources).Unpack<DiscoveryResource>().Resource_);
+            Assert.Equal("v2", response.ResponseVersion);
+            Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
+            Assert.Equal("v1", cache.GetSnapshot("node").GetVersion(ResourceTypeUrls.Route));
+        }
+        finally
+        {
+            stop.Cancel();
+            await Wait(loop);
+        }
+        Assert.Same(marker, await channel.Reader.ReadAsync(TestContext.Current.CancellationToken));
+        Assert.False(channel.Reader.TryRead(out _));
+    }
+
+    [Fact]
+    public async Task FailedHeartbeat_SettlesBlockedNodeWritesAndReleasesPublication()
+    {
+        var clock = new TrackingTimeProvider();
+        var cache = new SnapshotCache(timeProvider: clock);
+        var snapshot = Routes("v1", Entry("a", TimeSpan.FromSeconds(5)));
+        await cache.SetSnapshotAsync("node", snapshot);
+        await cache.SetSnapshotAsync("other", snapshot);
+        var channel = Channel.CreateBounded<ISotwResponse>(1);
+        var marker = new TestSotwResponse(Request(ResourceTypeUrls.Route), "marker", new Dictionary<string, string>(), default, () => new DiscoveryResponse());
+        Assert.True(channel.Writer.TryWrite(marker));
+        var observed = new HeartbeatWriter(channel.Writer);
+        var closed = Channel.CreateUnbounded<ISotwResponse>();
+        Assert.True(closed.Writer.TryComplete());
+        using var blocked = cache.CreateWatch(Request(ResourceTypeUrls.Route, "v1"), Known("a"), observed);
+        using var failed = cache.CreateWatch(Request(ResourceTypeUrls.Route, "v1", nodeId: "other"), Known("a"), closed.Writer);
+        using var stop = new CancellationTokenSource();
+        var loop = cache.RunHeartbeatsAsync(Interval, new ResponseContext(stop.Token));
+
+        try
+        {
+            clock.Advance(Interval);
+            await Wait(observed.Started.Task);
+            await Assert.ThrowsAsync<ChannelClosedException>(() => Wait(loop));
+            Assert.Equal(0, clock.ActiveTimers);
+            Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
+            Assert.Same(marker, await channel.Reader.ReadAsync(TestContext.Current.CancellationToken));
+            await Wait(cache.SetSnapshotAsync("node", Routes("v2", Entry("a", TimeSpan.FromSeconds(5)))));
+            Assert.Equal("v2", (await channel.Reader.ReadAsync(TestContext.Current.CancellationToken)).ResponseVersion);
+        }
+        finally
+        {
+            stop.Cancel();
+            await Wait(Task.WhenAny(loop));
+        }
     }
 
     [Fact]
