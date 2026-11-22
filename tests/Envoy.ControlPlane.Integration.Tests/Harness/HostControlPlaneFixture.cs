@@ -4,6 +4,7 @@ using Envoy.ControlPlane.AspNetCore;
 using Envoy.ControlPlane.Cache;
 using Envoy.ControlPlane.Fetch;
 using Envoy.ControlPlane.Streams;
+using Google.Protobuf.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -14,7 +15,8 @@ using Microsoft.Extensions.Logging;
 namespace Envoy.ControlPlane.Integration.Tests.Harness;
 
 internal sealed class HostControlPlaneFixture(IConfigWatcher cache, bool enableHttpGateway = false,
-    X509Certificate2? certificate = null, Action<IServiceCollection>? configureServices = null) : IAsyncDisposable
+    X509Certificate2? certificate = null, Action<IServiceCollection>? configureServices = null,
+    TypeRegistry? httpGatewayTypes = null, Action<WebApplication>? configureApplication = null) : IAsyncDisposable
 {
     private WebApplication? application;
     private bool disposed;
@@ -65,10 +67,11 @@ internal sealed class HostControlPlaneFixture(IConfigWatcher cache, bool enableH
         var host = builder.Build();
         try
         {
+            configureApplication?.Invoke(host);
             host.MapEnvoyControlPlane();
             if (enableHttpGateway)
             {
-                host.MapEnvoyControlPlaneHttpGateway();
+                host.MapEnvoyControlPlaneHttpGateway(httpGatewayTypes);
             }
             await host.StartAsync(cancellationToken);
             GrpcPort = grpcListener!.IPEndPoint!.Port;

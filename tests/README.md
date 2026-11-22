@@ -204,6 +204,8 @@ The SotW tests cover three-version ordered and unordered ADS rollouts across HTT
 
 The Delta tests cover ADS and split streams, isolated route changes, silence after version-only publications, CDS tombstones and reconnect version hashes. They also exercise on-demand VHDS lookup and removal, EDS and RDS unsubscribe and re-subscribe frames with tombstones queued during watch replacement, and caller-supplied TTL heartbeats through expiry and explicit repair. [Delta integration cases](Envoy.ControlPlane.Integration.Tests/Delta/)
 
+The REST tests verify all four xDS polling paths, protobuf JSON with nested `Any` payloads, `304 Not Modified` convergence, live resource changes and cancellation of an active Envoy poll when Kestrel stops. The MuxCache tests exercise EDS mutations through LinearCache in ADS and split SotW and Delta, and verify CDS removal and Fetch delegation. Envoy 1.40.1 ACKs Delta EDS tombstones and retains its last accepted assignment. Publishing an empty EDS assignment clears the upstream endpoints. [REST cases](Envoy.ControlPlane.Integration.Tests/Rest/) · [MuxCache cases](Envoy.ControlPlane.Integration.Tests/Mux/)
+
 Use a local Docker engine running Linux containers on amd64 or arm64, including Docker Desktop on macOS, with `host-gateway` support and access to pull the pinned Envoy image and Testcontainers' resource reaper. After binding generation, run from the repository root:
 
 ```sh

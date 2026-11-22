@@ -22,7 +22,8 @@ internal sealed class LiveEnvoyScenario(EnvoyImageLock images, INetwork network,
     internal StreamObservations<DiscoveryRequest, DiscoveryResponse> Observations => Host.Observations.Sotw;
 
     internal static async Task RunAsync(Func<LiveEnvoyScenario, Task> scenario, bool ads = true, bool ordered = false,
-        string nodeId = "sotw-integration", Func<SnapshotCache, IConfigWatcher>? wrapCache = null)
+        string nodeId = "sotw-integration", Func<SnapshotCache, IConfigWatcher>? wrapCache = null,
+        Func<IConfigWatcher, HostControlPlaneFixture>? createHost = null)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         timeout.CancelAfter(TimeSpan.FromMinutes(3));
@@ -30,7 +31,8 @@ internal sealed class LiveEnvoyScenario(EnvoyImageLock images, INetwork network,
         await using var network = new NetworkBuilder().Build();
         await network.CreateAsync(timeout.Token);
         var cache = new SnapshotCache(ads);
-        await using var host = new HostControlPlaneFixture(wrapCache?.Invoke(cache) ?? cache,
+        var watcher = wrapCache?.Invoke(cache) ?? cache;
+        await using var host = createHost?.Invoke(watcher) ?? new HostControlPlaneFixture(watcher,
             configureServices: services => services.AddSingleton(new SotwOptions { OrderedAds = ordered }));
         await host.StartAsync(timeout.Token);
         using var http = new HttpClient();

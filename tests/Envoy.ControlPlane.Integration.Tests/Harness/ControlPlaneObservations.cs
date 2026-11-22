@@ -16,6 +16,7 @@ internal sealed class ControlPlaneObservations : ISotwCallbacks, IDeltaCallbacks
     internal Func<long, string, CancellationToken, ValueTask>? SotwOpenHandler { get; set; }
     internal Func<DiscoveryRequest, CancellationToken, ValueTask>? SotwRequestHandler { get; set; }
     internal Func<DeltaDiscoveryRequest, CancellationToken, ValueTask>? DeltaRequestHandler { get; set; }
+    internal Func<ResponseContext, DiscoveryRequest, ValueTask>? FetchRequestHandler { get; set; }
 
     internal bool HasSotwAck(string type, string version, long? streamId = null) =>
         Sotw.Responses.Any(sent => (streamId is null || sent.StreamId == streamId)
@@ -77,7 +78,7 @@ internal sealed class ControlPlaneObservations : ISotwCallbacks, IDeltaCallbacks
     public ValueTask OnFetchRequestAsync(ResponseContext context, DiscoveryRequest request)
     {
         FetchRequests.Enqueue(request.Clone());
-        return ValueTask.CompletedTask;
+        return FetchRequestHandler?.Invoke(context, request) ?? ValueTask.CompletedTask;
     }
 
     public ValueTask OnFetchResponseAsync(DiscoveryRequest request, DiscoveryResponse? response)
