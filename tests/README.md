@@ -208,6 +208,8 @@ The REST tests verify all four xDS polling paths, protobuf JSON with nested `Any
 
 The security tests exercise TLS on the SotW and Delta ADS channels, ASP.NET Core bearer authorization, authenticated node claims, and mTLS client certificate validation. A downstream HTTPS listener receives its certificate through ADS SDS and rotates it while Envoy continues routing traffic. The tests generate their trust roots, certificates, private keys and credentials at runtime. The Envoy 1.40.1 native gRPC bootstrap sets `x-forwarded-proto: https` in its initial metadata so Envoy emits the HTTPS scheme required by Kestrel's HTTP/2 transport check. [Security integration cases](Envoy.ControlPlane.Integration.Tests/Security/)
 
+The fleet tests verify separate snapshots and stream teardown for two concurrent proxies, then a shared rollout using a custom cluster-based node hasher. The validation test uses the optional evaluator with preloaded descriptors and lazy compilation disabled. It verifies a valid graph, an application-rejected invalid candidate, Envoy's NACK for that same candidate when published directly, and a validated repair. [Fleet and validation cases](Envoy.ControlPlane.Integration.Tests/Fleet/)
+
 Use a local Docker engine running Linux containers on amd64 or arm64, including Docker Desktop on macOS, with `host-gateway` support and access to pull the pinned Envoy image and Testcontainers' resource reaper. After binding generation, run from the repository root:
 
 ```sh

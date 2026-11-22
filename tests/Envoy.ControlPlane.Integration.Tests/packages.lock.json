@@ -31,6 +31,11 @@
           "xunit.v3.core.mtp-v2": "[4.0.2]"
         }
       },
+      "Antlr4.Runtime.Standard": {
+        "type": "Transitive",
+        "resolved": "4.13.1",
+        "contentHash": "Da5+i4kFHUseJRZGcBG5fmZGpA/Ns180ibrQMxgZzjpQOnENVvSL5gi5HZ8Ncz8/AR2WsKbOg2lMBzjz0HUQcA=="
+      },
       "BouncyCastle.Cryptography": {
         "type": "Transitive",
         "resolved": "2.7.0",
@@ -164,6 +169,11 @@
         "resolved": "6.0.1",
         "contentHash": "IQ4NXP/B3Ayzvw0rDQzVTYsCKyy0Jp9KI6aYcK7UnGVlR9+Awz++TIPCQtPYfLJfOpm8ajowMR09V7quD3sEHw=="
       },
+      "TimeZoneConverter": {
+        "type": "Transitive",
+        "resolved": "7.0.0",
+        "contentHash": "sFbY65N/5GdsHx7nkdHFHUG+5Ar4W0w6Aks7Y2X+Q4NOTw6XyX2Il7jm+4tPkc//4mA3nG0RdxI8gKgoJitdLw=="
+      },
       "xunit.analyzers": {
         "type": "Transitive",
         "resolved": "2.2.0",
@@ -243,10 +253,28 @@
           "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.1, )"
         }
       },
+      "Knightfall.Envoy.ControlPlane.Validation": {
+        "type": "Project",
+        "dependencies": {
+          "Cel": "[0.3.3, )",
+          "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.1, )"
+        }
+      },
       "Knightfall.Envoy.ControlPlane.Validation.Annotations": {
         "type": "Project",
         "dependencies": {
           "Google.Protobuf": "[3.35.1, )"
+        }
+      },
+      "Cel": {
+        "type": "CentralTransitive",
+        "requested": "[0.3.3, )",
+        "resolved": "0.3.3",
+        "contentHash": "8UaZmq0f5wUkWQ6NHQIkvV8AcRc6J3ARw3xiJ0IwwqDSLAcFIatfMPuR3CJGIYPWpDQ9jbT2v67FZtIyH8KbXQ==",
+        "dependencies": {
+          "Antlr4.Runtime.Standard": "4.13.1",
+          "Google.Protobuf": "3.25.2",
+          "TimeZoneConverter": "7.0.0"
         }
       },
       "Google.Protobuf": {

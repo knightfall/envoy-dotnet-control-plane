@@ -15,6 +15,7 @@
     <PackageReference Include="Testcontainers" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
     <ProjectReference Include="../../src/Envoy.ControlPlane.AspNetCore/Envoy.ControlPlane.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Envoy.ControlPlane.Validation/Envoy.ControlPlane.Validation.csproj" />
     <Compile Include="../../examples/Envoy.ControlPlane.Example/ExampleResources.cs" Link="Support/ExampleResources.cs" />
     <None Include="../resources/envoy-images.lock.json" Link="envoy-images.lock.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

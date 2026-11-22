@@ -23,14 +23,14 @@ internal sealed class LiveEnvoyScenario(EnvoyImageLock images, INetwork network,
 
     internal static async Task RunAsync(Func<LiveEnvoyScenario, Task> scenario, bool ads = true, bool ordered = false,
         string nodeId = "sotw-integration", Func<SnapshotCache, IConfigWatcher>? wrapCache = null,
-        Func<IConfigWatcher, HostControlPlaneFixture>? createHost = null)
+        Func<IConfigWatcher, HostControlPlaneFixture>? createHost = null, INodeHasher? nodeHasher = null)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         timeout.CancelAfter(TimeSpan.FromMinutes(3));
         var images = EnvoyImageLock.Load();
         await using var network = new NetworkBuilder().Build();
         await network.CreateAsync(timeout.Token);
-        var cache = new SnapshotCache(ads);
+        var cache = new SnapshotCache(ads, nodeHasher);
         var watcher = wrapCache?.Invoke(cache) ?? cache;
         await using var host = createHost?.Invoke(watcher) ?? new HostControlPlaneFixture(watcher,
             configureServices: services => services.AddSingleton(new SotwOptions { OrderedAds = ordered }));
@@ -55,10 +55,10 @@ internal sealed class LiveEnvoyScenario(EnvoyImageLock images, INetwork network,
 
     internal string SplitBootstrap(bool delta = false) => EnvoyProxyContainer.RenderSplitBootstrap(NodeId, Host.GrpcPort, delta);
 
-    internal Task PublishAsync(Snapshot snapshot)
+    internal Task PublishAsync(Snapshot snapshot, string? cacheKey = null)
     {
         snapshot.ConstructVersionMap();
-        return Cache.SetSnapshotAsync(NodeId, snapshot, new ResponseContext(Token));
+        return Cache.SetSnapshotAsync(cacheKey ?? NodeId, snapshot, new ResponseContext(Token));
     }
 
     internal Task UntilAsync(Func<bool> condition, string description) =>
