@@ -12,6 +12,9 @@ namespace Envoy.ControlPlane.Integration.Tests.Harness;
 
 internal sealed class EnvoyProxyContainer : IAsyncDisposable
 {
+    internal const string RestCluster = "rest_api_cluster";
+    internal static readonly TimeSpan RestRefreshDelay = TimeSpan.FromMilliseconds(300);
+    internal static readonly TimeSpan RestRequestTimeout = TimeSpan.FromSeconds(30);
     private const ushort AdminPort = 9901;
     private const string ConfigPath = "/etc/envoy/integration-proxy.yaml";
     private readonly IContainer container;
@@ -149,8 +152,25 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
               lds_config: *grpc_source
             """);
 
-    private static string RenderBootstrap(string nodeId, int managementPort, string dynamicResources) =>
-        string.Create(CultureInfo.InvariantCulture, $$"""
+    internal static string RenderRestBootstrap(string nodeId, int managementPort) =>
+        RenderBootstrap(nodeId, managementPort, string.Create(CultureInfo.InvariantCulture, $$"""
+            dynamic_resources:
+              cds_config: &rest_source
+                resource_api_version: V3
+                api_config_source:
+                  api_type: REST
+                  transport_api_version: V3
+                  cluster_names: [{{RestCluster}}]
+                  refresh_delay: {{RestRefreshDelay.TotalSeconds}}s
+                  request_timeout: {{RestRequestTimeout.TotalSeconds}}s
+              lds_config: *rest_source
+            """), rest: true);
+
+    private static string RenderBootstrap(string nodeId, int managementPort, string dynamicResources, bool rest = false)
+    {
+        string managementCluster = rest ? RestCluster : "xds";
+        string protocolOptions = rest ? "http_protocol_options" : "http2_protocol_options";
+        return string.Create(CultureInfo.InvariantCulture, $$"""
             admin:
               address:
                 socket_address: { address: 0.0.0.0, port_value: {{AdminPort}} }
@@ -160,22 +180,23 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
             {{dynamicResources}}
             static_resources:
               clusters:
-              - name: xds
+              - name: {{managementCluster}}
                 type: STRICT_DNS
                 dns_lookup_family: V4_ONLY
                 connect_timeout: 1s
                 typed_extension_protocol_options:
                   envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
                     "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
-                    explicit_http_config: { http2_protocol_options: {} }
+                    explicit_http_config: { {{protocolOptions}}: {} }
                 load_assignment:
-                  cluster_name: xds
+                  cluster_name: {{managementCluster}}
                   endpoints:
                   - lb_endpoints:
                     - endpoint:
                         address:
                           socket_address: { address: host.docker.internal, port_value: {{managementPort}} }
             """);
+    }
 }
 
 internal sealed record EnvoyConfigDump(IReadOnlyList<EnvoyConfig> Configs);

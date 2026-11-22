@@ -39,9 +39,11 @@ internal static class LiveDiscoveryResources
     internal static readonly string[] RolloutTypes = [.. BasicTypes, ResourceTypeUrls.ScopedRoute,
         ResourceTypeUrls.Runtime, ResourceTypeUrls.ExtensionConfig];
 
-    internal static Snapshot Single(string version, IPAddress backend, bool ads = true, bool delta = false)
+    internal static Snapshot Single(string version, IPAddress backend, bool ads = true, bool delta = false) =>
+        Single(version, backend, Source(ads, delta));
+
+    internal static Snapshot Single(string version, IPAddress backend, ConfigSource source)
     {
-        var source = Source(ads, delta);
         var snapshot = new Snapshot(version, new Dictionary<string, IEnumerable<IMessage?>>
         {
             [ResourceTypeUrls.Cluster] = [CreateCluster(ServiceA, source)],
