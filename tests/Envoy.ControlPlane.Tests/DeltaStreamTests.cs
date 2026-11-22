@@ -1,11 +1,13 @@
 // Copyright 2020 Envoyproxy Authors. Licensed under Apache-2.0.
 // Selected Delta lifecycle scenarios adapted to C#/xUnit; see ../resources/UPSTREAM-TESTS.md.
 using Envoy.Config.Core.V3;
+using Envoy.Config.Route.V3;
 using Envoy.ControlPlane.Cache;
 using Envoy.ControlPlane.Resources;
 using Envoy.ControlPlane.Streams;
 using Envoy.ControlPlane.Tests.Support;
 using Envoy.Service.Discovery.V3;
+using Google.Protobuf;
 using Xunit;
 using static Envoy.ControlPlane.Tests.Support.StreamFixtures;
 
@@ -19,7 +21,7 @@ public sealed class DeltaStreamTests
         var cache = new SnapshotCache();
         var snapshot = new Snapshot("v1", new Dictionary<string, IEnumerable<ResourceEntry>>
         {
-            [ResourceTypeUrls.Route] = [new(new Envoy.Config.Route.V3.RouteConfiguration { Name = "a" })],
+            [ResourceTypeUrls.Route] = [new(new RouteConfiguration { Name = "a" })],
         });
         await cache.SetSnapshotAsync("node", snapshot);
         var input = new DeltaInput();
@@ -64,6 +66,65 @@ public sealed class DeltaStreamTests
         var next = await stream.NextWatch();
         Assert.Same(first.Subscription, next.Subscription);
         Assert.Equal(["b"], next.Subscription.SubscribedResources);
+        await stream.Finish();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task WatchReplacement_RemovesResourceAddedWhileRequestCallbackWasPending(bool useLinearCache)
+    {
+        var snapshotCache = new SnapshotCache();
+        var linearCache = new LinearCache(ResourceTypeUrls.Route);
+        IConfigWatcher cache = useLinearCache ? linearCache : snapshotCache;
+        Task Publish(string version, params RouteConfiguration[] routes) => useLinearCache
+            ? linearCache.SetResourcesAsync(routes.ToDictionary(route => route.Name, route => (IMessage?)route, StringComparer.Ordinal))
+            : snapshotCache.SetSnapshotAsync("node", new Snapshot(version, new Dictionary<string, IEnumerable<IMessage?>>
+            {
+                [ResourceTypeUrls.Route] = routes,
+            }));
+
+        var retained = new RouteConfiguration { Name = "retained" };
+        var transient = new RouteConfiguration { Name = "transient" };
+        var updated = new RouteConfiguration { Name = "retained", MaxDirectResponseBodySizeBytes = 128 };
+        await Publish("v1", retained);
+        await using var stream = new DeltaHarness();
+        stream.Watcher.Create = cache.CreateDeltaWatch;
+        stream.Start(typeUrl: "");
+        var initialRequest = DeltaStreamFixtures.Request(ResourceTypeUrls.Route, additions: ["retained", "transient"]);
+        initialRequest.Node = new Node { Id = "node" };
+        stream.Input.Push(initialRequest);
+        _ = await stream.NextWatch();
+        var baseline = await stream.NextResponse();
+        Assert.Equal("retained", Assert.Single(baseline.Resources).Name);
+        stream.Input.Push(DeltaStreamFixtures.Request(ResourceTypeUrls.Route, nonce: baseline.Nonce));
+        _ = await stream.NextWatch();
+
+        var entered = Signal();
+        var release = Signal();
+        var replacement = DeltaStreamFixtures.Request(ResourceTypeUrls.Route, additions: ["another-route"]);
+        stream.Callbacks.Request = async (_, request, token) =>
+        {
+            if (ReferenceEquals(request, replacement))
+            {
+                entered.SetResult();
+                await release.Task.WaitAsync(token);
+            }
+        };
+        stream.Input.Push(replacement);
+        await Wait(entered.Task);
+        await Publish("v2", retained, transient);
+        await Publish("v3", updated);
+        release.SetResult();
+
+        var addition = await stream.NextResponse();
+        Assert.Equal("transient", Assert.Single(addition.Resources).Name);
+        Assert.Empty(addition.RemovedResources);
+        var removal = await stream.NextResponse();
+        var updatedRoute = Assert.Single(removal.Resources);
+        Assert.Equal("retained", updatedRoute.Name);
+        Assert.NotEqual(baseline.Resources[0].Version, updatedRoute.Version);
+        Assert.Equal(["transient"], removal.RemovedResources);
         await stream.Finish();
     }
 
@@ -187,6 +248,55 @@ public sealed class DeltaStreamTests
         Assert.Equal("1", (await stream.NextResponse()).Nonce);
         Assert.Equal("2", (await stream.NextResponse()).Nonce);
         await stream.Finish();
+    }
+
+    [Fact]
+    public async Task WatchReplacement_DrainsInterleavedAdsResponsesInQueueOrder()
+    {
+        await using var stream = new DeltaHarness();
+        var entered = Signal();
+        var release = Signal();
+        var events = new List<string>();
+        var replacement = DeltaStreamFixtures.Request(additions: ["new"]);
+        stream.Callbacks.Request = async (_, request, token) =>
+        {
+            if (ReferenceEquals(request, replacement))
+            {
+                entered.SetResult();
+                await release.Task.WaitAsync(token);
+            }
+        };
+        stream.Sending = (response, _) =>
+        {
+            events.Add(response.Nonce + ":" + response.TypeUrl);
+            return ValueTask.CompletedTask;
+        };
+        stream.Watcher.Create = (request, subscription, writer) =>
+        {
+            if (ReferenceEquals(request, replacement))
+            {
+                events.Add("replace:" + request.TypeUrl);
+            }
+            return new DeltaRegistration(request, subscription, writer);
+        };
+        stream.Start(typeUrl: "");
+        stream.Input.Push(DeltaStreamFixtures.Request(additions: ["a"]));
+        var first = await stream.NextWatch();
+        stream.Input.Push(DeltaStreamFixtures.Request(type: "type/B", additions: ["b"]));
+        var second = await stream.NextWatch();
+        stream.Input.Push(DeltaStreamFixtures.Request(type: "type/C", additions: ["c"]));
+        var third = await stream.NextWatch();
+
+        stream.Input.Push(replacement);
+        await Wait(entered.Task);
+        second.Respond(DeltaStreamFixtures.Response(second.Request, "queued-b", "b"));
+        first.Respond(DeltaStreamFixtures.Response(first.Request, "queued-a", "a"));
+        third.Respond(DeltaStreamFixtures.Response(third.Request, "queued-c", "c"));
+        release.SetResult();
+
+        _ = await stream.NextWatch();
+        await stream.Finish();
+        Assert.Equal(["1:type/B", "2:type/A", "3:type/C", "replace:type/A"], events);
     }
 
     [Fact]

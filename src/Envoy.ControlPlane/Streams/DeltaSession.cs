@@ -130,6 +130,9 @@ internal sealed class DeltaSession(IConfigWatcher cache, IDeltaCallbacks? callba
         else
         {
             await current.CloseAsync();
+            // A publication may have queued a response during the request hook.
+            // Account for it before the replacement watch selects changes.
+            await DrainResponsesAsync(send, cancellationToken);
             current.Subscription.UpdateResourceSubscriptions(request.ResourceNamesSubscribe, request.ResourceNamesUnsubscribe);
         }
         current.Registration = cache.CreateDeltaWatch(request, current.Subscription, responses.Writer)
