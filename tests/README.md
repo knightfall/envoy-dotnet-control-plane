@@ -202,6 +202,8 @@ The [integration suite](Envoy.ControlPlane.Integration.Tests/Envoy.ControlPlane.
 
 The SotW tests cover three-version ordered and unordered ADS rollouts across HTTP, TCP, SRDS, RTDS, and ECDS. They verify applied admin state, RDS NACK retention and repair, the four split xDS streams, stream-open rejection and retry, CDS-only repair with a stable EDS version, partial EDS, and Kestrel restart with continued traffic. [SotW integration cases](Envoy.ControlPlane.Integration.Tests/Sotw/)
 
+The Delta tests cover ADS and split streams, isolated route changes, silence after version-only publications, CDS tombstones and reconnect version hashes. They also exercise on-demand VHDS lookup and removal, EDS and RDS unsubscribe and re-subscribe frames with tombstones queued during watch replacement, and caller-supplied TTL heartbeats through expiry and explicit repair. [Delta integration cases](Envoy.ControlPlane.Integration.Tests/Delta/)
+
 Use a local Docker engine running Linux containers on amd64 or arm64, including Docker Desktop on macOS, with `host-gateway` support and access to pull the pinned Envoy image and Testcontainers' resource reaper. After binding generation, run from the repository root:
 
 ```sh

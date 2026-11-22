@@ -4,7 +4,6 @@ using Envoy.Config.Core.V3;
 using Envoy.Config.Endpoint.V3;
 using Envoy.Config.Listener.V3;
 using Envoy.Config.Route.V3;
-using Envoy.ControlPlane.Integration.Tests.Harness;
 using Envoy.ControlPlane.Resources;
 using Envoy.Extensions.Filters.Http.Router.V3;
 using Envoy.Extensions.Filters.Network.HttpConnectionManager.V3;
@@ -17,9 +16,9 @@ using Filter = Envoy.Config.Listener.V3.Filter;
 using HttpProtocolOptions = Envoy.Extensions.Upstreams.Http.V3.HttpProtocolOptions;
 using SocketAddress = Envoy.Config.Core.V3.SocketAddress;
 
-namespace Envoy.ControlPlane.Integration.Tests.Sotw;
+namespace Envoy.ControlPlane.Integration.Tests.Harness;
 
-internal static class SotwResources
+internal static class LiveDiscoveryResources
 {
     internal const string ServiceA = "service-a";
     internal const string ServiceB = "service-b";
@@ -40,14 +39,14 @@ internal static class SotwResources
     internal static readonly string[] RolloutTypes = [.. BasicTypes, ResourceTypeUrls.ScopedRoute,
         ResourceTypeUrls.Runtime, ResourceTypeUrls.ExtensionConfig];
 
-    internal static Snapshot Single(string version, IPAddress backend, bool ads = true)
+    internal static Snapshot Single(string version, IPAddress backend, bool ads = true, bool delta = false)
     {
-        var source = Source(ads);
+        var source = Source(ads, delta);
         var snapshot = new Snapshot(version, new Dictionary<string, IEnumerable<IMessage?>>
         {
             [ResourceTypeUrls.Cluster] = [CreateCluster(ServiceA, source)],
             [ResourceTypeUrls.Endpoint] = [Assignment(ServiceA, backend)],
-            [ResourceTypeUrls.Listener] = [Listener(ListenerA, HttpPort, HttpFilter(HttpManager(RouteA, source)))],
+            [ResourceTypeUrls.Listener] = [CreateListener(ListenerA, HttpPort, HttpFilter(HttpManager(RouteA, source)))],
             [ResourceTypeUrls.Route] = [Routes(RouteA, ServiceA)],
         });
         snapshot.EnsureConsistent();
@@ -100,10 +99,10 @@ internal static class SotwResources
             [ResourceTypeUrls.Endpoint] = [Assignment(ServiceA, backendA), Assignment(ServiceB, backendB)],
             [ResourceTypeUrls.Listener] =
             [
-                Listener(ListenerA, HttpPort, HttpFilter(HttpManager(RouteA, source))),
-                Listener("listener-scoped", ScopedPort, HttpFilter(scopedManager)),
-                Listener("listener-tcp", TcpPort, tcp),
-                Listener("listener-extension", ExtensionPort, extension),
+                CreateListener(ListenerA, HttpPort, HttpFilter(HttpManager(RouteA, source))),
+                CreateListener("listener-scoped", ScopedPort, HttpFilter(scopedManager)),
+                CreateListener("listener-tcp", TcpPort, tcp),
+                CreateListener("listener-extension", ExtensionPort, extension),
             ],
             [ResourceTypeUrls.Route] = [Routes(RouteA, ServiceA, rewrite), Routes(RouteB, ServiceB, rewrite)],
             [ResourceTypeUrls.ScopedRoute] =
@@ -133,20 +132,28 @@ internal static class SotwResources
 
     internal static Snapshot Replace(Snapshot snapshot, string type, string version, params IMessage[] resources)
     {
-        var groups = new Dictionary<string, ResourceCollection>(StringComparer.Ordinal);
-        foreach (string existingType in RolloutTypes)
-        {
-            var existing = snapshot.GetResourcesAndTtl(existingType);
-            if (existing is not null)
-            {
-                groups.Add(existingType, new ResourceCollection(snapshot.GetVersion(existingType), existing.Values));
-            }
-        }
+        var groups = CopyGroups(snapshot);
         groups[type] = new ResourceCollection(version, resources.Select(resource => new ResourceEntry(resource)));
         return new Snapshot(groups);
     }
 
-    internal static ConfigSource Source(bool ads)
+    internal static Snapshot WithSystemVersion(Snapshot snapshot, string version) => new(CopyGroups(snapshot, version));
+
+    private static Dictionary<string, ResourceCollection> CopyGroups(Snapshot snapshot, string? systemVersion = null)
+    {
+        var groups = new Dictionary<string, ResourceCollection>(StringComparer.Ordinal);
+        foreach (var responseType in System.Enum.GetValues<ResponseType>().Where(type => type != ResponseType.Unknown))
+        {
+            string type = ResourceCatalog.GetTypeUrl(responseType);
+            if (snapshot.GetResourcesAndTtl(type) is { } entries)
+            {
+                groups.Add(type, new ResourceCollection(systemVersion ?? snapshot.GetVersion(type), entries.Values));
+            }
+        }
+        return groups;
+    }
+
+    internal static ConfigSource Source(bool ads, bool delta = false)
     {
         var source = new ConfigSource { ResourceApiVersion = ApiVersion.V3 };
         if (ads)
@@ -157,7 +164,7 @@ internal static class SotwResources
         {
             source.ApiConfigSource = new ApiConfigSource
             {
-                ApiType = ApiConfigSource.Types.ApiType.Grpc,
+                ApiType = delta ? ApiConfigSource.Types.ApiType.DeltaGrpc : ApiConfigSource.Types.ApiType.Grpc,
                 TransportApiVersion = ApiVersion.V3,
                 SetNodeOnFirstMessageOnly = true,
                 GrpcServices = { new GrpcService { EnvoyGrpc = new GrpcService.Types.EnvoyGrpc { ClusterName = "xds" } } },
@@ -229,7 +236,7 @@ internal static class SotwResources
         },
     };
 
-    private static HttpConnectionManager HttpManager(string route, ConfigSource source) => new()
+    internal static HttpConnectionManager HttpManager(string route, ConfigSource source) => new()
     {
         StatPrefix = route,
         Rds = new Rds { ConfigSource = source, RouteConfigName = route },
@@ -239,10 +246,10 @@ internal static class SotwResources
         },
     };
 
-    private static Filter HttpFilter(HttpConnectionManager manager) =>
+    internal static Filter HttpFilter(HttpConnectionManager manager) =>
         new() { Name = WellKnownFilterNames.HttpConnectionManager, TypedConfig = Any.Pack(manager) };
 
-    private static Listener Listener(string name, int port, Filter filter) =>
+    internal static Listener CreateListener(string name, int port, Filter filter) =>
         new() { Name = name, Address = Socket(IPAddress.Any, port), FilterChains = { new FilterChain { Filters = { filter } } } };
 
     private static Address Socket(IPAddress address, int port) =>

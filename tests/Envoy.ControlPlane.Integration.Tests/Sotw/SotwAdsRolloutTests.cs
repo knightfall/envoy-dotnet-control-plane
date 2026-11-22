@@ -17,8 +17,8 @@ using Google.Protobuf.Reflection;
 using Xunit;
 using HttpProtocolOptions = Envoy.Extensions.Upstreams.Http.V3.HttpProtocolOptions;
 using SocketAddress = Envoy.Config.Core.V3.SocketAddress;
-using static Envoy.ControlPlane.Integration.Tests.Sotw.SotwResources;
-using static Envoy.ControlPlane.Integration.Tests.Sotw.SotwScenario;
+using static Envoy.ControlPlane.Integration.Tests.Harness.LiveDiscoveryResources;
+using static Envoy.ControlPlane.Integration.Tests.Harness.LiveEnvoyScenario;
 
 namespace Envoy.ControlPlane.Integration.Tests.Sotw;
 
@@ -82,12 +82,12 @@ public sealed class SotwAdsRolloutTests(ITestOutputHelper output)
                 Assert.NotEmpty(rejectedResponse.Response.Nonce);
                 Assert.Equal(rejectedResponse.Response.Nonce, nack.Request.ResponseNonce);
                 Assert.Equal("rollout-v2", nack.Request.VersionInfo);
-                Assert.Equal("invalid-rds", scenario.Cache.GetSnapshot(NodeId).GetVersion(ResourceTypeUrls.Route));
+                Assert.Equal("invalid-rds", scenario.Cache.GetSnapshot(scenario.NodeId).GetVersion(ResourceTypeUrls.Route));
                 await CheckRolloutAsync(second, 2, "B", "A", backendB.Address, backendA.Address, "/second/");
 
                 // Publish can wait for response-channel capacity while the stream is paused.
                 Task publication = scenario.PublishAsync(third);
-                await scenario.UntilAsync(() => ReferenceEquals(third, scenario.Cache.GetSnapshot(NodeId)), "installation of the repair");
+                await scenario.UntilAsync(() => ReferenceEquals(third, scenario.Cache.GetSnapshot(scenario.NodeId)), "installation of the repair");
                 releaseNack.TrySetResult();
                 await publication;
             }
@@ -104,7 +104,7 @@ public sealed class SotwAdsRolloutTests(ITestOutputHelper output)
         {
             await scenario.WaitForAcksAsync(published, RolloutTypes);
             await scenario.ExpectTrafficAsync(proxy, HttpPort, serviceA + ":" + rewrite + "sotw");
-            await scenario.ExpectTrafficAsync(proxy, ScopedPort, serviceB + ":" + rewrite + "sotw", scoped: true);
+            await scenario.ExpectTrafficAsync(proxy, ScopedPort, serviceB + ":" + rewrite + "sotw", configureRequest: request => request.Headers.Add(ScopeHeader, Scope));
             await scenario.ExpectTrafficAsync(proxy, TcpPort, serviceB + ":/sotw");
             await scenario.ExpectTrafficAsync(proxy, ExtensionPort, serviceA + ":" + rewrite + "sotw");
 
