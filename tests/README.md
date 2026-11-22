@@ -206,6 +206,8 @@ The Delta tests cover ADS and split streams, isolated route changes, silence aft
 
 The REST tests verify all four xDS polling paths, protobuf JSON with nested `Any` payloads, `304 Not Modified` convergence, live resource changes and cancellation of an active Envoy poll when Kestrel stops. The MuxCache tests exercise EDS mutations through LinearCache in ADS and split SotW and Delta, and verify CDS removal and Fetch delegation. Envoy 1.40.1 ACKs Delta EDS tombstones and retains its last accepted assignment. Publishing an empty EDS assignment clears the upstream endpoints. [REST cases](Envoy.ControlPlane.Integration.Tests/Rest/) · [MuxCache cases](Envoy.ControlPlane.Integration.Tests/Mux/)
 
+The security tests exercise TLS on the SotW and Delta ADS channels, ASP.NET Core bearer authorization, authenticated node claims, and mTLS client certificate validation. A downstream HTTPS listener receives its certificate through ADS SDS and rotates it while Envoy continues routing traffic. The tests generate their trust roots, certificates, private keys and credentials at runtime. The Envoy 1.40.1 native gRPC bootstrap sets `x-forwarded-proto: https` in its initial metadata so Envoy emits the HTTPS scheme required by Kestrel's HTTP/2 transport check. [Security integration cases](Envoy.ControlPlane.Integration.Tests/Security/)
+
 Use a local Docker engine running Linux containers on amd64 or arm64, including Docker Desktop on macOS, with `host-gateway` support and access to pull the pinned Envoy image and Testcontainers' resource reaper. After binding generation, run from the repository root:
 
 ```sh
