@@ -70,7 +70,7 @@ public static class ConfigWatcherExtensions
             }
             finally
             {
-                cancellation.Cancel();
+                CancelRead();
             }
         }
 
@@ -92,8 +92,19 @@ public static class ConfigWatcherExtensions
             {
                 if (first)
                 {
-                    cancellation.Cancel();
+                    CancelRead();
                 }
+            }
+        }
+
+        private void CancelRead()
+        {
+            try
+            {
+                cancellation.Cancel();
+            }
+            finally
+            {
                 cancellation.Dispose();
             }
         }

@@ -19,6 +19,7 @@
     <Compile Include="../../tools/Envoy.ControlPlane.SchemaTools/RecognizedRules.cs" Link="Support/RecognizedRules.cs" />
     <Compile Include="../../tools/Envoy.ControlPlane.Tools/Validation/VerifiedValidationSources.cs" Link="Support/VerifiedValidationSources.cs" />
     <Compile Include="../../tools/Envoy.ControlPlane.Tools/Validation/ValidationPaths.cs" Link="Support/ValidationPaths.cs" />
+    <Compile Include="../../tools/Envoy.ControlPlane.Tools/Upstream/RepositoryPaths.cs" Link="Support/RepositoryPaths.cs" />
     <Compile Include="../../tools/Envoy.ControlPlane.Tools/Bindings/BindingIntegrity.cs" Link="Support/BindingIntegrity.cs" />
     <EmbeddedResource Include="Fixtures/pgv-cases.json" LogicalName="Envoy.ControlPlane.Validation.Tests.PgvCases.json" />
     <EmbeddedResource Include="Fixtures/field-cases.json" LogicalName="Envoy.ControlPlane.Validation.Tests.FieldCases.json" />

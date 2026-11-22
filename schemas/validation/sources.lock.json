@@ -24,14 +24,8 @@
       },
       {
         "path": "Validator.cs",
-        "before": "EvaluatorBuilder.Load(messageDescriptor);",
-        "after": "EvaluatorBuilder.LoadOrBuildDescriptor(messageDescriptor);",
-        "occurrences": 1
-      },
-      {
-        "path": "Validator.cs",
-        "before": "EvaluatorBuilder.Load(nestedTypeMessageDescriptor);",
-        "after": "EvaluatorBuilder.LoadOrBuildDescriptor(nestedTypeMessageDescriptor);",
+        "before": "                    EvaluatorBuilder.Load(messageDescriptor);\n\n                    foreach (var nestedTypeMessageDescriptor in messageDescriptor.NestedTypes)\n                    {\n                        EvaluatorBuilder.Load(nestedTypeMessageDescriptor);\n                    }",
+        "after": "                    EvaluatorBuilder.PreloadDescriptor(messageDescriptor);",
         "occurrences": 1
       },
       {
@@ -43,7 +37,7 @@
       {
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
         "before": "    internal readonly ConcurrentDictionary<string, MessageEvaluator> EvaluatorMap = new();",
-        "after": "    // Evaluators retain CLR accessors, so protobuf names alone are not cache identities.\n    internal readonly ConcurrentDictionary<MessageDescriptor, MessageEvaluator> EvaluatorMap = new(ReferenceEqualityComparer.Instance);",
+        "after": "    // Evaluators retain CLR accessors, so protobuf names alone are not cache identities.\n    internal readonly ConcurrentDictionary<MessageDescriptor, MessageEvaluator> EvaluatorMap = new(ReferenceEqualityComparer.Instance);\n    private readonly object buildGate = new();",
         "occurrences": 1
       },
       {
@@ -54,21 +48,15 @@
       },
       {
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
-        "before": "EvaluatorMap.GetOrAdd(messageDescriptor.FullName,",
-        "after": "EvaluatorMap.GetOrAdd(messageDescriptor,",
-        "occurrences": 2
-      },
-      {
-        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
-        "before": "new Dictionary<string, MessageEvaluator>()",
-        "after": "new Dictionary<MessageDescriptor, MessageEvaluator>(ReferenceEqualityComparer.Instance)",
+        "before": "    internal MessageEvaluator LoadOrBuildDescriptor(MessageDescriptor messageDescriptor)\n    {\n        return EvaluatorMap.GetOrAdd(messageDescriptor.FullName, _ => Build(messageDescriptor));\n    }\n\n    internal MessageEvaluator Build(MessageDescriptor messageDescriptor)\n    {\n        return Build(messageDescriptor, new Dictionary<string, MessageEvaluator>());\n    }\n\n    internal MessageEvaluator Build(MessageDescriptor messageDescriptor, IDictionary<string, MessageEvaluator> inProgressMessageEvaluators)\n    {\n        return EvaluatorMap.GetOrAdd(messageDescriptor.FullName, c_messageDescriptor =>\n        {\n            var messageEvaluator = new MessageEvaluator(messageDescriptor);\n\n            //when we are building messages, they could be recursive on themselves\n            //we use this dictionary to track that\n            //so that the EvaluatorMap can remain thread-safe and won't get updated until the evaluators are fully built.\n            //doing this keeps those nested evaluators on the stack (thread-safe) until we need them.\n            inProgressMessageEvaluators[c_messageDescriptor] = messageEvaluator;\n\n            BuildMessage(messageDescriptor, messageEvaluator, inProgressMessageEvaluators);\n            return messageEvaluator;\n        });\n    }\n\n",
+        "after": "    internal void PreloadDescriptor(MessageDescriptor messageDescriptor)\n    {\n        // Synthetic map entries have no CLR message parser. Their owning field builds the map rules.\n        if (messageDescriptor.GetOptions()?.MapEntry == true)\n        {\n            return;\n        }\n\n        PgvMetadataGuard.RequireMigrated(messageDescriptor);\n        LoadOrBuildDescriptor(messageDescriptor);\n        foreach (var nested in messageDescriptor.NestedTypes)\n        {\n            PreloadDescriptor(nested);\n        }\n    }\n\n    internal MessageEvaluator LoadOrBuildDescriptor(MessageDescriptor messageDescriptor)\n    {\n        if (EvaluatorMap.TryGetValue(messageDescriptor, out var cached))\n        {\n            return cached;\n        }\n\n        lock (buildGate)\n        {\n            if (EvaluatorMap.TryGetValue(messageDescriptor, out cached))\n            {\n                return cached;\n            }\n\n            try\n            {\n                // Recursive evaluators may reference unfinished parents. Publish only after the graph is complete.\n                var graph = new Dictionary<MessageDescriptor, MessageEvaluator>(ReferenceEqualityComparer.Instance);\n                var root = Build(messageDescriptor, graph);\n                foreach (var (descriptor, evaluator) in graph)\n                {\n                    EvaluatorMap.TryAdd(descriptor, evaluator);\n                }\n                return root;\n            }\n            catch (Exception error) when (error is not CompilationException && error is not OutOfMemoryException)\n            {\n                throw new CompilationException($\"Failed to compile validator for {messageDescriptor.FullName}.\", error);\n            }\n        }\n    }\n\n    private MessageEvaluator Build(MessageDescriptor messageDescriptor, IDictionary<MessageDescriptor, MessageEvaluator> inProgressMessageEvaluators)\n    {\n        if (EvaluatorMap.TryGetValue(messageDescriptor, out var cached))\n        {\n            return cached;\n        }\n\n        var evaluator = new MessageEvaluator(messageDescriptor);\n        inProgressMessageEvaluators.Add(messageDescriptor, evaluator);\n        BuildMessage(messageDescriptor, evaluator, inProgressMessageEvaluators);\n        return evaluator;\n    }\n\n",
         "occurrences": 1
       },
       {
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
         "before": "IDictionary<string, MessageEvaluator>",
         "after": "IDictionary<MessageDescriptor, MessageEvaluator>",
-        "occurrences": 9
+        "occurrences": 8
       },
       {
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
@@ -98,12 +86,6 @@
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
         "before": "var fieldRules = RuleResolver.ResolveFieldRules(fieldDescriptor);",
         "after": "var fieldRules = RuleResolver.ResolveFieldRules(fieldDescriptor);\n            AnnotationGuard.RequireSupported(fieldRules, fieldDescriptor.FullName, Extensions);",
-        "occurrences": 1
-      },
-      {
-        "path": "Internal/Evaluator/EvaluatorBuilder.cs",
-        "before": "        return EvaluatorMap.GetOrAdd(messageDescriptor, _ => Build(messageDescriptor));",
-        "after": "        try\n        {\n            return EvaluatorMap.GetOrAdd(messageDescriptor, _ => Build(messageDescriptor));\n        }\n        catch (Exception error) when (error is not CompilationException && error is not OutOfMemoryException)\n        {\n            throw new CompilationException($\"Failed to compile validator for {messageDescriptor.FullName}.\", error);\n        }",
         "occurrences": 1
       }
     ],
@@ -186,7 +168,7 @@
       {
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
         "sourceSha256": "9c5ec20238d3e7f9cebbce637bea1b7644886dcffd9f2e80aed20389812d27e4",
-        "adaptedSha256": "dc2d670ee6daa7e10f4268335d85420a24aa207f1922478cc8bf889b399de039"
+        "adaptedSha256": "fb828ee7c70c9c14b014dd8dbb97aea6f43d09f4566b618cffe8a7ef45af729b"
       },
       {
         "path": "Internal/Evaluator/FieldEvaluator.cs",
@@ -296,7 +278,7 @@
       {
         "path": "Validator.cs",
         "sourceSha256": "b15d91d261ffa7dd92cda098b1382a7ba29f903234ff8d8cd06a0ec194184623",
-        "adaptedSha256": "fabe51df360fe4486e4af92a46bd5fac1f7469a2b28a35dd0ff3c642ec480eb5"
+        "adaptedSha256": "23ab5bc07a1d58816e1c8c9fbe384d1e55edc4bf8ebfa3af300a8e6ee9c9cb1b"
       },
       {
         "path": "ValidatorOptions.cs",

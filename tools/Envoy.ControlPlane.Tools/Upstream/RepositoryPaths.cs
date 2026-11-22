@@ -1,5 +1,3 @@
-using static Envoy.ControlPlane.Tools.UpstreamData;
-
 namespace Envoy.ControlPlane.Tools;
 
 internal static class RepositoryPaths

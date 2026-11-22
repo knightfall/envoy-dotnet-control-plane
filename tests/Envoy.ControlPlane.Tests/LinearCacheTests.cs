@@ -189,6 +189,42 @@ public sealed class LinearCacheTests
         await Assert.ThrowsAsync<NotSupportedException>(() => cache.FetchAsync(Request(ResourceTypeUrls.Route), TestContext.Current.CancellationToken));
     }
 
+    [Theory]
+    [InlineData("update", "name")]
+    [InlineData("delete", "name")]
+    [InlineData("batch-update", "toUpdate")]
+    [InlineData("batch-delete", "toDelete")]
+    [InlineData("replace", "replacement")]
+    public async Task InvalidNames_LeaveVersionResourcesAndPendingWatchUnchanged(string operation, string parameter)
+    {
+        var original = new RouteConfiguration { Name = "original" };
+        var added = new RouteConfiguration { Name = "added" };
+        var cache = new LinearCache(ResourceTypeUrls.Route, new Dictionary<string, IMessage?> { ["original"] = original });
+        var subscription = new SotwSubscription(["original", "added"]);
+        subscription.SetReturnedResources(new Dictionary<string, string> { ["original"] = "0" });
+        using var pending = cache.CreateWatch(Request(ResourceTypeUrls.Route, "0"), subscription);
+        Assert.False(pending.Completion.IsCompleted);
+
+        var updates = new Dictionary<string, IMessage?> { ["added"] = added };
+        var invalidKeys = new InvalidKeyDictionary(updates);
+        var token = TestContext.Current.CancellationToken;
+        var error = await Assert.ThrowsAsync<ArgumentNullException>(() => operation switch
+        {
+            "update" => cache.UpdateResourceAsync(null!, added, token),
+            "delete" => cache.DeleteResourceAsync(null!, token),
+            "batch-update" => cache.UpdateResourcesAsync(invalidKeys, [], token),
+            "batch-delete" => cache.UpdateResourcesAsync(updates, ["original", null!], token),
+            _ => cache.SetResourcesAsync(invalidKeys, token),
+        });
+
+        Assert.Equal(parameter, error.ParamName);
+        Assert.Same(original, Assert.Single(cache.GetResources()).Value);
+        Assert.Equal(1, cache.NumCacheWatches);
+        Assert.False(pending.Completion.IsCompleted);
+        await cache.UpdateResourceAsync("added", added, TestContext.Current.CancellationToken);
+        Assert.Equal("1", (await pending.Completion.WaitAsync(TestContext.Current.CancellationToken)).ResponseVersion);
+    }
+
     [Fact]
     public async Task CancelPendingRegistration_RemovesItsIndexesAndPreservesOtherWatches()
     {
@@ -280,4 +316,18 @@ public sealed class LinearCacheTests
         }
         public void MergeFrom(CodedInputStream input) => throw new NotSupportedException();
     }
+    private sealed class InvalidKeyDictionary(Dictionary<string, IMessage?> entries) : IReadOnlyDictionary<string, IMessage?>
+    {
+        public IEnumerable<string> Keys => entries.Keys.Append(null!);
+        public IEnumerable<IMessage?> Values => entries.Values.Append(null);
+        public int Count => entries.Count + 1;
+        public IMessage? this[string key] => entries[key];
+
+        public bool ContainsKey(string key) => entries.ContainsKey(key);
+        public bool TryGetValue(string key, out IMessage? value) => entries.TryGetValue(key, out value);
+        public IEnumerator<KeyValuePair<string, IMessage?>> GetEnumerator() =>
+            entries.Append(new KeyValuePair<string, IMessage?>(null!, null)).GetEnumerator();
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
 }

@@ -8,6 +8,7 @@ using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Envoy.ControlPlane.AspNetCore;
@@ -32,14 +33,42 @@ internal sealed class HttpFetchGateway(TypeRegistry types)
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
+        var stopping = context.RequestServices.GetService<IHostApplicationLifetime>()?.ApplicationStopping ?? default;
+        using var linked = stopping.CanBeCanceled
+            ? CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, stopping)
+            : null;
+        var cancellationToken = linked?.Token ?? context.RequestAborted;
+        try
+        {
+            await FetchAsync(context, typeUrl, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            if (!context.RequestAborted.IsCancellationRequested)
+            {
+                if (context.Response.HasStarted)
+                {
+                    context.Abort();
+                }
+                else
+                {
+                    context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                }
+            }
+        }
+    }
+
+    private async Task FetchAsync(HttpContext context, string typeUrl, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         DiscoveryRequest request;
         try
         {
             await using var body = new MemoryStream();
-            await context.Request.Body.CopyToAsync(body, context.RequestAborted);
+            await context.Request.Body.CopyToAsync(body, cancellationToken);
             request = parser.Parse<DiscoveryRequest>(Utf8.GetString(body.GetBuffer(), 0, checked((int)body.Length)));
         }
-        catch (Exception error) when (error is not OutOfMemoryException && !context.RequestAborted.IsCancellationRequested)
+        catch (Exception error) when (error is not OutOfMemoryException && !cancellationToken.IsCancellationRequested)
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             return;
@@ -49,10 +78,10 @@ internal sealed class HttpFetchGateway(TypeRegistry types)
         try
         {
             var server = context.RequestServices.GetRequiredService<FetchServer>();
-            var response = await server.FetchAsync(request, new ResponseContext(context.RequestAborted, context));
+            var response = await server.FetchAsync(request, new ResponseContext(cancellationToken, context));
             json = formatter.Format(response);
         }
-        catch (Exception error) when (error is not OutOfMemoryException && !context.RequestAborted.IsCancellationRequested)
+        catch (Exception error) when (error is not OutOfMemoryException && !cancellationToken.IsCancellationRequested)
         {
             if (IsSkipped(error))
             {
@@ -63,9 +92,10 @@ internal sealed class HttpFetchGateway(TypeRegistry types)
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             return;
         }
+        cancellationToken.ThrowIfCancellationRequested();
         context.Response.StatusCode = StatusCodes.Status200OK;
         context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(json, context.RequestAborted);
+        await context.Response.WriteAsync(json, cancellationToken);
     }
 
     private static bool IsSkipped(Exception error)

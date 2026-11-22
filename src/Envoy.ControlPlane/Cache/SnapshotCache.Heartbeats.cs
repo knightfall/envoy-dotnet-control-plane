@@ -33,7 +33,7 @@ public sealed partial class SnapshotCache
         await publication.WaitAsync(context.CancellationToken);
         try
         {
-            var deliveries = new List<Task<bool>>();
+            var deliveries = new List<Func<Task<bool>>>();
             Exception? failure = null;
             try
             {
@@ -49,7 +49,7 @@ public sealed partial class SnapshotCache
                         {
                             if (CreateHeartbeat(snapshot, watch, context) is { } response)
                             {
-                                deliveries.Add(watch.Registration.DeliverAsync(response, context.CancellationToken));
+                                deliveries.Add(() => watch.Registration.DeliverAsync(response, context.CancellationToken));
                             }
                         }
                     }
@@ -61,7 +61,7 @@ public sealed partial class SnapshotCache
             }
             try
             {
-                await Task.WhenAll(deliveries);
+                await Task.WhenAll(deliveries.Select(start => start()));
             }
             catch (Exception error) when (error is not OutOfMemoryException)
             {

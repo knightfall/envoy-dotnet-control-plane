@@ -194,5 +194,65 @@ public sealed class ActiveCallbackShutdownTests
         Assert.Equal(0, host.Cache.Disposals);
     }
 
+    [Theory]
+    [InlineData("request")]
+    [InlineData("response")]
+    public async Task HttpFetchApplicationStopping_CancelsActiveHookAndReturns503(string stage)
+    {
+        var entered = Signal();
+        var canceled = Signal();
+        var unreleased = Signal();
+        CancellationToken token = default;
+        async ValueTask BlockAsync()
+        {
+            entered.TrySetResult();
+            try
+            {
+                await unreleased.Task.WaitAsync(token);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                canceled.TrySetResult();
+                throw;
+            }
+        }
+
+        await using var host = await StartAsync(configure: (_, callbacks) =>
+        {
+            callbacks.FetchRequestHandler = (context, _) =>
+            {
+                token = context.CancellationToken;
+                return stage == "request" ? BlockAsync() : ValueTask.CompletedTask;
+            };
+            callbacks.FetchResponseAsync = (_, response) =>
+            {
+                Assert.NotNull(response);
+                return BlockAsync();
+            };
+        }, mapEndpoints: app => app.MapEnvoyControlPlaneHttpGateway());
+        await host.Cache.Inner.SetSnapshotAsync("node", Snapshot(ResourceTypeUrls.Route, "v1"));
+        using var client = HttpGatewayFixtures.Client(host);
+        using var body = new StringContent("""{"node":{"id":"node"}}""");
+        var fetch = client.PostAsync("/v3/discovery:routes", body, TestContext.Current.CancellationToken);
+        try
+        {
+            await Wait(entered.Task);
+            Assert.False(token.IsCancellationRequested);
+            host.Application.Lifetime.StopApplication();
+
+            await Wait(canceled.Task);
+            using var response = await Wait(fetch);
+            Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable, response.StatusCode);
+            Assert.Empty(await response.Content.ReadAsByteArrayAsync(TestContext.Current.CancellationToken));
+            Assert.True(token.IsCancellationRequested);
+            Assert.False(host.Application.Lifetime.ApplicationStopped.IsCancellationRequested);
+            Assert.False(unreleased.Task.IsCompleted);
+        }
+        finally
+        {
+            unreleased.TrySetResult();
+        }
+    }
+
     private static TaskCompletionSource Signal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
 }

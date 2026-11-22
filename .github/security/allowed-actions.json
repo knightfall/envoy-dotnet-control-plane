@@ -3,6 +3,7 @@
   "verified_allowed": false,
   "patterns_allowed": [
     "dorny/test-reporter@*",
-    "NuGet/login@*"
+    "NuGet/login@*",
+    "ossf/scorecard-action@*"
   ]
 }
