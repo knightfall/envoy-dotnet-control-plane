@@ -81,6 +81,7 @@ jobs:
             tests/Envoy.ControlPlane.Tests/packages.lock.json
             tests/Envoy.ControlPlane.AspNetCore.Tests/packages.lock.json
             tests/Envoy.ControlPlane.EnvoyProbe/packages.lock.json
+            tests/Envoy.ControlPlane.Integration.Tests/packages.lock.json
             examples/Envoy.ControlPlane.Example/packages.lock.json
             tests/Envoy.ControlPlane.TransportProbe/packages.lock.json
             tests/Envoy.ControlPlane.Validation.Tests/packages.lock.json

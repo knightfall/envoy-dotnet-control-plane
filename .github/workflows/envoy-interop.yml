@@ -18,6 +18,7 @@ on:
       - src/**
       - examples/Envoy.ControlPlane.Example/**
       - tests/Envoy.ControlPlane.EnvoyProbe/**
+      - tests/Envoy.ControlPlane.Integration.Tests/**
       - tests/resources/envoy/**
       - tests/resources/envoy-images.lock.json
       - tests/validation/PgvConformance/**
@@ -62,6 +63,7 @@ jobs:
             tools/Envoy.ControlPlane.SchemaTools/packages.lock.json
             examples/Envoy.ControlPlane.Example/packages.lock.json
             tests/Envoy.ControlPlane.EnvoyProbe/packages.lock.json
+            tests/Envoy.ControlPlane.Integration.Tests/packages.lock.json
             src/Envoy.ControlPlane/packages.lock.json
             src/Envoy.ControlPlane.AspNetCore/packages.lock.json
             src/Envoy.ControlPlane.Protocol/packages.lock.json
@@ -73,14 +75,22 @@ jobs:
       - name: Restore pinned repository tooling
         run: dotnet restore tools/Envoy.ControlPlane.Tools --locked-mode
       - name: Generate verified discovery contracts through Buf
+        id: bindings
         run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- bindings generate --cache ../upstream-sources
       - name: Verify released Envoy SotW, Delta reconnect/removal and TTL refresh/expiry
         run: dotnet run --project tools/Envoy.ControlPlane.Tools --configuration Release --no-restore -- envoy verify
-      - name: Upload proxy pins, traffic/config evidence and logs
+      - name: Verify host-to-container Envoy integration
+        if: ${{ !cancelled() && steps.bindings.outcome == 'success' }}
+        run: |
+          dotnet restore tests/Envoy.ControlPlane.Integration.Tests --locked-mode
+          dotnet test --project tests/Envoy.ControlPlane.Integration.Tests --configuration Release --no-restore --results-directory "$GITHUB_WORKSPACE/artifacts/envoy-integration" --report-xunit-trx
+      - name: Upload proxy evidence, logs and integration test results
         if: always()
         uses: actions/upload-artifact@v7.0.2
         with:
           name: envoy-interop-linux-${{ matrix.architecture }}-${{ github.event.pull_request.head.sha || github.sha }}
-          path: src/Envoy.ControlPlane.Protocol/obj/upstream/results/envoy/
+          path: |
+            src/Envoy.ControlPlane.Protocol/obj/upstream/results/envoy/
+            artifacts/envoy-integration/*.trx
           if-no-files-found: warn
           retention-days: 14

@@ -8,7 +8,7 @@ The [T02 binding proof](../schemas/BINDINGS.md) documents the generated Protocol
 dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings verify --cache ../upstream-sources
 ```
 
-All five maintained suites are registered in [Envoy.ControlPlane.slnx](../Envoy.ControlPlane.slnx) and the [schema verification workflow](../.github/workflows/upstream-verification.yml). The solution-level command is `dotnet test --solution Envoy.ControlPlane.slnx --configuration Release` after generation; focused project commands remain available. All project dependency versions come from [Directory.Packages.props](../Directory.Packages.props), with project dependency graphs recorded in lock files.
+All six maintained suites are registered in [Envoy.ControlPlane.slnx](../Envoy.ControlPlane.slnx). After generation, `repository verify` builds the solution and runs the five Docker-free suites. Running `dotnet test --solution Envoy.ControlPlane.slnx --configuration Release` also executes the Docker integration suite. All project dependency versions come from [Directory.Packages.props](../Directory.Packages.props), with project dependency graphs recorded in lock files.
 
 The binding suite is organized by behavior: `CatalogTests`, `AnnotationTests`, `SerializationTests`, `ServiceContractTests` and `GeneratorCompatibilityTests`. Shared inspection helpers and RPC fixture data live in `Envoy.ControlPlane.Protocol.Tests/Support/`. A shared xUnit collection retains sequential execution. The clean package consumer copies all handwritten test/support sources, so this organization does not reduce the package proof to a subset of checks.
 
@@ -195,6 +195,19 @@ Repository verification executes V05–V27 through 16 actual Go modes / 260 case
 ## Root released-Envoy verification
 
 [T23 root evidence](../docs/plan/T23-ROOT-ENVOY.md) extends envoy verify to 35 checks: retained twenty SotW checks, nine actual Delta/ADS checks and six explicit Delta TTL checks. CI runs the same immutable Envoy 1.40.1/SDK images on Linux amd64 and arm64. Delta verifies four-family traffic/admin state, removal/re-addition and reconnect initial versions. The TTL producer is test-only and uses existing passthrough envelopes; it adds no automatic Delta scheduler. The default proxy's SotW CDS heartbeat incompatibility is recorded as a limitation. Eight additional offline report-verifier cases bring solution discovery to 482, with actual proxy/CI results reported separately.
+
+## Live Envoy integration tests
+
+The [integration suite](Envoy.ControlPlane.Integration.Tests/Envoy.ControlPlane.Integration.Tests.csproj) runs Kestrel in the test process and two Envoy containers on a shared Docker network. The proxy reaches Kestrel through Docker's `host-gateway` mapping, and EDS uses the backend container's IPv4 address. Both containers use the [pinned Envoy image](resources/envoy-images.lock.json). The smoke test checks SotW ADS ACKs, routed HTTP traffic, Envoy admin state and stream cleanup.
+
+Use a local Docker engine running Linux containers on amd64 or arm64, including Docker Desktop on macOS, with `host-gateway` support and access to pull the pinned Envoy image and Testcontainers' resource reaper. After binding generation, run from the repository root:
+
+```sh
+dotnet restore tests/Envoy.ControlPlane.Integration.Tests --locked-mode
+dotnet test --project tests/Envoy.ControlPlane.Integration.Tests --configuration Release --no-restore --report-xunit-trx
+```
+
+The proxy records stdout, stderr and the admin config dump in xUnit output when startup or a test fails. The [Envoy workflow](../.github/workflows/envoy-interop.yml) runs the integration suite on Linux amd64 and arm64 and uploads its TRX alongside the separate `envoy verify` evidence. Projects marked `RequiresDocker` stay in the solution build and run in this dedicated workflow. Ordinary `repository verify` and its Coverlet mode execute only the Docker-free suites.
 
 ## Root update-report verification
 
