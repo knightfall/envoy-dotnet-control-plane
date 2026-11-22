@@ -19,23 +19,24 @@ public sealed partial class LinearCache
         ArgumentNullException.ThrowIfNull(subscription);
         ArgumentNullException.ThrowIfNull(responses);
         ValidateType(request.TypeUrl);
+        ISotwResponse immediateResponse;
         lock (gate)
         {
             var selection = Select(subscription, delta: false,
                 replyEvenIfEmpty: request.VersionInfo.Length == 0 || !request.VersionInfo.StartsWith(versionPrefix, StringComparison.Ordinal));
-            long watchId = ++nextWatchId;
-            var registration = new ResponseWatchRegistration<ISotwResponse>(gate, responses, () => RemoveWatch(watchId));
-            if (selection is not null)
+            if (selection is null)
             {
-                _ = registration.DeliverAsync(new LinearSotwResponse(request, CurrentVersion, selection.Resources, selection.Returned), default);
-            }
-            else
-            {
+                long watchId = ++nextWatchId;
+                var registration = new ResponseWatchRegistration<ISotwResponse>(gate, responses, () => RemoveWatch(watchId));
                 TrackWatch(watchId, new PendingWatch(subscription, false, (selected, currentVersion, cancellation) =>
                     registration.DeliverAsync(new LinearSotwResponse(request, currentVersion, selected.Resources, selected.Returned), cancellation)));
+                return registration;
             }
-            return registration;
+            immediateResponse = new LinearSotwResponse(request, CurrentVersion, selection.Resources, selection.Returned);
         }
+        var immediate = new ResponseWatchRegistration<ISotwResponse>(gate, responses, null);
+        _ = immediate.DeliverAsync(immediateResponse, default);
+        return immediate;
     }
 
     /// <inheritdoc/>
@@ -45,22 +46,23 @@ public sealed partial class LinearCache
         ArgumentNullException.ThrowIfNull(subscription);
         ArgumentNullException.ThrowIfNull(responses);
         ValidateType(request.TypeUrl);
+        IDeltaResponse immediateResponse;
         lock (gate)
         {
             var selection = Select(subscription, delta: true, replyEvenIfEmpty: subscription.IsWildcard && request.ResponseNonce.Length == 0);
-            long watchId = ++nextWatchId;
-            var registration = new ResponseWatchRegistration<IDeltaResponse>(gate, responses, () => RemoveWatch(watchId));
-            if (selection is not null)
+            if (selection is null)
             {
-                _ = registration.DeliverAsync(new LinearDeltaResponse(request, CurrentVersion, selection.Resources, selection.Removed, selection.Returned), default);
-            }
-            else
-            {
+                long watchId = ++nextWatchId;
+                var registration = new ResponseWatchRegistration<IDeltaResponse>(gate, responses, () => RemoveWatch(watchId));
                 TrackWatch(watchId, new PendingWatch(subscription, true, (selected, currentVersion, cancellation) =>
                     registration.DeliverAsync(new LinearDeltaResponse(request, currentVersion, selected.Resources, selected.Removed, selected.Returned), cancellation)));
+                return registration;
             }
-            return registration;
+            immediateResponse = new LinearDeltaResponse(request, CurrentVersion, selection.Resources, selection.Removed, selection.Returned);
         }
+        var immediate = new ResponseWatchRegistration<IDeltaResponse>(gate, responses, null);
+        _ = immediate.DeliverAsync(immediateResponse, default);
+        return immediate;
     }
 
     /// <summary>Counts exact, prefix and wildcard index entries matching a name; overlaps count separately.</summary>
@@ -125,7 +127,7 @@ public sealed partial class LinearCache
         }
     }
 
-    private void StartDeliveries(HashSet<string> modified, CancellationToken cancellationToken, List<Task<bool>> deliveries)
+    private void SelectDeliveries(HashSet<string> modified, CancellationToken cancellationToken, List<Func<Task<bool>>> deliveries)
     {
         var triggered = new HashSet<long>(wildcardWatches);
         foreach (string name in modified)
@@ -149,7 +151,8 @@ public sealed partial class LinearCache
             if (selection is not null)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                deliveries.Add(watch.Deliver(selection, CurrentVersion, cancellationToken));
+                string selectedVersion = CurrentVersion;
+                deliveries.Add(() => watch.Deliver(selection, selectedVersion, cancellationToken));
             }
         }
     }

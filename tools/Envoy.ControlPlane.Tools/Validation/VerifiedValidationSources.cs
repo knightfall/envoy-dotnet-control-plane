@@ -7,29 +7,55 @@ namespace Envoy.ControlPlane.Tools;
 
 internal static class VerifiedValidationSources
 {
-    internal static async Task<string> RetrieveAsync(string cache, JsonNode source, string destination)
+    internal static Task<string> RetrieveAsync(string cache, JsonNode source, string destination) =>
+        RetrieveAsync(cache, source, destination, DownloadArchiveAsync);
+
+    internal static async Task<string> RetrieveAsync(string cache, JsonNode source, string destination,
+        Func<Uri, Task<byte[]>> download)
     {
-        string repository = Path.GetFullPath(".");
-        Require(cache != repository && !cache.StartsWith(repository + Path.DirectorySeparatorChar, StringComparison.Ordinal),
-            "Validation source cache must be outside the repository");
+        string repository = RepositoryPaths.ResolveDirectoryLinks(".");
+        cache = RepositoryPaths.ResolveDirectoryLinks(cache);
+        Require(!RepositoryPaths.IsWithinDirectory(cache, repository), "Validation source cache must be outside the repository");
+
+        string url = source["archiveUrl"]!.GetValue<string>();
+        Require(Uri.TryCreate(url, UriKind.Absolute, out var archiveUri) && archiveUri.Scheme == Uri.UriSchemeHttps,
+            "Validation source archive URL must use HTTPS");
+
         Directory.CreateDirectory(cache);
         string archive = Path.Combine(cache, source["archiveName"]!.GetValue<string>());
-        if (!File.Exists(archive))
+        string expected = source["archiveSha256"]!.GetValue<string>();
+        byte[]? bytes = File.Exists(archive) ? await File.ReadAllBytesAsync(archive) : null;
+        if (bytes is null || ComputeSha256(bytes) != expected)
         {
-            using var client = new HttpClient { Timeout = TimeSpan.FromMinutes(2) };
-            File.WriteAllBytes(archive, await client.GetByteArrayAsync(source["archiveUrl"]!.GetValue<string>()));
+            bytes = await download(archiveUri!);
+            Require(ComputeSha256(bytes) == expected, "Validation source archive differs from lock");
+            string temporary = archive + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                await File.WriteAllBytesAsync(temporary, bytes);
+                File.Move(temporary, archive, overwrite: true);
+            }
+            finally
+            {
+                File.Delete(temporary);
+            }
         }
-        Require(GetFileSha256(archive) == source["archiveSha256"]!.GetValue<string>(), "Validation source archive differs from lock");
 
         if (Directory.Exists(destination))
         {
             Directory.Delete(destination, recursive: true);
         }
         Directory.CreateDirectory(destination);
-        await using var compressed = File.OpenRead(archive);
+        await using var compressed = new MemoryStream(bytes, writable: false);
         await using var tar = new GZipStream(compressed, CompressionMode.Decompress);
         TarFile.ExtractToDirectory(tar, destination, overwriteFiles: false);
         return Path.Combine(destination, source["archivePrefix"]!.GetValue<string>());
+    }
+
+    private static async Task<byte[]> DownloadArchiveAsync(Uri uri)
+    {
+        using var client = new HttpClient { Timeout = TimeSpan.FromMinutes(2) };
+        return await client.GetByteArrayAsync(uri);
     }
 
     internal static async Task<string> MaterializeEvaluatorAsync(string cache)

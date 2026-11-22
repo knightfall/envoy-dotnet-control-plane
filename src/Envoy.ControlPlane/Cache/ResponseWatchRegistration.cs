@@ -7,14 +7,14 @@ internal sealed class ResponseWatchRegistration<TResponse>(object gate, ChannelW
 {
     private readonly CancellationTokenSource cancellation = new();
     private Task<bool>? delivery;
-    private Task? disposal;
-    private bool disposed;
+    private TaskCompletionSource? disposal;
 
     internal Task<bool> DeliverAsync(TResponse response, CancellationToken publication)
     {
+        TaskCompletionSource<bool> completion;
         lock (gate)
         {
-            if (disposed)
+            if (disposal is not null)
             {
                 return Task.FromResult(false);
             }
@@ -22,70 +22,99 @@ internal sealed class ResponseWatchRegistration<TResponse>(object gate, ChannelW
             {
                 return delivery;
             }
-            delivery = WriteAsync(response, publication);
-            return delivery;
+            completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            delivery = completion.Task;
         }
+        // Register the in-flight write before calling the writer, which can synchronously reenter the cache.
+        _ = WriteAsync(response, publication, completion);
+        return completion.Task;
     }
 
-    private async Task<bool> WriteAsync(TResponse response, CancellationToken publication)
+    private async Task WriteAsync(TResponse response, CancellationToken publication, TaskCompletionSource<bool> completion)
     {
-        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation.Token, publication);
         try
         {
-            await responses.WriteAsync(response, linked.Token);
+            using (var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation.Token, publication))
+            {
+                await responses.WriteAsync(response, linked.Token);
+            }
             lock (gate)
             {
                 release?.Invoke();
             }
-            return true;
+            completion.SetResult(true);
         }
-        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        catch (OperationCanceledException error)
         {
-            return false;
+            if (cancellation.IsCancellationRequested)
+            {
+                completion.SetResult(false);
+            }
+            else
+            {
+                completion.SetCanceled(error.CancellationToken);
+            }
+        }
+        catch (Exception error)
+        {
+            completion.SetException(error);
+            // Immediate deliveries have no awaiting publisher. Publication still receives its original failure.
+            _ = completion.Task.Exception;
         }
     }
 
     public void Dispose()
     {
+        TaskCompletionSource completion;
+        Task? pending;
         lock (gate)
         {
-            if (disposed)
+            if (disposal is not null)
             {
                 return;
             }
-            disposed = true;
+            completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            disposal = completion;
+            pending = delivery;
             release?.Invoke();
-            cancellation.Cancel();
         }
+        _ = DisposeCoreAsync(pending, completion);
     }
 
     public ValueTask DisposeAsync()
     {
+        Dispose();
         lock (gate)
         {
-            return new ValueTask(disposal ??= DisposeCoreAsync());
+            return new ValueTask(disposal!.Task);
         }
     }
 
-    private async Task DisposeCoreAsync()
+    private async Task DisposeCoreAsync(Task? pending, TaskCompletionSource completion)
     {
-        Dispose();
-        if (delivery is not null)
+        Exception? failure = null;
+        try
         {
-            try
-            {
-                await delivery;
-            }
-            catch (OperationCanceledException)
-            {
-                // Publication owns its cancellation result; disposal still releases the registration.
-            }
-            catch (Exception) when (delivery.IsFaulted)
-            {
-                // Publication or the destination reports delivery failures, rather than cleanup duplicating them.
-                _ = delivery.Exception;
-            }
+            await cancellation.CancelAsync();
+        }
+        catch (Exception error)
+        {
+            failure = error;
+        }
+        if (pending is not null)
+        {
+            // The publisher owns the write result. Continue cleanup after a canceled or faulted delivery.
+            await pending.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
         }
         cancellation.Dispose();
+        if (failure is not null)
+        {
+            completion.SetException(failure);
+            _ = completion.Task.Exception;
+        }
+        else
+        {
+            completion.SetResult();
+        }
     }
 }

@@ -2,6 +2,8 @@ name: Released Envoy interoperability
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
   pull_request:
     paths:
       - .github/workflows/envoy-interop.yml
@@ -10,6 +12,7 @@ on:
       - Directory.Packages.props
       - Envoy.ControlPlane.slnx
       - global.json
+      - buf*.yaml
       - schemas/**
       - upstream-baseline.json
       - src/**
@@ -17,6 +20,9 @@ on:
       - tests/Envoy.ControlPlane.EnvoyProbe/**
       - tests/resources/envoy/**
       - tests/resources/envoy-images.lock.json
+      - tests/validation/PgvConformance/**
+      - tools/Directory.Build.props
+      - tools/Envoy.ControlPlane.SchemaTools/**
       - tools/Envoy.ControlPlane.Tools/**
 
 permissions:
@@ -53,6 +59,8 @@ jobs:
           cache: true
           cache-dependency-path: |
             tools/Envoy.ControlPlane.Tools/packages.lock.json
+            tools/Envoy.ControlPlane.SchemaTools/packages.lock.json
+            examples/Envoy.ControlPlane.Example/packages.lock.json
             tests/Envoy.ControlPlane.EnvoyProbe/packages.lock.json
             src/Envoy.ControlPlane/packages.lock.json
             src/Envoy.ControlPlane.AspNetCore/packages.lock.json

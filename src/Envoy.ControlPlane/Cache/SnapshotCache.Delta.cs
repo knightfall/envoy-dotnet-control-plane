@@ -13,6 +13,7 @@ public sealed partial class SnapshotCache
         ArgumentNullException.ThrowIfNull(subscription);
         ArgumentNullException.ThrowIfNull(responses);
         string nodeId = nodeHasher.Hash(request.Node);
+        IDeltaResponse? immediateResponse = null;
         lock (gate)
         {
             if (!status.TryGetValue(nodeId, out var info))
@@ -25,21 +26,22 @@ public sealed partial class SnapshotCache
             {
                 snapshot.ConstructVersionMap();
                 bool replyIfEmpty = subscription.IsWildcard && request.ResponseNonce.Length == 0;
-                if (DeltaResponseSelection.Create(snapshot, request, subscription, replyIfEmpty, default) is { } response)
-                {
-                    var immediate = new ResponseWatchRegistration<IDeltaResponse>(gate, responses, null);
-                    _ = immediate.DeliverAsync(response, default);
-                    return immediate;
-                }
+                immediateResponse = DeltaResponseSelection.Create(snapshot, request, subscription, replyIfEmpty, default);
             }
-            long watchId = ++nextWatchId;
-            var registration = new ResponseWatchRegistration<IDeltaResponse>(gate, responses, () => RemoveDeltaWatch(nodeId, watchId));
-            info.DeltaWatches.Add(watchId, new PendingDeltaWatch(request, subscription, registration));
-            return registration;
+            if (immediateResponse is null)
+            {
+                long watchId = ++nextWatchId;
+                var registration = new ResponseWatchRegistration<IDeltaResponse>(gate, responses, () => RemoveDeltaWatch(nodeId, watchId));
+                info.DeltaWatches.Add(watchId, new PendingDeltaWatch(request, subscription, registration));
+                return registration;
+            }
         }
+        var immediate = new ResponseWatchRegistration<IDeltaResponse>(gate, responses, null);
+        _ = immediate.DeliverAsync(immediateResponse, default);
+        return immediate;
     }
 
-    private void StartDeltaDeliveries(IResourceSnapshot snapshot, StatusInfo info, ResponseContext context, List<Task<bool>> deliveries)
+    private void SelectDeltaDeliveries(IResourceSnapshot snapshot, StatusInfo info, ResponseContext context, List<Func<Task<bool>>> deliveries)
     {
         if (info.DeltaWatches.Count == 0)
         {
@@ -56,7 +58,7 @@ public sealed partial class SnapshotCache
             if (DeltaResponseSelection.Create(snapshot, watch.Request, watch.Subscription, replyIfEmpty: false, context) is { } response)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
-                deliveries.Add(watch.Registration.DeliverAsync(response, context.CancellationToken));
+                deliveries.Add(() => watch.Registration.DeliverAsync(response, context.CancellationToken));
             }
         }
     }

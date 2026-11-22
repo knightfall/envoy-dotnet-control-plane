@@ -44,7 +44,7 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
         }
         try
         {
-            var deliveries = new List<Task<bool>>();
+            var deliveries = new List<Func<Task<bool>>>();
             Exception? failure = null;
             try
             {
@@ -53,8 +53,8 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
                     snapshots[nodeId] = snapshot;
                     if (status.TryGetValue(nodeId, out var info))
                     {
-                        StartDeliveries(snapshot, info, context, deliveries);
-                        StartDeltaDeliveries(snapshot, info, context, deliveries);
+                        SelectDeliveries(snapshot, info, context, deliveries);
+                        SelectDeltaDeliveries(snapshot, info, context, deliveries);
                     }
                 }
             }
@@ -64,7 +64,7 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
             }
             try
             {
-                await Task.WhenAll(deliveries);
+                await Task.WhenAll(deliveries.Select(start => start()));
             }
             catch (Exception error) when (error is not OutOfMemoryException)
             {
@@ -81,15 +81,15 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
         }
     }
 
-    private void StartDeliveries(IResourceSnapshot snapshot, StatusInfo info, ResponseContext context,
-        List<Task<bool>> deliveries)
+    private void SelectDeliveries(IResourceSnapshot snapshot, StatusInfo info, ResponseContext context,
+        List<Func<Task<bool>>> deliveries)
     {
         IEnumerable<PendingWatch> pending = info.Watches.Values;
         if (ads)
         {
             pending = pending.OrderBy(watch => ResourceCatalog.GetResponseType(watch.Request.TypeUrl));
         }
-        // Begin writes in publication order; await buffer space only after releasing cache synchronization.
+        // Preserve selection order when the captured writes start outside the cache lock.
         foreach (var watch in pending.ToArray())
         {
             if (snapshot.GetVersion(watch.Request.TypeUrl) != watch.Request.VersionInfo)
@@ -98,7 +98,7 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
                 if (selection.Response is { } response)
                 {
                     context.CancellationToken.ThrowIfCancellationRequested();
-                    deliveries.Add(watch.Registration.DeliverAsync(response, context.CancellationToken));
+                    deliveries.Add(() => watch.Registration.DeliverAsync(response, context.CancellationToken));
                 }
             }
         }
@@ -134,6 +134,7 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
         ArgumentNullException.ThrowIfNull(subscription);
         ArgumentNullException.ThrowIfNull(responses);
         string nodeId = nodeHasher.Hash(request.Node);
+        ISotwResponse? immediateResponse = null;
         lock (gate)
         {
             if (!status.TryGetValue(nodeId, out var info))
@@ -149,18 +150,19 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
                 {
                     return new ResponseWatchRegistration<ISotwResponse>(gate, responses, null);
                 }
-                if (selection.Response is { } response)
-                {
-                    var immediate = new ResponseWatchRegistration<ISotwResponse>(gate, responses, null);
-                    _ = immediate.DeliverAsync(response, default);
-                    return immediate;
-                }
+                immediateResponse = selection.Response;
             }
-            long watchId = ++nextWatchId;
-            var completion = new ResponseWatchRegistration<ISotwResponse>(gate, responses, () => RemoveWatch(nodeId, watchId));
-            info.Watches.Add(watchId, new PendingWatch(request, subscription, completion));
-            return completion;
+            if (immediateResponse is null)
+            {
+                long watchId = ++nextWatchId;
+                var registration = new ResponseWatchRegistration<ISotwResponse>(gate, responses, () => RemoveWatch(nodeId, watchId));
+                info.Watches.Add(watchId, new PendingWatch(request, subscription, registration));
+                return registration;
+            }
         }
+        var immediate = new ResponseWatchRegistration<ISotwResponse>(gate, responses, null);
+        _ = immediate.DeliverAsync(immediateResponse, default);
+        return immediate;
     }
 
     /// <summary>Returns the live synchronized status view, or null when no status is indexed.</summary>

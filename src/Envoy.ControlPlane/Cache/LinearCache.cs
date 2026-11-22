@@ -40,6 +40,7 @@ public sealed partial class LinearCache : IConfigWatcher, IConfigFetcher
     /// <param name="cancellationToken">Cancels queued publication or channel delivery; an installed update remains installed.</param>
     public Task UpdateResourceAsync(string name, IMessage resource, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(resource);
         return PublishAsync(modified =>
         {
@@ -51,11 +52,15 @@ public sealed partial class LinearCache : IConfigWatcher, IConfigFetcher
     /// <summary>Deletes one named resource and advances the counter even when that name is absent.</summary>
     /// <param name="name">The resource to remove.</param>
     /// <param name="cancellationToken">Cancellation for publication and delivery.</param>
-    public Task DeleteResourceAsync(string name, CancellationToken cancellationToken = default) => PublishAsync(modified =>
+    public Task DeleteResourceAsync(string name, CancellationToken cancellationToken = default)
     {
-        resources.Remove(name);
-        modified.Add(name);
-    }, cancellationToken);
+        ArgumentNullException.ThrowIfNull(name);
+        return PublishAsync(modified =>
+        {
+            resources.Remove(name);
+            modified.Add(name);
+        }, cancellationToken);
+    }
 
     /// <summary>Applies a batch at one new counter value, with deletions taking precedence over updates.</summary>
     /// <param name="toUpdate">Named stable messages; null values follow upstream bulk-update semantics.</param>
@@ -66,14 +71,20 @@ public sealed partial class LinearCache : IConfigWatcher, IConfigFetcher
     {
         ArgumentNullException.ThrowIfNull(toUpdate);
         ArgumentNullException.ThrowIfNull(toDelete);
+        var updates = ValidateResources(toUpdate, nameof(toUpdate));
+        var deletions = toDelete.ToArray();
+        foreach (string name in deletions)
+        {
+            ArgumentNullException.ThrowIfNull(name, nameof(toDelete));
+        }
         return PublishAsync(modified =>
         {
-            foreach (var (name, resource) in toUpdate)
+            foreach (var (name, resource) in updates)
             {
                 resources[name] = new LinearResource(name, resource, CurrentVersion);
                 modified.Add(name);
             }
-            foreach (string name in toDelete)
+            foreach (string name in deletions)
             {
                 resources.Remove(name);
                 modified.Add(name);
@@ -87,16 +98,27 @@ public sealed partial class LinearCache : IConfigWatcher, IConfigFetcher
     public Task SetResourcesAsync(IReadOnlyDictionary<string, IMessage?> replacement, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(replacement);
+        var entries = ValidateResources(replacement, nameof(replacement));
         return PublishAsync(modified =>
         {
             modified.UnionWith(resources.Keys);
             resources.Clear();
-            foreach (var (name, resource) in replacement)
+            foreach (var (name, resource) in entries)
             {
                 resources[name] = new LinearResource(name, resource, CurrentVersion);
                 modified.Add(name);
             }
         }, cancellationToken);
+    }
+
+    private static KeyValuePair<string, IMessage?>[] ValidateResources(IReadOnlyDictionary<string, IMessage?> items, string parameter)
+    {
+        var entries = items.ToArray();
+        foreach (var (name, _) in entries)
+        {
+            ArgumentNullException.ThrowIfNull(name, parameter);
+        }
+        return entries;
     }
 
     /// <summary>Returns a fresh outer index containing the retained stable messages.</summary>
@@ -144,7 +166,7 @@ public sealed partial class LinearCache : IConfigWatcher, IConfigFetcher
         }
         try
         {
-            var deliveries = new List<Task<bool>>();
+            var deliveries = new List<Func<Task<bool>>>();
             Exception? failure = null;
             try
             {
@@ -153,7 +175,7 @@ public sealed partial class LinearCache : IConfigWatcher, IConfigFetcher
                     version++;
                     var modified = new HashSet<string>(StringComparer.Ordinal);
                     update(modified);
-                    StartDeliveries(modified, cancellationToken, deliveries);
+                    SelectDeliveries(modified, cancellationToken, deliveries);
                 }
             }
             catch (Exception error) when (error is not OutOfMemoryException)
@@ -162,7 +184,7 @@ public sealed partial class LinearCache : IConfigWatcher, IConfigFetcher
             }
             try
             {
-                await Task.WhenAll(deliveries);
+                await Task.WhenAll(deliveries.Select(start => start()));
             }
             catch (Exception error) when (error is not OutOfMemoryException)
             {

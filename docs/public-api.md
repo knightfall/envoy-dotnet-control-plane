@@ -23,7 +23,7 @@ The five packages use prerelease version `1.0.0-rc.1` and the `Knightfall.Envoy.
 | `LinearCache` | One arbitrary type URL, caller-supplied names and optional version prefix. Keep publication input collections stable until completion and retained messages stable until replacement. Update counters follow source behavior, including no-op updates. |
 | `MuxCache` | Copies the ordinal child index, uses separate SotW/Delta classifiers and shares the SotW classifier with Fetch. Classifiers support concurrent calls. Children remain caller-owned; the mux adds no cross-cache publication lock or transaction. |
 
-SnapshotCache and LinearCache serialize publications while allowing channel-capacity waits outside cache synchronization. Buffering waits; it does not silently drop responses or promise fairness/throughput quotas. Lazy responses may fail when materialized after a successful watch delivery. `TimeSpan` carries 100 ns precision.
+SnapshotCache and LinearCache serialize publications and select their responses under cache synchronization. They invoke channel writers and wait for capacity outside the cache lock. Buffering waits; it does not silently drop responses or promise fairness/throughput quotas. Lazy responses may fail when materialized after a successful watch delivery. `TimeSpan` carries 100 ns precision.
 
 ## Channels, cancellation and disposal
 
@@ -66,7 +66,7 @@ Delta drains queued responses before the request hook, which runs before node/ty
 | Stream processing / callback error | Original exception retained. Ordered main-queue response failures map to Unavailable with the inner cause; drain failures preserve source-specific propagation. |
 | Multiple processing / cleanup errors | Aggregate retains processing failure first and subsequent cleanup failures. Close is attempted once. |
 | Application `RpcException` | Existing gRPC status retained; unexpected transport failures follow framework handling. |
-| HTTP gateway | 200 protobuf JSON, empty 304 unchanged, 400 bad/read-failed JSON, 404 unknown path, 500 Fetch/materialization/format failure. Host failures may prevent any response. |
+| HTTP gateway | 200 protobuf JSON, empty 304 unchanged, 400 bad/read-failed JSON, 404 unknown path, 500 Fetch/materialization/format failure, empty 503 when host shutdown cancels a response before it starts. Disconnects and shutdown after response start may end the request without an HTTP status. |
 
 Error strings/order, JSON whitespace/property order and time precision are runtime adaptations. See the task evidence for exact tested paths. The library adds no retry policy, transport quota or authentication provider.
 
