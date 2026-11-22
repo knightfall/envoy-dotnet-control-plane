@@ -16,14 +16,20 @@ namespace Envoy.ControlPlane.Example;
 
 internal static class ExampleResources
 {
-    internal static Snapshot CreateSnapshot(string version, uint backendPort, uint listenerPort)
+    internal const string LoopbackAddress = "127.0.0.1";
+
+    internal static Snapshot CreateSnapshot(string version, uint backendPort, uint listenerPort) =>
+        CreateSnapshot(version, backendPort, listenerPort, LoopbackAddress, LoopbackAddress);
+
+    internal static Snapshot CreateSnapshot(string version, uint backendPort, uint listenerPort,
+        string backendAddress, string listenerAddress)
     {
         var snapshot = new Snapshot(version, new Dictionary<string, IEnumerable<IMessage?>>
         {
             [ResourceTypeUrls.Cluster] = [CreateCluster()],
-            [ResourceTypeUrls.Endpoint] = [CreateEndpoints(backendPort)],
+            [ResourceTypeUrls.Endpoint] = [CreateEndpoints(backendPort, backendAddress)],
             [ResourceTypeUrls.Route] = [CreateRoutes()],
-            [ResourceTypeUrls.Listener] = [CreateListener(listenerPort)],
+            [ResourceTypeUrls.Listener] = [CreateListener(listenerPort, listenerAddress)],
         });
         snapshot.EnsureConsistent();
         return snapshot;
@@ -43,7 +49,7 @@ internal static class ExampleResources
         EdsClusterConfig = new Cluster.Types.EdsClusterConfig { EdsConfig = AdsSource(), ServiceName = "service" },
     };
 
-    private static ClusterLoadAssignment CreateEndpoints(uint port) => new()
+    private static ClusterLoadAssignment CreateEndpoints(uint port, string address = LoopbackAddress) => new()
     {
         ClusterName = "service",
         Endpoints =
@@ -58,7 +64,7 @@ internal static class ExampleResources
                         {
                             Address = new Address
                             {
-                                SocketAddress = new SocketAddress { Address = "127.0.0.1", PortValue = port },
+                                SocketAddress = new SocketAddress { Address = address, PortValue = port },
                             },
                         },
                     },
@@ -88,7 +94,7 @@ internal static class ExampleResources
         },
     };
 
-    private static Listener CreateListener(uint port)
+    private static Listener CreateListener(uint port, string address = LoopbackAddress)
     {
         var manager = new HttpConnectionManager
         {
@@ -99,7 +105,7 @@ internal static class ExampleResources
         return new Listener
         {
             Name = "listener",
-            Address = new Address { SocketAddress = new SocketAddress { Address = "127.0.0.1", PortValue = port } },
+            Address = new Address { SocketAddress = new SocketAddress { Address = address, PortValue = port } },
             FilterChains =
             {
                 new FilterChain

@@ -32,7 +32,7 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
 
     internal EnvoyProxyContainer(EnvoyImageLock images, INetwork network, string bootstrap,
         IReadOnlyList<int> listenerPorts, int? listenerDrainSeconds, IReadOnlyDictionary<string, byte[]>? files = null,
-        string? sensitiveValue = null)
+        string? sensitiveValue = null, bool connectToHost = true)
     {
         this.sensitiveValue = sensitiveValue;
         string[] command = ["envoy", "-c", ConfigPath, "--disable-hot-restart"];
@@ -46,7 +46,6 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
         }
         var builder = new ContainerBuilder(images.EnvoyIndex)
             .WithNetwork(network)
-            .WithExtraHost(ManagementHostname, "host-gateway")
             .WithResourceMapping(Encoding.UTF8.GetBytes(bootstrap), FilePath.Of(ConfigPath))
             .WithCommand(command)
             .WithPortBinding(AdminPort, assignRandomHostPort: true)
@@ -61,6 +60,10 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
             })
             .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(
                 request => request.ForPort(AdminPort).ForPath("/ready"), wait => wait.WithTimeout(TimeSpan.FromSeconds(45))));
+        if (connectToHost)
+        {
+            builder = builder.WithExtraHost(ManagementHostname, "host-gateway");
+        }
         foreach (int port in listenerPorts)
         {
             builder = builder.WithPortBinding(port, assignRandomHostPort: true);
@@ -173,8 +176,8 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
         ? text
         : text.Replace(sensitiveValue, "[redacted]", StringComparison.Ordinal);
 
-    internal static string RenderAdsBootstrap(string nodeId, int managementPort, bool delta = false, string nodeCluster = "integration") =>
-        RenderBootstrap(nodeId, managementPort, RenderAdsResources(delta), nodeCluster: nodeCluster);
+    internal static string RenderAdsBootstrap(string nodeId, int managementPort, bool delta = false, string nodeCluster = "integration", string managementHost = ManagementHostname) =>
+        RenderBootstrap(nodeId, managementPort, RenderAdsResources(delta), nodeCluster: nodeCluster, managementHost: managementHost);
 
     internal static string RenderTlsAdsBootstrap(string nodeId, int managementPort, bool delta, bool sendClientCertificate = false,
         string? bearerToken = null)
@@ -259,7 +262,7 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
             """), rest: true);
 
     private static string RenderBootstrap(string nodeId, int managementPort, string dynamicResources, bool rest = false,
-        string transportSocket = "", string nodeCluster = "integration")
+        string transportSocket = "", string nodeCluster = "integration", string managementHost = ManagementHostname)
     {
         string managementCluster = rest ? RestCluster : "xds";
         string protocolOptions = rest ? "http_protocol_options" : "http2_protocol_options";
@@ -288,7 +291,7 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
                   - lb_endpoints:
                     - endpoint:
                         address:
-                          socket_address: { address: {{ManagementHostname}}, port_value: {{managementPort}} }
+                          socket_address: { address: {{JsonSerializer.Serialize(managementHost)}}, port_value: {{managementPort}} }
             """);
     }
 }
