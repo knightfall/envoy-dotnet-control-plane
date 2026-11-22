@@ -10,9 +10,11 @@ public sealed partial class LinearCache
         var matched = GetSubscribedResources(subscription);
         var changed = new List<LinearResource>();
         var known = subscription.ReturnedResources;
+        var resourcesToResend = delta ? subscription.DeltaResourcesToResend : null;
         foreach (var resource in matched)
         {
-            if (!known.TryGetValue(resource.Name, out string? previous) || previous != resource.GetVersion(delta))
+            if (!known.TryGetValue(resource.Name, out string? previous) || previous != resource.GetVersion(delta)
+                || resourcesToResend?.Contains(resource.Name) == true)
             {
                 changed.Add(resource);
             }

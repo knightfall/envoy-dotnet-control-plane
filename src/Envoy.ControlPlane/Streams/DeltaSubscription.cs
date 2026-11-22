@@ -11,6 +11,7 @@ public sealed class DeltaSubscription : ISubscription
     private readonly HashSet<string> subscribedResources = new(StringComparer.Ordinal);
     private readonly HashSet<string> subscribedPrefixes = new(StringComparer.Ordinal);
     private Dictionary<string, string> returnedResources;
+    private HashSet<string>? resourcesToResend;
 
     /// <summary>Creates one type's initial state, including its first-request resource versions.</summary>
     /// <param name="subscribed">Initial exact, prefix or wildcard additions.</param>
@@ -25,7 +26,7 @@ public sealed class DeltaSubscription : ISubscription
         returnedResources = initialResourceVersions is null
             ? new Dictionary<string, string>(StringComparer.Ordinal)
             : new Dictionary<string, string>(initialResourceVersions, StringComparer.Ordinal);
-        UpdateResourceSubscriptions(subscribed, unsubscribed);
+        ApplyResourceSubscriptions(subscribed, unsubscribed, resendKnownResources: false);
     }
 
     /// <inheritdoc/>
@@ -40,10 +41,15 @@ public sealed class DeltaSubscription : ISubscription
     /// <inheritdoc/>
     public bool IsWildcard { get; private set; }
 
+    IReadOnlySet<string>? ISubscription.DeltaResourcesToResend => resourcesToResend is { Count: > 0 } ? resourcesToResend : null;
+
     /// <summary>Applies additions before removals without re-seeding initial versions.</summary>
     /// <param name="subscribed">New exact, prefix or wildcard additions.</param>
     /// <param name="unsubscribed">Exact, prefix or wildcard removals.</param>
-    public void UpdateResourceSubscriptions(IReadOnlyCollection<string>? subscribed, IReadOnlyCollection<string>? unsubscribed)
+    public void UpdateResourceSubscriptions(IReadOnlyCollection<string>? subscribed, IReadOnlyCollection<string>? unsubscribed) =>
+        ApplyResourceSubscriptions(subscribed, unsubscribed, resendKnownResources: true);
+
+    private void ApplyResourceSubscriptions(IReadOnlyCollection<string>? subscribed, IReadOnlyCollection<string>? unsubscribed, bool resendKnownResources)
     {
         if (allowLegacyWildcard)
         {
@@ -67,6 +73,10 @@ public sealed class DeltaSubscription : ISubscription
             else
             {
                 subscribedResources.Add(name);
+                if (resendKnownResources && returnedResources.ContainsKey(name))
+                {
+                    (resourcesToResend ??= new HashSet<string>(StringComparer.Ordinal)).Add(name);
+                }
             }
         }
         foreach (string name in unsubscribed ?? [])
@@ -81,6 +91,7 @@ public sealed class DeltaSubscription : ISubscription
             }
             else
             {
+                resourcesToResend?.Remove(name);
                 if (IsWildcard && subscribedResources.Contains(name))
                 {
                     // Force the cache to report an existing resource again or confirm its removal.
@@ -97,6 +108,9 @@ public sealed class DeltaSubscription : ISubscription
 
     /// <summary>Replaces returned version metadata using a copy owned by this stream state.</summary>
     /// <param name="resourceVersions">Resource versions from the delivered response.</param>
-    public void SetReturnedResources(IReadOnlyDictionary<string, string> resourceVersions) =>
+    public void SetReturnedResources(IReadOnlyDictionary<string, string> resourceVersions)
+    {
         returnedResources = new Dictionary<string, string>(resourceVersions, StringComparer.Ordinal);
+        resourcesToResend?.Clear();
+    }
 }
