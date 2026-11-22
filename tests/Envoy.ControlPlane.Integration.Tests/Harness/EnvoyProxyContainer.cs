@@ -61,9 +61,14 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
         }
     }
 
-    internal async Task<EnvoyConfigDump> GetConfigDumpAsync(CancellationToken cancellationToken) =>
-        await admin.GetFromJsonAsync<EnvoyConfigDump>(new Uri(Address(AdminPort), "/config_dump"), cancellationToken)
+    internal async Task<EnvoyConfigDump> GetConfigDumpAsync(CancellationToken cancellationToken, bool includeEndpoints = false) =>
+        await admin.GetFromJsonAsync<EnvoyConfigDump>(
+            new Uri(Address(AdminPort), includeEndpoints ? "/config_dump?include_eds" : "/config_dump"), cancellationToken)
         ?? throw new InvalidDataException("Envoy returned an empty config dump.");
+
+    internal async Task<EnvoyRuntime> GetRuntimeAsync(CancellationToken cancellationToken) =>
+        await admin.GetFromJsonAsync<EnvoyRuntime>(new Uri(Address(AdminPort), "/runtime"), cancellationToken)
+        ?? throw new InvalidDataException("Envoy returned empty runtime state.");
 
     internal async Task<EnvoyStats> GetStatsAsync(CancellationToken cancellationToken, string? filter = null)
     {
@@ -107,13 +112,7 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
     }
 
     internal static string RenderAdsBootstrap(string nodeId, int managementPort, bool delta = false) =>
-        string.Create(CultureInfo.InvariantCulture, $$"""
-            admin:
-              address:
-                socket_address: { address: 0.0.0.0, port_value: {{AdminPort}} }
-            node:
-              id: {{JsonSerializer.Serialize(nodeId)}}
-              cluster: integration
+        RenderBootstrap(nodeId, managementPort, $$"""
             dynamic_resources:
               ads_config:
                 api_type: {{(delta ? "DELTA_GRPC" : "GRPC")}}
@@ -123,6 +122,31 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
                 - envoy_grpc: { cluster_name: xds }
               cds_config: { resource_api_version: V3, ads: {} }
               lds_config: { resource_api_version: V3, ads: {} }
+            """);
+
+    internal static string RenderSplitBootstrap(string nodeId, int managementPort) =>
+        RenderBootstrap(nodeId, managementPort, """
+            dynamic_resources:
+              cds_config: &grpc_source
+                resource_api_version: V3
+                api_config_source:
+                  api_type: GRPC
+                  transport_api_version: V3
+                  set_node_on_first_message_only: true
+                  grpc_services:
+                  - envoy_grpc: { cluster_name: xds }
+              lds_config: *grpc_source
+            """);
+
+    private static string RenderBootstrap(string nodeId, int managementPort, string dynamicResources) =>
+        string.Create(CultureInfo.InvariantCulture, $$"""
+            admin:
+              address:
+                socket_address: { address: 0.0.0.0, port_value: {{AdminPort}} }
+            node:
+              id: {{JsonSerializer.Serialize(nodeId)}}
+              cluster: integration
+            {{dynamicResources}}
             static_resources:
               clusters:
               - name: xds
@@ -152,6 +176,10 @@ internal sealed record EnvoyConfig([property: JsonPropertyName("@type")] string 
 }
 
 internal sealed record EnvoyStats(IReadOnlyList<EnvoyStat> Stats);
+
+internal sealed record EnvoyRuntime(IReadOnlyDictionary<string, EnvoyRuntimeEntry> Entries);
+
+internal sealed record EnvoyRuntimeEntry([property: JsonPropertyName("final_value")] string FinalValue);
 
 internal sealed record EnvoyStat(string? Name, JsonElement Value)
 {

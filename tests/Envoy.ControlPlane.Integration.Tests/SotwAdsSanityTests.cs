@@ -7,7 +7,6 @@ using Envoy.ControlPlane.Example;
 using Envoy.ControlPlane.Integration.Tests.Harness;
 using Envoy.ControlPlane.Resources;
 using Envoy.ControlPlane.Streams;
-using Envoy.Service.Discovery.V3;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -50,7 +49,7 @@ public sealed class SotwAdsSanityTests(ITestOutputHelper output)
         {
             var sotw = host.Observations.Sotw;
             string[] types = [ResourceTypeUrls.Cluster, ResourceTypeUrls.Endpoint, ResourceTypeUrls.Listener, ResourceTypeUrls.Route];
-            await AsyncPoll.UntilAsync(() => types.All(type => HasAck(sotw, type, version)), "Envoy SotW ACKs",
+            await AsyncPoll.UntilAsync(() => types.All(type => host.Observations.HasSotwAck(type, version)), "Envoy SotW ACKs",
                 pollTimeout, cancellationToken);
 
             using var client = new HttpClient();
@@ -100,10 +99,4 @@ public sealed class SotwAdsSanityTests(ITestOutputHelper output)
         listener.Address.SocketAddress.Address = IPAddress.Any.ToString();
         return snapshot;
     }
-
-    private static bool HasAck(StreamObservations<DiscoveryRequest, DiscoveryResponse> observations, string type, string version) =>
-        observations.Responses.Any(sent => sent.Response.TypeUrl == type && sent.Response.VersionInfo == version
-            && sent.Response.Nonce.Length > 0 && observations.Requests.Any(received => received.StreamId == sent.StreamId
-                && received.Request.TypeUrl == type && received.Request.VersionInfo == version
-                && received.Request.ResponseNonce == sent.Response.Nonce && received.Request.ErrorDetail is null));
 }

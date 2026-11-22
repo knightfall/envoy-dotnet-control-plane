@@ -198,7 +198,9 @@ Repository verification executes V05–V27 through 16 actual Go modes / 260 case
 
 ## Live Envoy integration tests
 
-The [integration suite](Envoy.ControlPlane.Integration.Tests/Envoy.ControlPlane.Integration.Tests.csproj) runs Kestrel in the test process and two Envoy containers on a shared Docker network. The proxy reaches Kestrel through Docker's `host-gateway` mapping, and EDS uses the backend container's IPv4 address. Both containers use the [pinned Envoy image](resources/envoy-images.lock.json). The smoke test checks SotW ADS ACKs, routed HTTP traffic, Envoy admin state and stream cleanup.
+The [integration suite](Envoy.ControlPlane.Integration.Tests/Envoy.ControlPlane.Integration.Tests.csproj) runs Kestrel in the test process and an Envoy proxy with one or more backends on a shared Docker network. The proxy reaches Kestrel through Docker's `host-gateway` mapping, and EDS uses the backend container's IPv4 address. All containers use the [pinned Envoy image](resources/envoy-images.lock.json).
+
+The SotW tests cover three-version ordered and unordered ADS rollouts across HTTP, TCP, SRDS, RTDS, and ECDS. They verify applied admin state, RDS NACK retention and repair, the four split xDS streams, stream-open rejection and retry, CDS-only repair with a stable EDS version, partial EDS, and Kestrel restart with continued traffic. [SotW integration cases](Envoy.ControlPlane.Integration.Tests/Sotw/)
 
 Use a local Docker engine running Linux containers on amd64 or arm64, including Docker Desktop on macOS, with `host-gateway` support and access to pull the pinned Envoy image and Testcontainers' resource reaper. After binding generation, run from the repository root:
 

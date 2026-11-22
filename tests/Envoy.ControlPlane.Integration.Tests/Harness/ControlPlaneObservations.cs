@@ -13,17 +13,26 @@ internal sealed class ControlPlaneObservations : ISotwCallbacks, IDeltaCallbacks
     internal StreamObservations<DeltaDiscoveryRequest, DeltaDiscoveryResponse> Delta { get; } = new();
     internal ConcurrentQueue<DiscoveryRequest> FetchRequests { get; } = new();
     internal ConcurrentQueue<(DiscoveryRequest Request, DiscoveryResponse? Response)> FetchResponses { get; } = new();
+    internal Func<long, string, CancellationToken, ValueTask>? SotwOpenHandler { get; set; }
+    internal Func<DiscoveryRequest, CancellationToken, ValueTask>? SotwRequestHandler { get; set; }
+
+    internal bool HasSotwAck(string type, string version, long? streamId = null) =>
+        Sotw.Responses.Any(sent => (streamId is null || sent.StreamId == streamId)
+            && sent.Response.TypeUrl == type && sent.Response.VersionInfo == version && sent.Response.Nonce.Length > 0
+            && Sotw.Requests.Any(received => received.StreamId == sent.StreamId && received.Request.TypeUrl == type
+                && received.Request.VersionInfo == version && received.Request.ResponseNonce == sent.Response.Nonce
+                && received.Request.ErrorDetail is null));
 
     ValueTask ISotwCallbacks.OnStreamOpenAsync(ResponseContext context, long streamId, string typeUrl, CancellationToken cancellationToken)
     {
         Sotw.Opened.Enqueue((streamId, typeUrl));
-        return ValueTask.CompletedTask;
+        return SotwOpenHandler?.Invoke(streamId, typeUrl, cancellationToken) ?? ValueTask.CompletedTask;
     }
 
     public ValueTask OnStreamRequestAsync(long streamId, DiscoveryRequest request, CancellationToken cancellationToken)
     {
         Sotw.Requests.Enqueue((streamId, request.Clone()));
-        return ValueTask.CompletedTask;
+        return SotwRequestHandler?.Invoke(request, cancellationToken) ?? ValueTask.CompletedTask;
     }
 
     public ValueTask OnStreamResponseAsync(ResponseContext context, long streamId, DiscoveryRequest request,

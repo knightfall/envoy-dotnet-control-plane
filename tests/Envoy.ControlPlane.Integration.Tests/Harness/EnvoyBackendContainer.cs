@@ -15,11 +15,11 @@ internal sealed class EnvoyBackendContainer : IAsyncDisposable
     private const string ConfigPath = "/etc/envoy/integration-backend.yaml";
     private readonly IContainer container;
 
-    internal EnvoyBackendContainer(EnvoyImageLock images, INetwork network, string name)
+    internal EnvoyBackendContainer(EnvoyImageLock images, INetwork network, string name, bool http1Only = false)
     {
         container = new ContainerBuilder(images.EnvoyIndex)
             .WithNetwork(network)
-            .WithResourceMapping(Encoding.UTF8.GetBytes(RenderConfig(name)), FilePath.Of(ConfigPath))
+            .WithResourceMapping(Encoding.UTF8.GetBytes(RenderConfig(name, http1Only)), FilePath.Of(ConfigPath))
             .WithCommand("envoy", "-c", ConfigPath, "--disable-hot-restart")
             .WithWaitStrategy(Wait.ForUnixContainer()
                 .UntilMessageIsLogged("starting main dispatch loop", wait => wait.WithTimeout(TimeSpan.FromSeconds(30))))
@@ -43,7 +43,7 @@ internal sealed class EnvoyBackendContainer : IAsyncDisposable
 
     public ValueTask DisposeAsync() => container.DisposeAsync();
 
-    private static string RenderConfig(string name) => string.Create(CultureInfo.InvariantCulture, $$"""
+    private static string RenderConfig(string name, bool http1Only) => string.Create(CultureInfo.InvariantCulture, $$"""
         static_resources:
           listeners:
           - name: backend
@@ -54,6 +54,7 @@ internal sealed class EnvoyBackendContainer : IAsyncDisposable
               - name: envoy.filters.network.http_connection_manager
                 typed_config:
                   "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                  codec_type: {{(http1Only ? "HTTP1" : "AUTO")}}
                   stat_prefix: backend
                   route_config:
                     name: backend
