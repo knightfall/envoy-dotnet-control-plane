@@ -18,12 +18,23 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
     private readonly HttpClient admin = new() { Timeout = TimeSpan.FromSeconds(5) };
 
     internal EnvoyProxyContainer(EnvoyImageLock images, INetwork network, string bootstrap, params int[] listenerPorts)
+        : this(images, network, bootstrap, listenerPorts, listenerDrainSeconds: null)
     {
+    }
+
+    internal EnvoyProxyContainer(EnvoyImageLock images, INetwork network, string bootstrap,
+        IReadOnlyList<int> listenerPorts, int? listenerDrainSeconds)
+    {
+        string[] command = ["envoy", "-c", ConfigPath, "--disable-hot-restart"];
+        if (listenerDrainSeconds is { } seconds)
+        {
+            command = [.. command, "--drain-time-s", seconds.ToString(CultureInfo.InvariantCulture)];
+        }
         var builder = new ContainerBuilder(images.EnvoyIndex)
             .WithNetwork(network)
             .WithExtraHost("host.docker.internal", "host-gateway")
             .WithResourceMapping(Encoding.UTF8.GetBytes(bootstrap), FilePath.Of(ConfigPath))
-            .WithCommand("envoy", "-c", ConfigPath, "--disable-hot-restart")
+            .WithCommand(command)
             .WithPortBinding(AdminPort, assignRandomHostPort: true)
             .WithCreateParameterModifier(parameters =>
             {
@@ -124,13 +135,13 @@ internal sealed class EnvoyProxyContainer : IAsyncDisposable
               lds_config: { resource_api_version: V3, ads: {} }
             """);
 
-    internal static string RenderSplitBootstrap(string nodeId, int managementPort) =>
-        RenderBootstrap(nodeId, managementPort, """
+    internal static string RenderSplitBootstrap(string nodeId, int managementPort, bool delta = false) =>
+        RenderBootstrap(nodeId, managementPort, $$"""
             dynamic_resources:
               cds_config: &grpc_source
                 resource_api_version: V3
                 api_config_source:
-                  api_type: GRPC
+                  api_type: {{(delta ? "DELTA_GRPC" : "GRPC")}}
                   transport_api_version: V3
                   set_node_on_first_message_only: true
                   grpc_services:

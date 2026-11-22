@@ -5,8 +5,8 @@ using Envoy.ControlPlane.Resources;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Xunit;
-using static Envoy.ControlPlane.Integration.Tests.Sotw.SotwResources;
-using static Envoy.ControlPlane.Integration.Tests.Sotw.SotwScenario;
+using static Envoy.ControlPlane.Integration.Tests.Harness.LiveDiscoveryResources;
+using static Envoy.ControlPlane.Integration.Tests.Harness.LiveEnvoyScenario;
 
 namespace Envoy.ControlPlane.Integration.Tests.Sotw;
 
@@ -146,10 +146,10 @@ public sealed class SotwDiscoveryTests(ITestOutputHelper output)
             await scenario.ExpectTrafficAsync(proxy, HttpPort, "A:/sotw");
             var originalStream = Assert.Single(scenario.Observations.Opened);
             int managementPort = scenario.Host.GrpcPort;
-            await scenario.UntilAsync(() => scenario.Cache.GetStatusInfo(NodeId) is { NumWatches: > 0 }, "active SotW watches");
+            await scenario.UntilAsync(() => scenario.Cache.GetStatusInfo(scenario.NodeId) is { NumWatches: > 0 }, "active SotW watches");
             await scenario.Host.StopAsync();
             Assert.Equal(originalStream.StreamId, Assert.Single(scenario.Observations.Closed).StreamId);
-            Assert.Equal(0, scenario.Cache.GetStatusInfo(NodeId)!.NumWatches);
+            Assert.Equal(0, scenario.Cache.GetStatusInfo(scenario.NodeId)!.NumWatches);
             await scenario.ExpectTrafficAsync(proxy, HttpPort, "A:/sotw");
 
             int requestCount = scenario.Observations.Requests.Count;
