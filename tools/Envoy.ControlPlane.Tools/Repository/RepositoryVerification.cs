@@ -13,6 +13,8 @@ internal static class RepositoryVerification
         {
             Require(args is ["verify"] or ["verify", "--coverage"], "Usage: repository verify [--coverage] (run bindings generate first)");
             VerifyProjectInventory();
+            string[] testProjects = DiscoverDockerFreeTestProjects(Solution);
+            Require(testProjects.Length > 0, "The solution has no declared Docker-free test projects");
             await ValidationVerification.VerifyInputsAsync();
             await BuildProcess.RunAsync("dotnet", ["restore", Solution, "--locked-mode"]);
             await BuildProcess.RunAsync("dotnet", ["build", Solution, "--configuration", "Release", "--no-restore"]);
@@ -23,12 +25,12 @@ internal static class RepositoryVerification
             }
             if (args.Length == 2)
             {
-                await CodeCoverageVerification.RunTestsAsync(Solution);
+                await CodeCoverageVerification.RunTestsAsync(testProjects);
             }
             else
             {
-                await BuildProcess.RunAsync("dotnet", ["test", "--solution", Solution, "--configuration", "Release", "--no-build", "--no-restore",
-                    "--results-directory", testResults, "--report-xunit-trx"]);
+                Console.WriteLine($"Running {testProjects.Length} Docker-free test projects.");
+                await RunTestsAsync(testProjects, testResults, collectCoverage: false);
             }
             CopyLifecycleReports();
             int cases = await ValidationVerification.CompareWithGoAsync();
@@ -47,8 +49,9 @@ internal static class RepositoryVerification
             await DeltaStreamVerification.CompareWithGoAsync();
             await SotwStreamVerification.CompareWithGoAsync();
             await RootDifferentialVerification.VerifyAsync();
+            // Solution packing intentionally traverses the non-packable examples, probes and tests.
             await BuildProcess.RunAsync("dotnet", ["pack", Solution, "--configuration", "Release", "--no-build", "--no-restore",
-                "--output", BindingPaths.PackageDirectory]);
+                "-p:WarnOnPackingNonPackableProject=false", "--output", BindingPaths.PackageDirectory]);
             PackageContentsVerification.Verify();
             await PackageVerification.VerifyCleanConsumerAsync();
             await PackageVerification.VerifyCleanConsumerAsync(ValidationPaths.TestsProject, "validation-consumer");
@@ -64,6 +67,38 @@ internal static class RepositoryVerification
         {
             Console.Error.WriteLine(error.Message);
             return 1;
+        }
+    }
+
+    internal static string[] DiscoverDockerFreeTestProjects(string solution)
+    {
+        string directory = Path.GetDirectoryName(Path.GetFullPath(solution))!;
+        return XDocument.Load(solution).Descendants("Project")
+            .Select(project => Path.Combine(directory, project.Attribute("Path")!.Value.Replace('\\', '/')))
+            .Where(path =>
+            {
+                var properties = XDocument.Load(path).Root!.Elements("PropertyGroup").Elements().ToArray();
+                return IsEnabled(properties, "IsTestProject") && !IsEnabled(properties, "RequiresDocker");
+            })
+            .ToArray();
+    }
+
+    private static bool IsEnabled(XElement[] properties, string name) =>
+        bool.TryParse(properties.LastOrDefault(property => property.Name == name)?.Value, out bool enabled) && enabled;
+
+    internal static async Task RunTestsAsync(IReadOnlyList<string> projects, string results, bool collectCoverage)
+    {
+        foreach (string project in projects)
+        {
+            string projectResults = Path.Combine(results, Path.GetFileNameWithoutExtension(project));
+            string[] arguments = ["test", "--project", project, "--configuration", "Release", "--no-build", "--no-restore",
+                "--results-directory", projectResults, "--report-xunit-trx"];
+            await BuildProcess.RunAsync("dotnet", collectCoverage ? [.. arguments, "--coverlet"] : arguments);
+            if (collectCoverage)
+            {
+                Require(Directory.EnumerateFiles(projectResults, "*.xml", SearchOption.AllDirectories).Any(),
+                    "No coverage report was produced for " + project);
+            }
         }
     }
 

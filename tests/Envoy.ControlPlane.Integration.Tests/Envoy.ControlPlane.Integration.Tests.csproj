@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+    <RequiresDocker>true</RequiresDocker>
+    <IsPackable>false</IsPackable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="xunit.v3.mtp-v2" />
+    <PackageReference Include="Testcontainers" />
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <ProjectReference Include="../../src/Envoy.ControlPlane.AspNetCore/Envoy.ControlPlane.AspNetCore.csproj" />
+    <Compile Include="../../examples/Envoy.ControlPlane.Example/ExampleResources.cs" Link="Support/ExampleResources.cs" />
+    <None Include="../resources/envoy-images.lock.json" Link="envoy-images.lock.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

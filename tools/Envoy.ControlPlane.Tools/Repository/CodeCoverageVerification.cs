@@ -5,7 +5,7 @@ namespace Envoy.ControlPlane.Tools;
 
 internal static class CodeCoverageVerification
 {
-    internal static async Task RunTestsAsync(string solution)
+    internal static async Task RunTestsAsync(IReadOnlyList<string> projects)
     {
         string results = Path.GetFullPath(BindingPaths.InputsDirectory + "/results/coverage");
         if (Directory.Exists(results))
@@ -13,19 +13,7 @@ internal static class CodeCoverageVerification
             Directory.Delete(results, recursive: true);
         }
         Directory.CreateDirectory(results);
-        string[] projects = XDocument.Load(solution).Descendants("Project")
-            .Select(project => project.Attribute("Path")!.Value)
-            .Where(path => XDocument.Load(path).Descendants("IsTestProject").Any(value => value.Value == "true"))
-            .ToArray();
-        Require(projects.Length > 0, "The solution has no declared test projects for coverage");
-        foreach (string project in projects)
-        {
-            string projectResults = Path.Combine(results, "raw", Path.GetFileNameWithoutExtension(project));
-            await BuildProcess.RunAsync("dotnet", ["test", "--project", project, "--configuration", "Release", "--no-build", "--no-restore",
-                "--results-directory", projectResults, "--report-xunit-trx", "--coverlet"]);
-            Require(Directory.EnumerateFiles(projectResults, "*.xml", SearchOption.AllDirectories).Any(),
-                "No coverage report was produced for " + project);
-        }
+        await RepositoryVerification.RunTestsAsync(projects, Path.Combine(results, "raw"), collectCoverage: true);
         await BuildProcess.RunAsync("dotnet", ["tool", "restore"]);
         string report = Path.Combine(results, "report");
         await BuildProcess.RunAsync("dotnet", ["tool", "run", "reportgenerator",
@@ -37,7 +25,7 @@ internal static class CodeCoverageVerification
         Require(int.TryParse(coverage.Attribute("lines-valid")?.Value, out int valid) && valid > 0,
             "Merged coverage has no measured source lines");
         VerifyLibraryCoverage(coverage);
-        Console.WriteLine($"Coverage collected from {projects.Length} test projects: {coverage.Attribute("lines-covered")?.Value}/{valid} measured lines. Reports: {report}");
+        Console.WriteLine($"Coverage collected from {projects.Count} Docker-free test projects: {coverage.Attribute("lines-covered")?.Value}/{valid} measured lines. Reports: {report}");
     }
 
     internal static void VerifyLibraryCoverage(XElement coverage)
