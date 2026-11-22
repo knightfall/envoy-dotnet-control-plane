@@ -14,4 +14,7 @@ public interface ISubscription
 
     /// <summary>Gets whether this subscription uses wildcard selection.</summary>
     bool IsWildcard { get; }
+
+    /// <summary>Gets explicitly requested Delta names to resend while retaining their last returned versions.</summary>
+    internal IReadOnlySet<string>? DeltaResourcesToResend => null;
 }

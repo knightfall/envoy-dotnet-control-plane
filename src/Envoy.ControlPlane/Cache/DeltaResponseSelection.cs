@@ -12,6 +12,7 @@ internal static class DeltaResponseSelection
     {
         var resources = snapshot.GetResourcesAndTtl(request.TypeUrl);
         var versions = snapshot.GetVersionMap(request.TypeUrl);
+        var resourcesToResend = subscription.DeltaResourcesToResend;
         var returned = new Dictionary<string, string>(subscription.ReturnedResources, StringComparer.Ordinal);
         var changed = new Dictionary<string, ResourceEntry>(StringComparer.Ordinal);
         if (subscription.IsWildcard && resources is not null)
@@ -47,7 +48,7 @@ internal static class DeltaResponseSelection
         void AddIfChanged(string name, ResourceEntry entry)
         {
             string version = versions?.GetValueOrDefault(name) ?? "";
-            if (returned.TryGetValue(name, out string? known) && known == version)
+            if (returned.TryGetValue(name, out string? known) && known == version && resourcesToResend?.Contains(name) != true)
             {
                 return;
             }

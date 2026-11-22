@@ -96,7 +96,9 @@ The image lock also pins architecture-specific SDK images. The live graph covers
 
 Resource retention is stable-by-convention. Type versions are opaque, protobuf serialization is not universally canonical across runtimes, and Delta payload hashes need not have identical bytes in Go and .NET. TimeSpan precision is 100 ns. Application-provided descriptor registries own opaque `Any` resolution. Struct conversion returns new messages, and exception/cleanup aggregation follows documented .NET behavior. The client disposes replaced calls without taking ownership of its invoker/channel.
 
-SnapshotCache exact-name ADS readiness, prefix selection and overlapping selection outcomes stay source-matched. Ordered ADS does not imply a transaction. The SotW timer scans SotW watches only; raw Delta TTL omission and Linear Fetch's unsupported result remain observable. No stronger quota, fairness, rollback, persistence or retry policy is introduced. The [T21 dispositions](../plan/T21-ROOT-DIFFERENTIAL.md) map these limits to source/native cases.
+SnapshotCache exact-name ADS readiness and prefix selection stay source-matched. Ordered ADS does not imply a transaction. The SotW timer scans SotW watches only; raw Delta TTL omission and Linear Fetch's unsupported result remain observable. No stronger quota, fairness, rollback, persistence or retry policy is introduced. The [T21 dispositions](../plan/T21-ROOT-DIFFERENTIAL.md) map these limits to source/native cases.
+
+On an established Delta stream, SnapshotCache and LinearCache resend explicitly named resources even when their versions match those already returned. This follows the Envoy subscription contract and deliberately diverges from pinned Go. Plain ACKs still wait for changes, and the first request for each resource type uses `initial_resource_versions` to suppress unchanged resources on reconnect. [Envoy subscription contract](https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol#subscribing-to-resources) · [Issue #99](https://github.com/knightfall/envoy-dotnet-control-plane/issues/99)
 
 ## Original annotations and optional evaluator boundary
 
