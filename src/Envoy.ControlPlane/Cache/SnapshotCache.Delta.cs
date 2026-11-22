@@ -14,27 +14,48 @@ public sealed partial class SnapshotCache
         ArgumentNullException.ThrowIfNull(responses);
         string nodeId = nodeHasher.Hash(request.Node);
         IDeltaResponse? immediateResponse = null;
-        lock (gate)
+        StatusInfo? observedStatus = null;
+        while (true)
         {
-            if (!status.TryGetValue(nodeId, out var info))
+            Snapshot toPrepare;
+            lock (gate)
             {
-                info = new StatusInfo(gate, request.Node);
-                status[nodeId] = info;
+                if (!status.TryGetValue(nodeId, out var info))
+                {
+                    info = new StatusInfo(gate, request.Node);
+                    status[nodeId] = info;
+                }
+                if (!ReferenceEquals(info, observedStatus))
+                {
+                    info.LastDeltaWatch = timeProvider.GetUtcNow();
+                    observedStatus = info;
+                }
+
+                snapshots.TryGetValue(nodeId, out var snapshot);
+                if (snapshot is Snapshot builtIn && !builtIn.HasDeltaResources)
+                {
+                    toPrepare = builtIn;
+                }
+                else
+                {
+                    if (snapshot is not null)
+                    {
+                        snapshot.ConstructVersionMap();
+                        bool replyIfEmpty = subscription.IsWildcard && request.ResponseNonce.Length == 0;
+                        immediateResponse = DeltaResponseSelection.Create(snapshot, request, subscription, replyIfEmpty, default);
+                    }
+                    if (immediateResponse is null)
+                    {
+                        long watchId = ++nextWatchId;
+                        var registration = new ResponseWatchRegistration<IDeltaResponse>(gate, responses, () => RemoveDeltaWatch(nodeId, watchId));
+                        info.DeltaWatches.Add(watchId, new PendingDeltaWatch(request, subscription, registration));
+                        return registration;
+                    }
+                    break;
+                }
             }
-            info.LastDeltaWatch = timeProvider.GetUtcNow();
-            if (snapshots.TryGetValue(nodeId, out var snapshot))
-            {
-                snapshot.ConstructVersionMap();
-                bool replyIfEmpty = subscription.IsWildcard && request.ResponseNonce.Length == 0;
-                immediateResponse = DeltaResponseSelection.Create(snapshot, request, subscription, replyIfEmpty, default);
-            }
-            if (immediateResponse is null)
-            {
-                long watchId = ++nextWatchId;
-                var registration = new ResponseWatchRegistration<IDeltaResponse>(gate, responses, () => RemoveDeltaWatch(nodeId, watchId));
-                info.DeltaWatches.Add(watchId, new PendingDeltaWatch(request, subscription, registration));
-                return registration;
-            }
+            // The node's snapshot can change during serialization. Recheck it before selecting or registering.
+            toPrepare.ConstructVersionMap();
         }
         var immediate = new ResponseWatchRegistration<IDeltaResponse>(gate, responses, null);
         _ = immediate.DeliverAsync(immediateResponse, default);
@@ -53,9 +74,11 @@ public sealed partial class SnapshotCache
         {
             pending = pending.OrderBy(watch => ResourceCatalog.GetResponseType(watch.Request.TypeUrl));
         }
+        var shared = snapshot is Snapshot && info.DeltaWatches.Count > 1
+            ? new DeltaResponseSelection.WildcardSelections() : null;
         foreach (var watch in pending.ToArray())
         {
-            if (DeltaResponseSelection.Create(snapshot, watch.Request, watch.Subscription, replyIfEmpty: false, context) is { } response)
+            if (DeltaResponseSelection.Create(snapshot, watch.Request, watch.Subscription, replyIfEmpty: false, context, shared) is { } response)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
                 deliveries.Add(() => watch.Registration.DeliverAsync(response, context.CancellationToken));

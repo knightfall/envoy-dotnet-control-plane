@@ -1,6 +1,7 @@
 // Copyright 2018 Envoyproxy Authors. SPDX-License-Identifier: Apache-2.0
 // Adapted for .NET collection ownership from the pinned stream subscription behavior.
 using Envoy.ControlPlane.Cache;
+using Envoy.ControlPlane.Resources;
 
 namespace Envoy.ControlPlane.Streams;
 
@@ -10,7 +11,7 @@ public sealed class DeltaSubscription : ISubscription
     private bool allowLegacyWildcard;
     private readonly HashSet<string> subscribedResources = new(StringComparer.Ordinal);
     private readonly HashSet<string> subscribedPrefixes = new(StringComparer.Ordinal);
-    private Dictionary<string, string> returnedResources;
+    private IReadOnlyDictionary<string, string> returnedResources;
     private HashSet<string>? resourcesToResend;
 
     /// <summary>Creates one type's initial state, including its first-request resource versions.</summary>
@@ -95,11 +96,11 @@ public sealed class DeltaSubscription : ISubscription
                 if (IsWildcard && subscribedResources.Contains(name))
                 {
                     // Force the cache to report an existing resource again or confirm its removal.
-                    returnedResources[name] = "";
+                    GetWritableReturnedResources()[name] = "";
                 }
-                else
+                else if (returnedResources.ContainsKey(name))
                 {
-                    returnedResources.Remove(name);
+                    GetWritableReturnedResources().Remove(name);
                 }
                 subscribedResources.Remove(name);
             }
@@ -112,5 +113,28 @@ public sealed class DeltaSubscription : ISubscription
     {
         returnedResources = new Dictionary<string, string>(resourceVersions, StringComparer.Ordinal);
         resourcesToResend?.Clear();
+    }
+
+    internal void SetReturnedResourcesFromResponse(IReadOnlyDictionary<string, string> resourceVersions)
+    {
+        if (resourceVersions is SnapshotResourceVersions versions)
+        {
+            returnedResources = versions;
+            resourcesToResend?.Clear();
+        }
+        else
+        {
+            SetReturnedResources(resourceVersions);
+        }
+    }
+
+    private Dictionary<string, string> GetWritableReturnedResources()
+    {
+        if (returnedResources is not Dictionary<string, string> writable)
+        {
+            writable = new Dictionary<string, string>(returnedResources, StringComparer.Ordinal);
+            returnedResources = writable;
+        }
+        return writable;
     }
 }

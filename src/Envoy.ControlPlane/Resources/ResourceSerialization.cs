@@ -21,7 +21,16 @@ public static class ResourceSerialization
         return bytes;
     }
 
+    /// <summary>Transfers the private serialized buffer to a ByteString without copying it.</summary>
+    /// <param name="resource">The retained stable message.</param>
+    internal static ByteString SerializeByteString(IMessage? resource) => UnsafeByteOperations.UnsafeWrap(Serialize(resource));
+
     /// <summary>Returns a lowercase SHA256 digest; deterministic bytes are not canonical across languages.</summary>
     /// <param name="bytes">The materialized protobuf bytes.</param>
-    public static string ComputeHash(ReadOnlySpan<byte> bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
+    public static string ComputeHash(ReadOnlySpan<byte> bytes)
+    {
+        Span<byte> hash = stackalloc byte[SHA256.HashSizeInBytes];
+        SHA256.HashData(bytes, hash);
+        return Convert.ToHexStringLower(hash);
+    }
 }

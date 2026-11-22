@@ -48,15 +48,7 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
             Exception? failure = null;
             try
             {
-                lock (gate)
-                {
-                    snapshots[nodeId] = snapshot;
-                    if (status.TryGetValue(nodeId, out var info))
-                    {
-                        SelectDeliveries(snapshot, info, context, deliveries);
-                        SelectDeltaDeliveries(snapshot, info, context, deliveries);
-                    }
-                }
+                InstallSnapshotAndSelectDeliveries(nodeId, snapshot, context, deliveries);
             }
             catch (Exception error) when (error is not OutOfMemoryException)
             {
@@ -78,6 +70,50 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
         finally
         {
             publication.Release();
+        }
+    }
+
+    private void InstallSnapshotAndSelectDeliveries(string nodeId, IResourceSnapshot snapshot, ResponseContext context,
+        List<Func<Task<bool>>> deliveries)
+    {
+        lock (gate)
+        {
+            if (snapshot is not Snapshot builtIn || builtIn.HasDeltaResources
+                || !status.TryGetValue(nodeId, out var info) || info.DeltaWatches.Count == 0)
+            {
+                InstallAndSelect();
+                return;
+            }
+        }
+
+        // Hold publication order while allowing cache readers and watch registrations during serialization.
+        ExceptionDispatchInfo? preparationFailure = null;
+        try
+        {
+            snapshot.ConstructVersionMap();
+        }
+        catch (Exception error) when (error is not OutOfMemoryException)
+        {
+            preparationFailure = ExceptionDispatchInfo.Capture(error);
+        }
+        lock (gate)
+        {
+            InstallAndSelect(preparationFailure);
+        }
+
+        void InstallAndSelect(ExceptionDispatchInfo? deltaFailure = null)
+        {
+            snapshots[nodeId] = snapshot;
+            if (status.TryGetValue(nodeId, out var info))
+            {
+                SelectDeliveries(snapshot, info, context, deliveries);
+            }
+            // Preserve installation and any already selected SotW writes if Delta preparation fails.
+            deltaFailure?.Throw();
+            if (info is not null)
+            {
+                SelectDeltaDeliveries(snapshot, info, context, deliveries);
+            }
         }
     }
 
