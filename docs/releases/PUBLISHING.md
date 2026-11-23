@@ -2,6 +2,8 @@
 
 The first release uses `1.0.0-rc.1` for all five packages. Issue #74 owns implementation and observed release evidence. Candidate preparation and registry publication are separate operations.
 
+Consumers looking for package verification guidance should start with [Verifying a published package](VERIFYING.md). This document records the first release's publishing controls and evidence.
+
 ## Trust boundaries
 
 `publish.yaml` builds, tests and creates a candidate using a read-only token on a GitHub-hosted runner without restored Actions caches. Pull requests, including approved fork PRs, can exercise that path. They cannot enter publishing: the publishing job requires manual opt-in, the canonical repository, `refs/heads/main`, and the protected `production` environment. NuGet's trusted publishing policy must name owner `knightfall`, repository `envoy-dotnet-control-plane`, workflow `publish.yaml`, environment `production`, and the authorized `Knightfall.Envoy.*` / `KnightFall.Envoy.*` patterns.
@@ -23,6 +25,8 @@ Reviewable settings live in `.github/security/`: main changes require PRs, curre
 Fork workflows retain read-only tokens; workflows from external contributors require maintainer approval before running. The tracked Actions policy allows GitHub-owned actions and the pinned NuGet, Dorny and OpenSSF Scorecard actions. Full pin and lock requirements remain enabled. NuGet restore audits all transitive dependencies at moderate severity or higher, with warnings-as-errors. Dependabot proposes dependency updates; none are automatically merged. CODEOWNERS and environment protections do not remove the repository owner's ultimate administrative control.
 
 ## SBOMs and verification links
+
+The current `publish.yaml` workflow checks package README repository links against the candidate checkout before generation. After candidate preparation, it repeats that check and confirms each packaged README matches the checked source bytes. The candidate verifier also checks recognized versioned release references and package filenames in those READMEs against the release policy, rejects fixed source digests there, and checks the packaged provenance locator against the policy and expected workflow/ref. These checks cover supported inline links and plain heading fragments; they do not validate live `main`, external destinations or full Markdown. They describe the current workflow, not the checks observed during the first release.
 
 The checksum-pinned Microsoft SBOM Tool generates and validates an SPDX 2.2 build SBOM from the restored repository and release files. Verification also requires every direct/transitive dependency in the five runtime package locks to appear with its exact version. It is a build inventory, including test/tool dependencies, rather than a per-package runtime-only dependency claim. A companion SPDX source document records original schema/reference archives, the source-built evaluator and migration tool, with immutable revisions and archive hashes. The tool links that source document as an external reference. Exact adaptations, licenses and generated fingerprints remain in the release evidence. The SBOM tool is reused; no dependency scanner is reimplemented.
 

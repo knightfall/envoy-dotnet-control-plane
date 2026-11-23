@@ -136,10 +136,11 @@ Normal CI is configured to verify Linux, macOS and Windows; the Envoy workflow u
 
 - [Usage and migration](docs/usage.md): package consumption, hosting, updates and migration.
 - [Public API and lifetime contracts](docs/public-api.md): custom caches, responses, callbacks and ownership.
-- [Architecture](docs/architecture/ARCHITECTURE.md) and [decisions](docs/architecture/DECISIONS.md): design and tradeoffs.
+- Current architecture: the [package responsibilities](#packages), [usage guide](docs/usage.md) and [public API contracts](docs/public-api.md) describe the implemented layers and their ownership boundaries.
+- Historical [architecture](docs/architecture/ARCHITECTURE.md) and [decisions](docs/architecture/DECISIONS.md): planning-stage design and tradeoffs, retained for context.
 - [Compatibility report](docs/compatibility/root-1.0.md) and [validation conformance](docs/plan/T26-VALIDATION-CONFORMANCE.md): tested scope and exceptions.
 - [Test guide](tests/README.md) and [tool commands](tools/README.md): verification and maintenance.
-- [Contribution guidance](AGENTS.md): repository conventions, dependencies and verification.
+- [Contributing](CONTRIBUTING.md): setup, verification, pull requests and security reporting. [Repository guidance](AGENTS.md) details conventions and constraints.
 - [Implementation plan](docs/plan/IMPLEMENTATION-PLAN.md): task definitions, historical status and deferred scope. Plans describe intent, not proof of implementation or interoperability.
 - [Publishing process](docs/releases/PUBLISHING.md): protected release workflow, SBOMs and attestations.
 

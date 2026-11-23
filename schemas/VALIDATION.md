@@ -24,7 +24,7 @@ The original T03 proof used three local candidates at **0.1.0-t03**. The later r
 - Every one of the 39 C# source files, with original and adapted fingerprints.
 - Each exact source replacement and its required occurrence count.
 - Official migration tool commit `04cd1e0187b7e570f3bb0f86a31daf1f2ad7237e` and verified archive.
-- The independent corpus fingerprint, 33 cases and Go toolchain **1.26.4**.
+- The current independent corpus fingerprint, case count and Go toolchain. The original T03 run compared 33 cases using Go **1.26.4**; the current lock has expanded since then.
 
 The source retriever verifies the archive before extraction, materializes files under `obj/`, applies only the recorded replacements and verifies every output. Missing, additional or changed materialized C# files fail verification. A fresh checkout requires no sibling source repository or prepopulated cache.
 

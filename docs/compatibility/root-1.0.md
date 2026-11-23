@@ -21,7 +21,7 @@ The immutable [source lock](../../schemas/upstream.lock.json) records canonical 
 | Prometheus model | `eb136e513d419e0c31ad750922f0a6f7675c2dee` |
 | CEL schemas | `7f3c4c513b42d471d0be9439bf5bde38f45f8404` |
 
-Bindings are owned generation through Buf **1.75.0**, official `protocolbuffers/csharp:v35.1` revision 1 and `grpc/csharp:v1.84.0` revision 1. Managed mode is disabled. The SDK is **10.0.400**, all library targets are **net10.0**, comparison Go is **1.26.4**, Google.Protobuf is **3.35.1** and gRPC packages are **2.84.0**. [CPM](../../Directory.Packages.props), project lock files and source/tool locks govern the actual graph. Roslynator 5.0.1 checks authored code with warnings as errors.
+The release used Buf **1.75.0**, official `protocolbuffers/csharp:v35.1` revision 1 and `grpc/csharp:v1.84.0` revision 1 for owned binding generation, with managed mode disabled. Its SDK was **10.0.400**, targets were **net10.0**, comparison Go was **1.26.4**, Google.Protobuf was **3.35.1** and gRPC packages were **2.84.0**. Roslynator 5.0.1 checked authored code with warnings as errors. For the current checkout, [global.json](../../global.json), the [validation source lock](../../schemas/validation/sources.lock.json), [CPM](../../Directory.Packages.props), project lock files and source/tool locks govern the versions used for reproduction.
 
 | Fingerprint | SHA-256 |
 |---|---|

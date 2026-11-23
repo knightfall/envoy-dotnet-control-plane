@@ -130,7 +130,7 @@ Use `ClearSnapshot` for local cleanup after a node's streams have closed and its
 
 ### Add a custom resource family
 
-For a custom family, generate a protobuf message whose field is named `name`; `ResourceCollection` uses that string field to index resources. For example, this schema produces the `Example.V1.Widget` type used below:
+For a custom family, generate a protobuf message whose field is named `name`; `ResourceCollection` uses that string field to index resources. In a .NET 10 console project, add the Core package shown above and save this schema as `widget.proto` in the project directory. It defines the `Example.V1.Widget` type used below:
 
 ```proto
 syntax = "proto3";
@@ -141,6 +141,14 @@ message Widget {
   string name = 1;
 }
 ```
+
+Install a compatible Protocol Buffers compiler (`protoc`) separately; see the [Protocol Buffers C# tutorial](https://protobuf.dev/getting-started/csharptutorial/) for compiler setup and generated code. Run this from the project directory:
+
+```sh
+protoc --proto_path=. --csharp_out=. widget.proto
+```
+
+The generated `Widget.cs` is included by the SDK-style project and uses the `Google.Protobuf` runtime supplied transitively by Core's Protocol dependency. Copy the following code into `Program.cs`, then build and run the project. This is application-owned schema generation; do not regenerate the library's standard Envoy catalog into the project or introduce another assembly that defines the same protobuf messages. If the application already generates its own messages, use that workflow instead and preserve the `example.v1.Widget` protobuf identity and string `name` field.
 
 The following snapshot keeps a stable collection and read-only resource indexes, returns an empty type version and null indexes for other families, and constructs its per-resource Delta versions once from the same serialization and hash helpers used by the cache:
 

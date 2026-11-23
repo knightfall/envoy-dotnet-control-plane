@@ -123,14 +123,36 @@ Any payloads use an explicit application TypeRegistry. The helper adds no global
 
 ## Requirement-to-test mapping
 
-| V27 area | Exact native evidence |
-|---|---|
-| Message/Struct/default/presence/enum/uint64/proto names | MessageConversionsTests.SourceCases_DeclareExpectedOutcomesAndExportTheCompleteSymbolInventory (17 declared cases); RequestRoundTrip_UsesProtoNamesAndKeepsOriginalMessagesIndependent; DefaultsAndPresence_RetainTheProtobufJsonContract |
-| Existing example, registered HCM/router Any, missing registration and reference preservation | ExistingExampleGraph_RoundTripsRegisteredHcmAndRouterAny; existing PreviewResourceTests.ExampleGraph_UsesTypedExtensionsAndResolvesExactEdsRdsReferences and Hosting PreviewGraphTests.ExampleGraph_UpdatesAllFourFamiliesThroughAds |
-| Unknown/malformed Any, unknown/wrong field types | UnknownMalformedAny_AndInvalidObjectFieldsAreRejected; source corpus above |
-| Null/default descriptor, unsupported CLR parser and WKT object boundary | NullArgumentsAndDescriptorsWithoutClrParsers_HaveExplicitFailures; ScalarAndArrayRoots_CannotBeRepresentedAsStruct |
-| Complete string inventory / aliases / generated API version | SourceCases_DeclareExpectedOutcomesAndExportTheCompleteSymbolInventory and actual Go constant comparison |
-| Retained names/types/full-state/index/reference and serialization behavior | Existing ResourceCatalogTests.TypeMappings_FollowUpstreamOrder, Names_EndpointAndGeneratedAndCustomMessages_MatchSource, UnknownNames_AndTypeUrls_HaveSourceOutcomes, SotwFullState_IsLimitedToClustersAndListeners; ResourceReferencesTests.EdsReferences_UseServiceOverrideOrClusterName, NonEdsAndRouteClusterReferences_AreIgnored, ListenerChains_IncludeRdsDefaultAndScopedListReferences, ScopedReferences_IncludeEmptyRouteName, MalformedAndUnrelatedAny_AreIgnored; ResourceSerializationTests.DeterministicMapOrder_ProducesSameBytesAndHash, UnknownFields_AffectVersionAndSurviveSerialization, EmptyResource_UsesKnownSha256Digest |
+### Message/Struct/default/presence/enum/uint64/proto names
+
+- MessageConversionsTests.SourceCases_DeclareExpectedOutcomesAndExportTheCompleteSymbolInventory (17 declared cases)
+- RequestRoundTrip_UsesProtoNamesAndKeepsOriginalMessagesIndependent
+- DefaultsAndPresence_RetainTheProtobufJsonContract
+
+### Existing example, registered HCM/router Any, missing registration and reference preservation
+
+- ExistingExampleGraph_RoundTripsRegisteredHcmAndRouterAny
+- Existing PreviewResourceTests.ExampleGraph_UsesTypedExtensionsAndResolvesExactEdsRdsReferences and Hosting PreviewGraphTests.ExampleGraph_UpdatesAllFourFamiliesThroughAds
+
+### Unknown/malformed Any, unknown/wrong field types
+
+- UnknownMalformedAny_AndInvalidObjectFieldsAreRejected
+- Source corpus above
+
+### Null/default descriptor, unsupported CLR parser and WKT object boundary
+
+- NullArgumentsAndDescriptorsWithoutClrParsers_HaveExplicitFailures
+- ScalarAndArrayRoots_CannotBeRepresentedAsStruct
+
+### Complete string inventory / aliases / generated API version
+
+- SourceCases_DeclareExpectedOutcomesAndExportTheCompleteSymbolInventory and actual Go constant comparison
+
+### Retained names/types/full-state/index/reference and serialization behavior
+
+- Existing ResourceCatalogTests.TypeMappings_FollowUpstreamOrder, Names_EndpointAndGeneratedAndCustomMessages_MatchSource, UnknownNames_AndTypeUrls_HaveSourceOutcomes, SotwFullState_IsLimitedToClustersAndListeners
+- ResourceReferencesTests.EdsReferences_UseServiceOverrideOrClusterName, NonEdsAndRouteClusterReferences_AreIgnored, ListenerChains_IncludeRdsDefaultAndScopedListReferences, ScopedReferences_IncludeEmptyRouteName, MalformedAndUnrelatedAny_AreIgnored
+- ResourceSerializationTests.DeterministicMapOrder_ProducesSameBytesAndHash, UnknownFields_AffectVersionAndSurviveSerialization, EmptyResource_UsesKnownSha256Digest
 
 The new tests reuse existing authoritative messages and the example graph; no synthetic contract or new test project is added. The static source-pairing report is a heuristic, not coverage evidence. Tests cover the distinct conversion partitions directly without concurrency/race machinery.
 

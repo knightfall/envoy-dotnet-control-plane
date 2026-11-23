@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import re
 import sys
 import zipfile
 import xml.etree.ElementTree as ET
@@ -19,6 +20,25 @@ def sha256(path):
         for chunk in iter(lambda: stream.read(1024 * 1024), b''):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def verify_package_readme(readme, policy):
+    """Reject versioned release links and package filenames from a different release."""
+    repository_url = 'https://github.com/' + policy['repository']
+    version = policy['version']
+    release_url = re.escape(repository_url) + r'/releases/(?:tag|download)/([^/\s?#)]+)'
+    tagged_blob_url = re.escape(repository_url) + r'/blob/(v\d[^/\s?#)]+)/'
+    for pattern in (release_url, tagged_blob_url):
+        for match in re.finditer(pattern, readme):
+            require(match.group(1) == 'v' + version, 'Package README release reference differs: ' + match.group(0))
+
+    package_names = '|'.join(re.escape(name) for name in sorted(policy['packages'], key=len, reverse=True))
+    package_file = r'(?<![\w.-])(?:' + package_names + r')\.(\d[^\s/`<>)]*?)\.(?:nupkg|snupkg)\b'
+    for match in re.finditer(package_file, readme):
+        require(match.group(1) == version, 'Package README package version differs: ' + match.group(0))
+    # A README committed in the candidate cannot know the digest of that same commit.
+    require(not re.search(r'--source-digest(?:\s+|=)[0-9a-fA-F]{40}\b', readme),
+            'Package README contains a fixed source digest')
 
 
 def verify_release(root, manifest_hash, commit, policy):
@@ -56,10 +76,16 @@ def verify_release(root, manifest_hash, commit, policy):
             require(fields['repository'].get('url') == 'https://github.com/' + policy['repository'], 'Package repository differs')
             # SDK symbol packages retain their nuspec/source identity, but omit package content files.
             if package.endswith('.nupkg'):
+                require('readme' in fields and fields['readme'].text == 'README.md'
+                        and 'README.md' in archive.namelist(), 'Package README is missing')
+                verify_package_readme(archive.read('README.md').decode('utf-8'), policy)
                 require('security/provenance.json' in archive.namelist(), 'Package verification locator is missing')
                 locator = json.loads(archive.read('security/provenance.json'))
                 require(locator['version'] == policy['version'] and locator['workflow'] == '.github/workflows/publish.yaml'
-                        and locator['sourceRef'] == 'refs/heads/main', 'Package verification locator differs')
+                        and locator['sourceRef'] == 'refs/heads/main'
+                        and locator['repository'] == 'https://github.com/' + policy['repository']
+                        and locator['release'] == 'https://github.com/' + policy['repository']
+                        + '/releases/tag/v' + policy['version'], 'Package verification locator differs')
     require('_manifest/spdx_2.2/manifest.spdx.json' in files and 'source-inputs.spdx.json' in files, 'Missing SBOMs')
     return manifest
 
