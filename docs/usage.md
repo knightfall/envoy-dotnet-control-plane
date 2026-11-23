@@ -99,6 +99,35 @@ Construct a replacement graph using the authoritative generated messages and `Re
 
 Messages, requests and retained snapshot indexes must stay stable while the library retains them. A new version string without a changed payload does not change a Delta resource hash. Change payloads by creating replacements, then publish a new snapshot. Type versions are opaque strings; avoid using them as a cross-runtime content-hash contract. Successful publication means eligible responses have been enqueued; it does not mean Envoy ACKed them or applied a cross-type transaction.
 
+### Live updates, rollbacks and clearing
+
+Publish a replacement directly with `SetSnapshotAsync` using the same cache key. Include the full desired graph for that node in each snapshot. For a rollback, rebuild the snapshot from the last known good resources and give the publication a fresh version.
+
+```csharp
+static async Task PublishAsync(SnapshotCache cache, string nodeId, string version,
+    IReadOnlyDictionary<string, IEnumerable<ResourceEntry>> desiredResources)
+{
+    var replacement = new Snapshot(version, desiredResources);
+    replacement.EnsureConsistent(); // Optional EDS/RDS reference checks.
+    await cache.SetSnapshotAsync(nodeId, replacement);
+}
+
+await PublishAsync(cache, nodeId, "rollout-42", candidateResources);
+
+// Later, if the application decides to roll back:
+await PublishAsync(cache, nodeId, "rollout-43", lastKnownGoodResources);
+```
+
+- **SotW.** Use a fresh opaque version for each affected type. Publication checks the snapshot's type version against the pending watch's `DiscoveryRequest.VersionInfo`. After a partial rollout or a NACK, a proxy may still report the earlier accepted version. A rollback with a fresh version can reach watches at either version.
+- **Delta.** The cache compares each resource's deterministic protobuf hash with the version tracked for its name in the subscription. Restoring an earlier payload is eligible for delivery when its hash differs, even if the type version is reused. Use fresh type versions in the same publishing code so the rollout works with SotW proxies too.
+
+To withdraw resources from a connected proxy, publish the desired graph without those resources and update any references that depend on them. For a graceful drain, first publish a change that stops sending new traffic to the resources and verify proxy state and traffic before withdrawing them.
+
+- **Delta.** A response lists previously tracked names omitted from the replacement in `RemovedResources`.
+- **SotW.** Publish the remaining resources at a fresh version. To empty a type, include its type URL with an explicit empty collection so the type carries the new version and eligible watches receive an empty resource list. Envoy removes dynamic listeners and clusters omitted from an accepted LDS or CDS response. For dependent types such as RDS and EDS, update the referring resources to drop their references. See the [Envoy xDS deletion rules](https://www.envoyproxy.io/docs/envoy/v1.40.1/api-docs/xds_protocol#deleting-resources).
+
+Use `ClearSnapshot` for local cleanup after a node's streams have closed and its watches have been disposed, or to reset a key with no live watches to notify. It removes the retained snapshot and status index while leaving existing watch registrations open. Later publications cannot find those registrations, so a connected proxy may miss a replacement until another request opens a watch or it reconnects. Clearing sends no deletion responses, and Envoy can continue using its last accepted configuration. Let in-flight and queued publications settle before clearing a retired key, since they can still deliver responses or install a snapshot.
+
 ### Add a custom resource family
 
 For a custom family, generate a protobuf message whose field is named `name`; `ResourceCollection` uses that string field to index resources. For example, this schema produces the `Example.V1.Widget` type used below:

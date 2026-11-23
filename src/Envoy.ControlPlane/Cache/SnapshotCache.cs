@@ -155,8 +155,14 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
         }
     }
 
-    /// <summary>Removes snapshot and indexed status without completing or canceling old watches.</summary>
+    /// <summary>Removes a node's retained snapshot and indexed status.</summary>
     /// <param name="nodeId">The cache key.</param>
+    /// <remarks>
+    /// Use for cache cleanup after the node's streams and watches have closed.
+    /// Existing watches stay open, but later publications cannot find those registrations.
+    /// Clearing sends no deletion responses and leaves the proxy's accepted configuration in place.
+    /// Use <see cref="SetSnapshotAsync"/> to publish a replacement for a connected proxy.
+    /// </remarks>
     public void ClearSnapshot(string nodeId)
     {
         lock (gate)
