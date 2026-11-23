@@ -51,7 +51,7 @@ jobs:
           global-json-file: global.json
       - name: Verify published package payloads and a fresh consumer
         shell: pwsh
-        run: .github/release/verify-published.ps1 -Registry $env:RELEASE_REGISTRY -ReleaseDirectory "$env:RUNNER_TEMP/release"
+        run: .github/release/verify-published.ps1 -Registry $env:RELEASE_REGISTRY -ReleaseDirectory "$env:RUNNER_TEMP/release" -PolicyPath .github/release/policy-1.0.0-rc.1.json
         env:
           RELEASE_REGISTRY: ${{ matrix.registry }}
           GH_TOKEN: ${{ github.token }}

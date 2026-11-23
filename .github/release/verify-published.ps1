@@ -1,7 +1,8 @@
 param([Parameter(Mandatory)][ValidateSet('candidate', 'nuget', 'github')][string]$Registry,
-      [Parameter(Mandatory)][string]$ReleaseDirectory)
+      [Parameter(Mandatory)][string]$ReleaseDirectory,
+      [string]$PolicyPath = "$PSScriptRoot/policy.json")
 $ErrorActionPreference = 'Stop'
-$policy = Get-Content "$PSScriptRoot/policy.json" -Raw | ConvertFrom-Json
+$policy = Get-Content $PolicyPath -Raw | ConvertFrom-Json
 $consumer = Join-Path $env:RUNNER_TEMP "consumer-$Registry"
 New-Item -ItemType Directory -Path $consumer | Out-Null
 Copy-Item 'global.json' $consumer
