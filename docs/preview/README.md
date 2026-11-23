@@ -6,7 +6,7 @@ This is the accepted **SotW preview** record. Current source additionally implem
 
 ## Reproduce and run
 
-From a clone's root, use SDK **10.0.400** and Go **1.26.4**. Initial generation needs network access and a writable external source cache; no separate source checkout or global Buf installation is required. Consumers of compiled packages need .NET 10, without Go or Buf.
+To run the current checkout from its root, use the SDK in [global.json](../../global.json) and the Go version in the [validation source lock](../../schemas/validation/sources.lock.json). These may differ from the versions used for the preview's original evidence. Initial generation needs network access and a writable external source cache; no separate source checkout or global Buf installation is required. Consumers of compiled packages need .NET 10, without Go or Buf.
 
 ```sh
 dotnet restore tools/Envoy.ControlPlane.Tools --locked-mode

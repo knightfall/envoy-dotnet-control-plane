@@ -31,16 +31,23 @@ class ReleaseVerificationTests(unittest.TestCase):
         (self.root / 'source-inputs.spdx.json').write_text('{}')
         self.manifest()
 
-    def package(self, suffix, commit=None, include_locator=True):
-        path = self.root / ('packages/Knightfall.Envoy.ControlPlane.1.0.0-rc.1' + suffix)
+    def package(self, suffix, commit=None, include_locator=True, readme='', locator_overrides=None,
+                include_readme=True):
+        path = self.root / ('packages/Knightfall.Envoy.ControlPlane.' + self.policy['version'] + suffix)
         with zipfile.ZipFile(path, 'w') as archive:
             if suffix == '.nupkg' and include_locator:
-                archive.writestr('security/provenance.json', json.dumps({'version': self.policy['version'],
-                                 'workflow': '.github/workflows/publish.yaml', 'sourceRef': 'refs/heads/main'}))
+                locator = {'version': self.policy['version'], 'workflow': '.github/workflows/publish.yaml',
+                           'sourceRef': 'refs/heads/main', 'repository': 'https://github.com/' + self.policy['repository'],
+                           'release': 'https://github.com/' + self.policy['repository'] + '/releases/tag/v' + self.policy['version']}
+                locator.update(locator_overrides or {})
+                archive.writestr('security/provenance.json', json.dumps(locator))
+            if suffix == '.nupkg' and include_readme:
+                archive.writestr('README.md', readme)
             if suffix == '.snupkg':
                 archive.writestr('lib/net10.0/Library.pdb', b'symbol fixture')
             archive.writestr('package.nuspec', '<package><metadata><id>Knightfall.Envoy.ControlPlane</id>'
-                             '<version>1.0.0-rc.1</version><repository url="https://github.com/'
+                             '<version>' + self.policy['version'] + '</version><readme>README.md</readme>'
+                             '<repository url="https://github.com/'
                              + self.policy['repository'] + '" commit="' + (commit or self.commit)
                              + '"/></metadata></package>')
 
@@ -106,6 +113,47 @@ class ReleaseVerificationTests(unittest.TestCase):
         self.manifest()
         with self.assertRaisesRegex(ValueError, 'verification locator is missing'):
             self.verify()
+
+    def test_package_readme_accepts_current_links_and_version_neutral_guidance(self):
+        readme = ('https://github.com/' + self.policy['repository'] + '/releases/tag/v' + self.policy['version']
+                  + '\nhttps://github.com/' + self.policy['repository'] + '/blob/main/docs/releases/VERIFYING.md'
+                  + '\nKnightfall.Envoy.ControlPlane.' + self.policy['version'] + '.nupkg')
+        self.package('.nupkg', readme=readme)
+        self.manifest()
+        self.verify()
+
+    def test_stale_versioned_readme_references_are_rejected(self):
+        base = 'https://github.com/' + self.policy['repository']
+        for reference in (base + '/releases/tag/v1.0.0-rc.0',
+                          base + '/releases/download/v1.0.0-rc.0/asset',
+                          base + '/blob/v1.0.0-rc.0/docs/guide.md',
+                          'Knightfall.Envoy.ControlPlane.1.0.0-rc.0.nupkg'):
+            with self.subTest(reference=reference):
+                self.package('.nupkg', readme=reference)
+                self.manifest()
+                with self.assertRaisesRegex(ValueError, 'Package README .* differs'):
+                    self.verify()
+
+    def test_missing_packaged_readme_is_rejected(self):
+        self.package('.nupkg', include_readme=False)
+        self.manifest()
+        with self.assertRaisesRegex(ValueError, 'Package README is missing'):
+            self.verify()
+
+    def test_fixed_source_digest_in_package_readme_is_rejected(self):
+        self.package('.nupkg', readme='gh attestation verify package.nupkg --source-digest ' + 'b' * 40)
+        self.manifest()
+        with self.assertRaisesRegex(ValueError, 'fixed source digest'):
+            self.verify()
+
+    def test_locator_must_match_candidate_release_and_repository(self):
+        for override in ({'release': 'https://github.com/' + self.policy['repository'] + '/releases/tag/v1.0.0-rc.0'},
+                         {'repository': 'https://github.com/attacker/fork'}, {'version': '1.0.0-rc.0'}):
+            with self.subTest(override=override):
+                self.package('.nupkg', locator_overrides=override)
+                self.manifest()
+                with self.assertRaisesRegex(ValueError, 'verification locator differs'):
+                    self.verify()
 
     def test_unexpected_package_is_rejected_even_with_matching_manifest(self):
         (self.root / 'packages/injected.nupkg').write_text('unexpected')

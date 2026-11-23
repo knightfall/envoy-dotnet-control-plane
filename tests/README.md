@@ -1,20 +1,29 @@
 # Repository verification and test evidence
 
-The maintained suite covers tooling/provenance, Protocol, optional Validation, Core and ASP.NET Core. [The command guide](../tools/README.md) describes current entry points; the [root compatibility report](../docs/compatibility/root-1.0.md) and [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) define the acceptance scope. Task sections below preserve incremental test counts and implementation-time boundaries. Their counts are historical evidence, not today's test inventory.
+The six maintained test projects cover tooling/provenance, Protocol, optional Validation, Core, ASP.NET Core and Docker-based integration. The [command guide](../tools/README.md) describes current entry points; the [root compatibility report](../docs/compatibility/root-1.0.md) and [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) define the acceptance scope. Task sections at the end preserve incremental test counts and implementation-time boundaries. Their counts are historical evidence, not today's test inventory.
+
+## Start here
+
+Use the SDK in [global.json](../global.json) and the Go version in the [validation source lock](../schemas/validation/sources.lock.json). Choose a writable source cache outside the checkout. Initial dependency restore and binding generation require network access. Generate bindings, then run the complete Docker-free verification:
+
+```sh
+dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache <external-source-cache>
+dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify
+```
+
+This builds and tests the solution, compares the declared Go corpora, packs the libraries and tests fresh package consumers. It builds the integration project but does not execute its Docker tests. The [live integration section](#live-envoy-integration-tests) describes the separate Docker requirements and command; [released Envoy verification](../tools/README.md#released-envoy-interoperability) covers the separate proxy probe. The [command guide](../tools/README.md#complete-repository-verification) describes artifacts and optional coverage.
 
 The [T02 binding proof](../schemas/BINDINGS.md) documents the generated Protocol project, exact test mapping, provider limitations and clean NuGet consumer. Its [test project](Envoy.ControlPlane.Protocol.Tests/Envoy.ControlPlane.Protocol.Tests.csproj) references Protocol; `bindings verify` runs the same test source in a temporary package-only consumer as well. Both use the existing xUnit/Microsoft Testing Platform conventions. Neither binding test execution contacts an external service; Buf remote generation and package restore are preparation steps requiring network access.
 
 ```sh
-dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings verify --cache ../upstream-sources
+dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings verify --cache <external-source-cache>
 ```
 
 All six maintained suites are registered in [Envoy.ControlPlane.slnx](../Envoy.ControlPlane.slnx). After generation, `repository verify` builds the solution and runs the five Docker-free suites. Running `dotnet test --solution Envoy.ControlPlane.slnx --configuration Release` also executes the Docker integration suite. All project dependency versions come from [Directory.Packages.props](../Directory.Packages.props), with project dependency graphs recorded in lock files.
 
 The binding suite is organized by behavior: `CatalogTests`, `AnnotationTests`, `SerializationTests`, `ServiceContractTests` and `GeneratorCompatibilityTests`. Shared inspection helpers and RPC fixture data live in `Envoy.ControlPlane.Protocol.Tests/Support/`. A shared xUnit collection retains sequential execution. The clean package consumer copies all handwritten test/support sources, so this organization does not reduce the package proof to a subset of checks.
 
-T03 adds `ValidationInventoryTests` and its shared descriptor-inventory helper. Three cases cover the real catalog's nested/combined rules, explicit false/empty-duration presence, and skipped/Any fields. The expanded Protocol suite has 12 tests, including a regression for upstream XML documentation; the clean consumer includes those same sources and copies documentation through the SDK setting.
-
-The [source validation proof](../schemas/VALIDATION.md) is in `Envoy.ControlPlane.Validation.Tests`. Its 18 native MTP cases cover the 33-message corpus, conditional oneofs, full descriptor identity, structured violations, fail-fast, descriptor faults/preloading, cold/warm concurrency, immutable source inputs and dependency isolation. `validation verify` invokes the independent Go oracle and runs the full suite again from a fresh NuGet consumer, including JSON fixtures and linked helpers. The earlier published-provider probes under `tests/validation/` remain historical research and are not used by the maintained CI entry points; its pinned `GoOracle` remains active.
+The [validation suite](Envoy.ControlPlane.Validation.Tests/) covers the declared conformance scope, conditional oneofs, descriptor identity, diagnostics, evaluator faults and dependency isolation. `validation verify` invokes the independent Go oracle and runs the full suite again from a fresh NuGet consumer, including JSON fixtures and linked helpers. The earlier published-provider probes under `tests/validation/` remain historical research and are not used by the maintained CI entry points; its pinned `GoOracle` remains active. The [T03 proof](../schemas/VALIDATION.md) records the original bounded result.
 
 ## Upstream CLI suite
 
@@ -24,10 +33,10 @@ The [test project](Envoy.ControlPlane.Upstream.Tests/Envoy.ControlPlane.Upstream
 
 ## Framework and execution
 
-- .NET SDK **10.0.400**, target **net10.0**.
-- xUnit.net v3 APIs through **xunit.v3.mtp-v2 4.0.2**; Microsoft Testing Platform **2.5.1**.
+- The SDK in [global.json](../global.json), targeting **net10.0**.
+- xUnit.net v3 APIs through `xunit.v3.mtp-v2`; its version is centrally pinned and the resolved Microsoft Testing Platform version is recorded in the project lock.
 - Native MTP command mode selected in [global.json](../global.json).
-- Roslynator.Analyzers **5.0.1** and warnings as errors in both the CLI and test project.
+- Roslynator.Analyzers and warnings as errors in both the CLI and test project; its version is centrally pinned.
 - Direct and transitive test dependencies pinned in [packages.lock.json](Envoy.ControlPlane.Upstream.Tests/packages.lock.json).
 
 Run from the repository root:
@@ -85,6 +94,58 @@ Coverage uses an explicit shared Coverlet configuration: its default test-assemb
 [Test results](../.github/workflows/test-report.yml) uses [Dorny test-reporter](../.github/workflows/actions.lock) to publish TRX counts and failures after Upstream verification completes. The pinned action retries a transient 404 when completing a newly created check run. Offline and repository/package-consumer executions have separate reports for Linux/macOS/Windows. Package-consumer cases are deliberate repeat executions. The reporter has `checks: write` and reads only uploaded result artifacts, while build jobs retain read-only permissions. It runs without checking out or executing PR code and supports fork PR results through `workflow_run`. GitHub activates a new `workflow_run` workflow only after it reaches the default branch, so its first published check required post-merge verification. Failed builds/tests remain governed by the original jobs, including when no report was produced. [Upstream retry fix](https://github.com/dorny/test-reporter/pull/867)
 
 The separate [full-source provenance audit](../schemas/PROVENANCE.md) verifies all 523 real pinned schemas and compares rate-limit descriptors using the pinned protoc executable. It was rerun successfully after these tests were added. Fixture tests do not substitute for that evidence. The full protoc inspection remains macOS arm64 only until other compiler artifacts are explicitly pinned; no runtime-library or Envoy interoperability claim is made here.
+
+## Live Envoy integration tests
+
+The [integration suite](Envoy.ControlPlane.Integration.Tests/Envoy.ControlPlane.Integration.Tests.csproj) runs Kestrel in the test process and an Envoy proxy with one or more backends on a shared Docker network. The proxy reaches Kestrel through Docker's `host-gateway` mapping, and EDS uses the backend container's IPv4 address. All containers use the [pinned Envoy image](resources/envoy-images.lock.json).
+
+The SotW tests cover three-version ordered and unordered ADS rollouts across HTTP, TCP, SRDS, RTDS, and ECDS. They verify applied admin state, RDS NACK retention and repair, the four split xDS streams, stream-open rejection and retry, CDS-only repair with a stable EDS version, partial EDS, and Kestrel restart with continued traffic. [SotW integration cases](Envoy.ControlPlane.Integration.Tests/Sotw/)
+
+The Delta tests cover ADS and split streams, isolated route changes, silence after version-only publications, CDS tombstones and reconnect version hashes. They also exercise on-demand VHDS lookup and removal, EDS and RDS unsubscribe and re-subscribe frames with tombstones queued during watch replacement, and caller-supplied TTL heartbeats through expiry and explicit repair. [Delta integration cases](Envoy.ControlPlane.Integration.Tests/Delta/)
+
+The REST tests verify all four xDS polling paths, protobuf JSON with nested `Any` payloads, `304 Not Modified` convergence, live resource changes and cancellation of an active Envoy poll when Kestrel stops. The MuxCache tests exercise EDS mutations through LinearCache in ADS and split SotW and Delta, and verify CDS removal and Fetch delegation. Envoy 1.40.1 ACKs Delta EDS tombstones and retains its last accepted assignment. Publishing an empty EDS assignment clears the upstream endpoints. [REST cases](Envoy.ControlPlane.Integration.Tests/Rest/) · [MuxCache cases](Envoy.ControlPlane.Integration.Tests/Mux/)
+
+The security tests exercise TLS on the SotW and Delta ADS channels, ASP.NET Core bearer authorization, authenticated node claims, and mTLS client certificate validation. A downstream HTTPS listener receives its certificate through ADS SDS and rotates it while Envoy continues routing traffic. The tests generate their trust roots, certificates, private keys and credentials at runtime. The Envoy 1.40.1 native gRPC bootstrap sets `x-forwarded-proto: https` in its initial metadata so Envoy emits the HTTPS scheme required by Kestrel's HTTP/2 transport check. [Security integration cases](Envoy.ControlPlane.Integration.Tests/Security/)
+
+The fleet tests verify separate snapshots and stream teardown for two concurrent proxies, then a shared rollout using a custom cluster-based node hasher. The validation test uses the optional evaluator with preloaded descriptors and lazy compilation disabled. It verifies a valid graph, an application-rejected invalid candidate, Envoy's NACK for that same candidate when published directly, and a validated repair. [Fleet and validation cases](Envoy.ControlPlane.Integration.Tests/Fleet/)
+
+Use a local Docker engine running Linux containers on amd64 or arm64, including Docker Desktop on macOS, with `host-gateway` support and access to pull the pinned Envoy image and Testcontainers' resource reaper. After binding generation, run from the repository root:
+
+```sh
+dotnet restore tests/Envoy.ControlPlane.Integration.Tests --locked-mode
+dotnet test --project tests/Envoy.ControlPlane.Integration.Tests --configuration Release --no-restore --report-xunit-trx
+```
+
+The proxy records stdout, stderr and the admin config dump in xUnit output when startup or a test fails. The [Envoy workflow](../.github/workflows/envoy-interop.yml) runs the integration suite on Linux amd64 and arm64 and uploads its TRX alongside the separate `envoy verify` evidence. Projects marked `RequiresDocker` stay in the solution build and run in this dedicated workflow. Ordinary `repository verify` and its Coverlet mode execute only the Docker-free suites.
+
+## Containerized example and NuGet smoke tests
+
+The [black-box smoke tests](Envoy.ControlPlane.Integration.Tests/Smoke/) run the published example and a standalone package consumer inside the pinned .NET SDK image. Envoy reaches each process by its Docker DNS alias on a shared network. Both cases update the mounted `appsettings.json` and verify live traffic switches backends. The example accepts `BackendAddress` and `ListenerAddress` with loopback defaults. Docker must be able to mount the test process's temporary settings directory.
+
+Run the full integration command above or select the two smoke cases after binding generation and locked restore:
+
+```sh
+dotnet test --project tests/Envoy.ControlPlane.Integration.Tests --configuration Release --no-restore \
+  --filter-class Envoy.ControlPlane.Integration.Tests.Smoke.ContainerizedSmokeTests --report-xunit-trx
+```
+
+Locally the fixture publishes the example and packs the current checkout into a fresh temporary directory. CI does the same before the suite and supplies that directory through `ENVOY_SMOKE_ARTIFACTS`. The consumer starts with an empty private NuGet cache and restores from a local feed containing the fresh repository packages and the example's locked external dependencies. The test verifies the restored package archives against the freshly packed hashes.
+
+## Optional validation conformance
+
+[T26](../docs/plan/T26-VALIDATION-CONFORMANCE.md) records the current declared scope: 59 populated PGV paths and 86 combinations, 310 real-field boundaries, 68 whole-message Go expectations, 373 selected PGV harness cases and 2,748 stable native Protovalidate cases. The full 1,053 PGV expectations run in Go; 680 are outside the selected .NET comparison. Seven relative-clock native cases are explicit exclusions, and four NaN range cases assert the accepted .NET-reject/Go-accept difference. Field outcomes, whole-message validity, native evaluator conformance and released-proxy acceptance remain separate evidence.
+
+The validation suite also covers structured diagnostics, unsupported metadata, compilation/execution faults, descriptor identity and missing migration. Generation and comparison verify original/derived fingerprints and bind coverage acceptance to current inputs. The same validation suite repeats against freshly packed packages. See [fixture provenance](Envoy.ControlPlane.Validation.Tests/Fixtures/README.md) and [validation commands](../tools/README.md) for locks, artifacts and invocation details.
+
+# Historical task evidence
+
+The following sections preserve implementation-time test counts, dependency versions and scope boundaries. Refer to the current guidance above and the linked task reports for later evidence.
+
+## T03 Protocol and validation evidence
+
+T03 added `ValidationInventoryTests` and its shared descriptor-inventory helper. Three cases covered the real catalog's nested/combined rules, explicit false/empty-duration presence, and skipped/Any fields. The expanded Protocol suite had 12 tests, including a regression for upstream XML documentation; the clean consumer included those same sources and copied documentation through the SDK setting.
+
+The T03 source validation proof had 18 native MTP cases covering the 33-message corpus, conditional oneofs, full descriptor identity, structured violations, fail-fast, descriptor faults/preloading, cold/warm concurrency, immutable source inputs and dependency isolation. See the [T03 report](../schemas/VALIDATION.md) for the observed runs and the [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) for the later expanded scope.
 
 ## Core and hosting package consumers
 
@@ -196,48 +257,6 @@ Repository verification executes V05–V27 through 16 actual Go modes / 260 case
 
 [T23 root evidence](../docs/plan/T23-ROOT-ENVOY.md) extends envoy verify to 35 checks: retained twenty SotW checks, nine actual Delta/ADS checks and six explicit Delta TTL checks. CI runs the same immutable Envoy 1.40.1/SDK images on Linux amd64 and arm64. Delta verifies four-family traffic/admin state, removal/re-addition and reconnect initial versions. The TTL producer is test-only and uses existing passthrough envelopes; it adds no automatic Delta scheduler. The default proxy's SotW CDS heartbeat incompatibility is recorded as a limitation. Eight additional offline report-verifier cases bring solution discovery to 482, with actual proxy/CI results reported separately.
 
-## Live Envoy integration tests
-
-The [integration suite](Envoy.ControlPlane.Integration.Tests/Envoy.ControlPlane.Integration.Tests.csproj) runs Kestrel in the test process and an Envoy proxy with one or more backends on a shared Docker network. The proxy reaches Kestrel through Docker's `host-gateway` mapping, and EDS uses the backend container's IPv4 address. All containers use the [pinned Envoy image](resources/envoy-images.lock.json).
-
-The SotW tests cover three-version ordered and unordered ADS rollouts across HTTP, TCP, SRDS, RTDS, and ECDS. They verify applied admin state, RDS NACK retention and repair, the four split xDS streams, stream-open rejection and retry, CDS-only repair with a stable EDS version, partial EDS, and Kestrel restart with continued traffic. [SotW integration cases](Envoy.ControlPlane.Integration.Tests/Sotw/)
-
-The Delta tests cover ADS and split streams, isolated route changes, silence after version-only publications, CDS tombstones and reconnect version hashes. They also exercise on-demand VHDS lookup and removal, EDS and RDS unsubscribe and re-subscribe frames with tombstones queued during watch replacement, and caller-supplied TTL heartbeats through expiry and explicit repair. [Delta integration cases](Envoy.ControlPlane.Integration.Tests/Delta/)
-
-The REST tests verify all four xDS polling paths, protobuf JSON with nested `Any` payloads, `304 Not Modified` convergence, live resource changes and cancellation of an active Envoy poll when Kestrel stops. The MuxCache tests exercise EDS mutations through LinearCache in ADS and split SotW and Delta, and verify CDS removal and Fetch delegation. Envoy 1.40.1 ACKs Delta EDS tombstones and retains its last accepted assignment. Publishing an empty EDS assignment clears the upstream endpoints. [REST cases](Envoy.ControlPlane.Integration.Tests/Rest/) · [MuxCache cases](Envoy.ControlPlane.Integration.Tests/Mux/)
-
-The security tests exercise TLS on the SotW and Delta ADS channels, ASP.NET Core bearer authorization, authenticated node claims, and mTLS client certificate validation. A downstream HTTPS listener receives its certificate through ADS SDS and rotates it while Envoy continues routing traffic. The tests generate their trust roots, certificates, private keys and credentials at runtime. The Envoy 1.40.1 native gRPC bootstrap sets `x-forwarded-proto: https` in its initial metadata so Envoy emits the HTTPS scheme required by Kestrel's HTTP/2 transport check. [Security integration cases](Envoy.ControlPlane.Integration.Tests/Security/)
-
-The fleet tests verify separate snapshots and stream teardown for two concurrent proxies, then a shared rollout using a custom cluster-based node hasher. The validation test uses the optional evaluator with preloaded descriptors and lazy compilation disabled. It verifies a valid graph, an application-rejected invalid candidate, Envoy's NACK for that same candidate when published directly, and a validated repair. [Fleet and validation cases](Envoy.ControlPlane.Integration.Tests/Fleet/)
-
-Use a local Docker engine running Linux containers on amd64 or arm64, including Docker Desktop on macOS, with `host-gateway` support and access to pull the pinned Envoy image and Testcontainers' resource reaper. After binding generation, run from the repository root:
-
-```sh
-dotnet restore tests/Envoy.ControlPlane.Integration.Tests --locked-mode
-dotnet test --project tests/Envoy.ControlPlane.Integration.Tests --configuration Release --no-restore --report-xunit-trx
-```
-
-The proxy records stdout, stderr and the admin config dump in xUnit output when startup or a test fails. The [Envoy workflow](../.github/workflows/envoy-interop.yml) runs the integration suite on Linux amd64 and arm64 and uploads its TRX alongside the separate `envoy verify` evidence. Projects marked `RequiresDocker` stay in the solution build and run in this dedicated workflow. Ordinary `repository verify` and its Coverlet mode execute only the Docker-free suites.
-
-## Containerized example and NuGet smoke tests
-
-The [black-box smoke tests](Envoy.ControlPlane.Integration.Tests/Smoke/) run the published example and a standalone package consumer inside the pinned .NET SDK image. Envoy reaches each process by its Docker DNS alias on a shared network. Both cases update the mounted `appsettings.json` and verify live traffic switches backends. The example accepts `BackendAddress` and `ListenerAddress` with loopback defaults. Docker must be able to mount the test process's temporary settings directory.
-
-Run the full integration command above or select the two smoke cases after binding generation and locked restore:
-
-```sh
-dotnet test --project tests/Envoy.ControlPlane.Integration.Tests --configuration Release --no-restore \
-  --filter-class Envoy.ControlPlane.Integration.Tests.Smoke.ContainerizedSmokeTests --report-xunit-trx
-```
-
-Locally the fixture publishes the example and packs the current checkout into a fresh temporary directory. CI does the same before the suite and supplies that directory through `ENVOY_SMOKE_ARTIFACTS`. The consumer starts with an empty private NuGet cache and restores from a local feed containing the fresh repository packages and the example's locked external dependencies. The test verifies the restored package archives against the freshly packed hashes.
-
 ## Root update-report verification
 
 [T24 root readiness](../docs/plan/T24-ROOT-READINESS.md) adds two focused cases for exact authored-input/corpus/workflow fingerprints and conservative full-root verification selection. It covers build-output exclusion, normalized path/LF identity, real source changes, all sixteen current Go/.NET groups, explicit commands and the distinction between selection and passing evidence. Existing rule deltas/original metadata, package graph and notice tests remain authoritative. At the T24 run, solution discovery was 484 (tooling/provenance 79), and the update report did not establish validation acceptance. The later [T26 report](../docs/plan/T26-VALIDATION-CONFORMANCE.md) records declared-scope conformance and its limits.
-
-## Optional validation conformance
-
-[T26](../docs/plan/T26-VALIDATION-CONFORMANCE.md) records the current declared scope: 59 populated PGV paths and 86 combinations, 310 real-field boundaries, 68 whole-message Go expectations, 373 selected PGV harness cases and 2,748 stable native Protovalidate cases. The full 1,053 PGV expectations run in Go; 680 are outside the selected .NET comparison. Seven relative-clock native cases are explicit exclusions, and four NaN range cases assert the accepted .NET-reject/Go-accept difference. Field outcomes, whole-message validity, native evaluator conformance and released-proxy acceptance remain separate evidence.
-
-The validation suite also covers structured diagnostics, unsupported metadata, compilation/execution faults, descriptor identity and missing migration. Generation and comparison verify original/derived fingerprints and bind coverage acceptance to current inputs. The same validation suite repeats against freshly packed packages. See [fixture provenance](Envoy.ControlPlane.Validation.Tests/Fixtures/README.md) and [validation commands](../tools/README.md) for locks, artifacts and invocation details.

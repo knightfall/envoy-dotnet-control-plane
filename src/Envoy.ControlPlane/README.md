@@ -1,6 +1,6 @@
 # Envoy.ControlPlane Core
 
-NuGet package: `Knightfall.Envoy.ControlPlane` 1.0.0-rc.1 (Core). The assembly remains `Envoy.ControlPlane`.
+NuGet package: `Knightfall.Envoy.ControlPlane` (Core). The assembly remains `Envoy.ControlPlane`.
 
 Core provides resource entries, name/type mapping, partial snapshots, EDS/RDS reference checks, explicit per-resource Delta versions, one-shot watches, SotW/Delta SnapshotCache responses, subscription state and transport-independent stream processing with optional ordered SotW ADS. It references the authoritative Protocol bindings and has no hosting or optional validation/CEL dependency. The separate ASP.NET Core package supplies ten SotW, eleven Delta and nine unary Fetch service methods. Explicit caller-owned SotW heartbeat scheduling is available.
 
@@ -125,12 +125,4 @@ Dispose cancels/releases owned calls, including the old call during replacement,
 
 ## Supply-chain verification
 
-[Versioned release evidence](https://github.com/knightfall/envoy-dotnet-control-plane/releases/tag/v1.0.0-rc.1) includes build/source-input SBOMs, signed provenance and SBOM bundles, package digests and source pins. [GitHub attestations](https://github.com/knightfall/envoy-dotnet-control-plane/attestations) bind artifacts to the protected publishing workflow. `security/provenance.json` inside this package records the verification locations; its nuspec records the source commit.
-
-Verify the original upload artifact downloaded from the matching GitHub release:
-
-```sh
-gh attestation verify Knightfall.Envoy.ControlPlane.1.0.0-rc.1.nupkg --repo knightfall/envoy-dotnet-control-plane --signer-workflow knightfall/envoy-dotnet-control-plane/.github/workflows/publish.yaml --source-ref refs/heads/main --source-digest 000438a9c4d0bc0b58a5ec7bc55af10f5f9c0ccd --deny-self-hosted-runners
-```
-
-NuGet adds its repository signature after upload, changing archive bytes. For a NuGet download, verify that signature with `dotnet nuget verify <package.nupkg> --all` and compare its payload with the attested release artifact using the release verification instructions. The signed bundles are external release evidence; the locator inside the package is not itself an attestation.
+Find the matching package and its release evidence on [GitHub Releases](https://github.com/knightfall/envoy-dotnet-control-plane/releases). The package's `security/provenance.json` identifies verification locations; it is not itself an attestation. Follow the [package verification guide](https://github.com/knightfall/envoy-dotnet-control-plane/blob/main/docs/releases/VERIFYING.md) to verify the release artifact and compare it with a NuGet download.

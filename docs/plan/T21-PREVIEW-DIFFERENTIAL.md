@@ -24,20 +24,66 @@ The CLI changes a stale request in an actual exported trace to use the current r
 
 The preview portions of V05–V15 use the combined evidence below. Native ownership, cancellation and clock details are distinguished from differential source results.
 
-| Requirement | Exact test and Go fixture evidence |
-|---|---|
-| V05: stable replacement and retained response | `SnapshotTests.Messages_AreRetained_AndReplacementSnapshotIsIndependent`; `SnapshotCacheCorpusTests.SourceDerivedEventTraces_MatchDeclaredOutcomes` / `retained-response-after-replacement` re-observes the retained response in both drivers. |
-| V06: versions and lazy hashes | `SnapshotTests.ResourceGroups_RetainIndependentOpaqueVersions`, `VersionMap_IsExplicitAndCached`, `VersionMap_SamePayload_IgnoresCallerVersionAndTtl`; `ResourceSerializationTests.UnknownFields_AffectVersionAndSurviveSerialization`; 19 Go snapshot comparisons check prescribed versions and lazy map/hash shape. Literal hash equality is excluded. |
-| V07: partial graphs and explicit consistency | `SnapshotCorpusTests.Corpus_SourceDerivedFixtures_MatchDeclaredOutcomes` / 19 fixtures including `eds-missing`, `eds-extra`, `rds-missing`; native `SnapshotCacheTests.Publication_DoesNotValidateOrCheckConsistency` checks publication policy. |
-| V08: watch lifecycle | `SnapshotCacheCorpusTests.SourceDerivedEventTraces_MatchDeclaredOutcomes` / 23 fixtures including `missing-then-publication`, `same-version-known-pending`, `cancel-before-publication`, `clear-leaves-old-watch-untracked`; native `SnapshotCacheConcurrencyTests.RegistrationAndPublication_RetainReplacementWhenLookupIsInProgress` checks gated interleaving. |
-| V09: readiness versus ordering | Cache fixtures `ads-incomplete-coverage-untracked`, `ads-active-watch-survives-incomplete-snapshot`, `ads-wildcard-bypasses-coverage`; native `SotwOrderedAdsTests.ReadinessAndOrdering_AreIndependentOptions` checks all four combinations. |
-| V10: resource selection and metadata | Cache fixtures `same-version-listener-full-state`, `same-version-route-new-only`, `cluster-deletion-empty-full-state`, `snapshot-path-does-not-expand-prefixes`; stream fixtures exercise custom producer types. |
-| V11: subscriptions | `SotwSubscriptionTests.SourceDerivedTransitions_MatchEveryDeclaredState` / 14 fixtures including `legacy-empty-stops-after-explicit`, `prefix-duplicates-and-literal-stars`, `global-deactivation`, `per-type-deactivation`; native `UnsubscribeAndResubscribe_ReturnsResourceWithoutSnapshotVersionChange` checks cache integration. |
-| V12: defaults, nodes and nonce/NACK relationships | `SotwStreamCorpusTests.SourceTraces_MatchDeclaredCallbacksWatchesAndSends` / `node-and-implied-types`, `stale-and-current-watch-nonces`, `callback-wire-nonce`, `nack-preserves-request-version` and ordered variants; native `SotwResponseTests.Nack_RedeliversCurrentSnapshotWithoutRollbackAndCallbacksCanPublish` checks real-cache no-rollback behavior. |
-| V13: ADS order and independent types | Stream fixtures `unordered-custom-ads-types`, `ordered-unordered-custom-ads-types`, `ordered-buffered-producer-order`, `ordered-replacement-drains-other-type`; native `SotwOrderedAdsTests.LateUnsubscribedResponse_IsFilteredAgainstReplacementSubscription` checks late filtering in both modes. |
-| V14: status | Every cache observation compares indexed counts and snapshot presence through immediate/deferred/canceled/no-registration/clear paths. Native `SnapshotCacheTests.CustomHashAndClock_DriveLiveStatusAndRetainFirstNode` checks identity and controlled times; Go absolute wall-clock values are not compared. |
-| V15: callbacks and errors | Stream fixtures `open-rejected`, `request-rejected`, `ads-missing-type`, `receive-error-closes-normally`, `response-then-channel-closure` and ordered variants. Rejection follows an existing watch; missing type rejects before the request callback. Native `SotwLifecycleTests.OperationFailure_PreservesOriginalAndCleansUp` and `CleanupFailures_RetainPrimaryAndAttemptEveryReleaseAndClose` check the .NET fault policy. Fetch hooks remain outside preview. |
-| Comparer acceptance/rejection | `SotwTraceComparerTests.GeneratedNonces_PreserveStreamWideAssociations`, `LiteralNoncesAndCallerVersions_RemainExact`, `BrokenTrace_IsRejected`, `ErrorsAndWatchCleanup_RemainExact`, `GeneratedNonce_CannotAliasPreviouslyObservedLiteral`, `UnknownOrMalformedEvents_AreRejected`; repository verification also rejects the injected stale association against actual reports. |
+### V05: stable replacement and retained response
+
+- `SnapshotTests.Messages_AreRetained_AndReplacementSnapshotIsIndependent`
+- `SnapshotCacheCorpusTests.SourceDerivedEventTraces_MatchDeclaredOutcomes` / `retained-response-after-replacement` re-observes the retained response in both drivers.
+
+### V06: versions and lazy hashes
+
+- `SnapshotTests.ResourceGroups_RetainIndependentOpaqueVersions`, `VersionMap_IsExplicitAndCached`, `VersionMap_SamePayload_IgnoresCallerVersionAndTtl`
+- `ResourceSerializationTests.UnknownFields_AffectVersionAndSurviveSerialization`
+- 19 Go snapshot comparisons check prescribed versions and lazy map/hash shape. Literal hash equality is excluded.
+
+### V07: partial graphs and explicit consistency
+
+- `SnapshotCorpusTests.Corpus_SourceDerivedFixtures_MatchDeclaredOutcomes` / 19 fixtures including `eds-missing`, `eds-extra`, `rds-missing`
+- Native `SnapshotCacheTests.Publication_DoesNotValidateOrCheckConsistency` checks publication policy.
+
+### V08: watch lifecycle
+
+- `SnapshotCacheCorpusTests.SourceDerivedEventTraces_MatchDeclaredOutcomes` / 23 fixtures including `missing-then-publication`, `same-version-known-pending`, `cancel-before-publication`, `clear-leaves-old-watch-untracked`
+- Native `SnapshotCacheConcurrencyTests.RegistrationAndPublication_RetainReplacementWhenLookupIsInProgress` checks gated interleaving.
+
+### V09: readiness versus ordering
+
+- Cache fixtures `ads-incomplete-coverage-untracked`, `ads-active-watch-survives-incomplete-snapshot`, `ads-wildcard-bypasses-coverage`
+- Native `SotwOrderedAdsTests.ReadinessAndOrdering_AreIndependentOptions` checks all four combinations.
+
+### V10: resource selection and metadata
+
+- Cache fixtures `same-version-listener-full-state`, `same-version-route-new-only`, `cluster-deletion-empty-full-state`, `snapshot-path-does-not-expand-prefixes`
+- Stream fixtures exercise custom producer types.
+
+### V11: subscriptions
+
+- `SotwSubscriptionTests.SourceDerivedTransitions_MatchEveryDeclaredState` / 14 fixtures including `legacy-empty-stops-after-explicit`, `prefix-duplicates-and-literal-stars`, `global-deactivation`, `per-type-deactivation`
+- Native `UnsubscribeAndResubscribe_ReturnsResourceWithoutSnapshotVersionChange` checks cache integration.
+
+### V12: defaults, nodes and nonce/NACK relationships
+
+- `SotwStreamCorpusTests.SourceTraces_MatchDeclaredCallbacksWatchesAndSends` / `node-and-implied-types`, `stale-and-current-watch-nonces`, `callback-wire-nonce`, `nack-preserves-request-version` and ordered variants
+- Native `SotwResponseTests.Nack_RedeliversCurrentSnapshotWithoutRollbackAndCallbacksCanPublish` checks real-cache no-rollback behavior.
+
+### V13: ADS order and independent types
+
+- Stream fixtures `unordered-custom-ads-types`, `ordered-unordered-custom-ads-types`, `ordered-buffered-producer-order`, `ordered-replacement-drains-other-type`
+- Native `SotwOrderedAdsTests.LateUnsubscribedResponse_IsFilteredAgainstReplacementSubscription` checks late filtering in both modes.
+
+### V14: status
+
+- Every cache observation compares indexed counts and snapshot presence through immediate/deferred/canceled/no-registration/clear paths. Native `SnapshotCacheTests.CustomHashAndClock_DriveLiveStatusAndRetainFirstNode` checks identity and controlled times.
+- Go absolute wall-clock values are not compared.
+
+### V15: callbacks and errors
+
+- Stream fixtures `open-rejected`, `request-rejected`, `ads-missing-type`, `receive-error-closes-normally`, `response-then-channel-closure` and ordered variants. Rejection follows an existing watch; missing type rejects before the request callback.
+- Native `SotwLifecycleTests.OperationFailure_PreservesOriginalAndCleansUp` and `CleanupFailures_RetainPrimaryAndAttemptEveryReleaseAndClose` check the .NET fault policy. Fetch hooks remain outside preview.
+
+### Comparer acceptance/rejection
+
+- `SotwTraceComparerTests.GeneratedNonces_PreserveStreamWideAssociations`, `LiteralNoncesAndCallerVersions_RemainExact`, `BrokenTrace_IsRejected`, `ErrorsAndWatchCleanup_RemainExact`, `GeneratedNonce_CannotAliasPreviouslyObservedLiteral`, `UnknownOrMalformedEvents_AreRejected`
+- Repository verification also rejects the injected stale association against actual reports.
 
 ## Verification and remaining gates
 

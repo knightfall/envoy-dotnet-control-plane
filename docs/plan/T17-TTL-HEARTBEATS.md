@@ -1,5 +1,7 @@
 # T17 TTL wrapping and SotW heartbeats
 
+This report preserves T17's implementation-time results and dependency versions. For current behavior and ownership, see the [public API contracts](../public-api.md) and [root compatibility report](../compatibility/root-1.0.md).
+
 `SnapshotCache.RunHeartbeatsAsync(interval, context)` runs a caller-owned asynchronous heartbeat loop using `PeriodicTimer` and the cache's existing `TimeProvider`. Applications start it explicitly, supervise its task, cancel its context and await completion. The timer is disposed as the loop ends; the cache and remaining watches stay usable. No constructor starts a background task, and Core requires no hosting dependency.
 
 ```csharp
@@ -19,7 +21,7 @@ Each tick scans pending **SotW** watches. It selects TTL entries covered by wild
 
 A heartbeat keeps the current collection version and the watch's returned-resource metadata. It wraps each selected resource with its name and TTL, omitting the payload and skipping payload serialization. Normal TTL responses retain their payload and lazy materialization. Wrapper resource versions remain empty at this source pin. Successful delivery releases the one-shot watch; the client must create another watch. Heartbeats do not update request-time diagnostics or delete expired resources from the cache.
 
-Publication uses the existing semaphore and registrations. Writes begin under cache synchronization and await capacity outside it. Loop cancellation retains a failed pending watch, and awaiting the loop settles its writes. Watch disposal cancels only that registration and keeps the shared destination open. Snapshot publication remains usable after stopping heartbeats.
+Publication is serialized per cache key. The current implementation selects deliveries under the cache lock and starts them after releasing it. Loop cancellation retains a failed pending watch, and awaiting the loop settles its writes. Watch disposal cancels only that registration and keeps the shared destination open. Snapshot publication remains usable after stopping heartbeats.
 
 Raw Delta output still omits TTL at the pinned baseline, and no automatic Delta heartbeat is added. Caller-prebuilt `PassthroughDeltaResponse` envelopes preserve TTL and payload-free fields as supplied. T17 does not add TTL-sensitive Delta hashes or a new protocol extension. Live proxy refresh/expiry is the separate T23/V33 gate.
 

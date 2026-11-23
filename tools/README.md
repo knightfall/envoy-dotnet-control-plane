@@ -70,7 +70,7 @@ The command runs the full Protocol, Validation, Core and Hosting suites against 
 
 All six maintained suites are registered in the solution. `repository verify` restores and builds the complete solution with locked dependencies, then uses native MTP to run each declared test project that does not require Docker. Reports and consumer locks are under Protocol's `obj/upstream/results/`; packages and `.snupkg` files remain under its `bin/packages/`. This is local candidate packaging, not a NuGet publishing command.
 
-To collect portable coverage while running the same verification, use `repository verify --coverage`. It runs the same Docker-free test projects with **Coverlet.MTP 10.1.0**, keeping each project's results in its own directory to avoid report collisions. The pinned local **ReportGenerator 5.5.11** tool merges those reports into HTML, Cobertura XML and a Markdown summary under `obj/upstream/results/coverage/report/`. The command restores that tool from `.config/dotnet-tools.json`; it needs no global tool installation. Fresh package consumers and Go comparisons still run afterward.
+To collect portable coverage while running the same verification, use `repository verify --coverage`. It runs the same Docker-free test projects with Coverlet.MTP, keeping each project's results in its own directory to avoid report collisions. The pinned local ReportGenerator tool merges those reports into HTML, Cobertura XML and a Markdown summary under `obj/upstream/results/coverage/report/`. Versions are maintained in [central package management](../Directory.Packages.props) and the [local tool manifest](../.config/dotnet-tools.json). The command restores the tool without a global installation. Fresh package consumers and Go comparisons still run afterward.
 
 Coverage includes test-loaded `Envoy.ControlPlane*` assemblies, including the source-built optional evaluator, and excludes test assemblies and generated bindings under `obj/generated`. It reports executed code, not all repository files, full behavioral parity or an acceptance threshold. Ordinary verification remains available without instrumentation. CI collects coverage only on Linux; all platforms retain their existing functional and package checks. The HTML/Cobertura artifact needs no hosted coverage service or GitHub Code Quality subscription.
 
@@ -93,7 +93,29 @@ The upstream suite references the main project and exercises its actual CLI in s
 
 The earlier provider experiments and orchestration under [scripts/](../scripts/README.md) are retained historical research, outside both active projects and CI. Their removal remains deferred.
 
-`upstream report` runs after generation and records source/tool pins, schema fingerprints, original PGV rules, derived options and validation coverage. Verified coverage is reused only when its descriptor, source, test and configuration fingerprints still match; otherwise coverage remains unproven. It does not fetch newer sources or approve changed locks. `upstream diff` needs no generated Protocol and retains exact added/changed/removed values. Save baselines outside `obj/upstream`, which generation replaces. [T24 readiness](../docs/plan/T24-PREVIEW-READINESS.md) documents update and verification gates. `repository verify` retains its snapshot and every consumer lock under `obj/upstream/results/` for CI upload.
+## Updating pinned inputs
+
+From the repository root, after verified generation, save a baseline outside `obj/upstream`, which generation replaces. Substitute writable evidence paths and the external source-cache path for the examples below; quote paths containing spaces:
+
+```sh
+dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream report /path/to/evidence/before.json
+```
+
+After intentionally changing inputs and reviewing their locks, regenerate and compare the reports:
+
+```sh
+dotnet run --project tools/Envoy.ControlPlane.Tools -- bindings generate --cache <external-source-cache>
+dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream report /path/to/evidence/after.json
+dotnet run --project tools/Envoy.ControlPlane.Tools -- upstream diff /path/to/evidence/before.json /path/to/evidence/after.json /path/to/evidence/update.json
+dotnet run --project tools/Envoy.ControlPlane.Tools -- repository verify
+dotnet run --project tools/Envoy.ControlPlane.Tools -- envoy verify
+```
+
+The released-proxy command has the Docker and platform requirements described below. Run every command selected by the diff and retain the before/after reports and execution evidence separately. Do not overwrite historical results or reuse old passes for changed inputs.
+
+Reports record the revision and dirty state, structured source/schema/tool/proxy locks, package and authored-input fingerprints, original PGV rules, derived options and validation coverage. The schema helper first verifies original descriptor invariance. Verified coverage is reused only when its descriptor, source, test and configuration fingerprints still match; otherwise it is unproven. The report neither fetches newer sources nor approves changed locks. The diff needs no generated Protocol and preserves added, changed and removed values, including explicit false options and empty duration boundaries. File fingerprints cover unknown descriptor data; interpreting future options requires review.
+
+When recorded inputs change, the diff conservatively selects full current root corpora, native and package-consumer verification, generation and released-proxy verification. Selection is not execution or a passing result, and the manual performance baseline is not selected. Every diff reports `validationAcceptance: false`: changed constraints also require applicable conformance evidence before validator acceptance. See [T26](../docs/plan/T26-VALIDATION-CONFORMANCE.md) for declared validation scope and exceptions and [T24 root readiness](../docs/plan/T24-ROOT-READINESS.md) for the historical update-report evidence. `repository verify` retains its snapshot and consumer locks under `obj/upstream/results/` for CI upload.
 
 ## Workflow security and release preparation
 

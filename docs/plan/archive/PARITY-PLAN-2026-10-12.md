@@ -24,6 +24,9 @@ Target Envoy xDS v3 and ship a hostable gRPC server with State-of-the-World (Sot
 
 - Per-node versioned snapshots, resource name/type handling, node hashing, status, and consistency checks.
 - ADS watches that wait for the referenced resource set before replying, so related resource collections can update atomically.
+
+  **Later correction:** ADS readiness and ordering do not provide a cross-type
+  atomic application transaction. See the current [behavioral caveat](../PARITY-MATRIX.md#behavioral-caveats).
 - A single-type-URL linear cache with resource versions and name, prefix, and wildcard subscriptions.
 - Cache multiplexing across type URLs, resource removals, TTLs, and heartbeats.
 - Synchronous lifecycle/request/response callbacks with equivalent ordering and cancellation behavior.

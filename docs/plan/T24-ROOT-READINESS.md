@@ -27,7 +27,7 @@ With no recorded changes the selection is empty; historical results still belong
 3. Run upstream diff with the saved before/after paths and retain its exact old/new values and selection.
 4. Run every selected command; keep its execution evidence separately. In particular, run repository verify and envoy verify for the current exact head. The report does not run or approve those commands itself.
 
-[The maintained command map](../../tools/README.md) and [preview update procedure](T24-PREVIEW-READINESS.md#update-procedure) contain the complete CLI forms. Root compatibility/release review remains T25, and optional-validator acceptance remains T26/GV.
+[The maintained update procedure](../../tools/README.md#updating-pinned-inputs) contains the current CLI forms. At the time of this report, root compatibility/release review remained T25 and optional-validator acceptance remained T26/GV. For subsequent acceptance, see the [T26 validation conformance report](T26-VALIDATION-CONFORMANCE.md).
 
 ## Requirement coverage
 
