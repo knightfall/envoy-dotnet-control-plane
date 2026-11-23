@@ -36,7 +36,7 @@ python3 "$PSScriptRoot/release_archive.py" $ReleaseDirectory "$assets/release-ev
 if ($LASTEXITCODE -ne 0) { throw 'Cannot archive the complete release evidence' }
 gh release view $tag --repo $policy.repository *> $null
 if ($LASTEXITCODE -ne 0) {
-    gh release create $tag --repo $policy.repository --verify-tag --draft --prerelease --title $tag --notes-file docs/releases/1.0.0-rc.1.md
+    gh release create $tag --repo $policy.repository --verify-tag --draft --prerelease --title $tag --notes-file "docs/releases/$($policy.version).md"
     if ($LASTEXITCODE -ne 0) { throw 'Cannot create draft release' }
 }
 $existing = (gh release view $tag --repo $policy.repository --json assets | ConvertFrom-Json).assets.name

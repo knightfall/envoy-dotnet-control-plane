@@ -13,6 +13,7 @@ import unittest
 class MainPreflightTests(unittest.TestCase):
     def setUp(self):
         self.scripts = Path(__file__).resolve().parents[1]
+        self.version = json.loads((self.scripts / 'policy.json').read_text())['version']
         self.fixture = json.loads((Path(__file__).with_name('fixtures') / 'main-checks.json').read_text())
 
     def run_preflight(self, checks, tag=None):
@@ -29,7 +30,7 @@ from pathlib import Path
 import sys
 
 repository = 'repos/knightfall/envoy-dotnet-control-plane'
-expected_tag = repository + '/git/ref/tags/v1.0.0-rc.1'
+expected_tag = repository + '/git/ref/tags/v{self.version}'
 expected_checks = repository + '/commits/' + os.environ['FIXTURE_SOURCE_SHA'] + '/check-runs?per_page=100'
 with Path(os.environ['FIXTURE_REQUESTS']).open('a') as output:
     output.write(json.dumps(sys.argv[1:]) + '\\n')
@@ -54,7 +55,7 @@ else:
         self.assertEqual(result.returncode, 0, result.stderr)
         repository = 'repos/knightfall/envoy-dotnet-control-plane'
         self.assertEqual(requests, [
-            ['api', repository + '/git/ref/tags/v1.0.0-rc.1'],
+            ['api', repository + '/git/ref/tags/v' + self.version],
             ['api', repository + '/commits/' + self.fixture['provenance']['commit'] + '/check-runs?per_page=100']])
 
     def test_each_failed_main_analysis_is_rejected_even_with_a_successful_pr_aggregate(self):

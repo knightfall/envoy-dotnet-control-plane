@@ -1,14 +1,14 @@
 # Hosting, configuration updates and migration
 
-The root library targets .NET 10. Five packages are published as prerelease `1.0.0-rc.1`; their identities and release evidence are in the [release record](releases/root-1.0.md). These instructions apply to the current source and the published package surface.
+The root library targets .NET 10. See the [1.0.0-rc.2 release notes](releases/1.0.0-rc.2.md) for changes since the first release candidate.
 
 ## Consume the published packages
 
-The examples below target `net10.0` and use the published packages on NuGet.org. Reference Core directly for a transport-independent cache or stream engine:
+The examples below target `net10.0` and use prerelease `1.0.0-rc.2`. Reference Core directly for a transport-independent cache or stream engine:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Knightfall.Envoy.ControlPlane" Version="1.0.0-rc.1" />
+  <PackageReference Include="Knightfall.Envoy.ControlPlane" Version="1.0.0-rc.2" />
 </ItemGroup>
 ```
 
@@ -16,7 +16,7 @@ For ASP.NET Core gRPC hosting, reference the hosting package. Its Core and Proto
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Knightfall.Envoy.ControlPlane.AspNetCore" Version="1.0.0-rc.1" />
+  <PackageReference Include="Knightfall.Envoy.ControlPlane.AspNetCore" Version="1.0.0-rc.2" />
 </ItemGroup>
 ```
 
@@ -24,7 +24,7 @@ Add the separate Validation package only when the application wants explicit sem
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Knightfall.Envoy.ControlPlane.Validation" Version="1.0.0-rc.1" />
+  <PackageReference Include="Knightfall.Envoy.ControlPlane.Validation" Version="1.0.0-rc.2" />
 </ItemGroup>
 ```
 

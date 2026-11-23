@@ -16,7 +16,7 @@ SPEC.loader.exec_module(ATTESTATIONS)
 
 
 def verify_candidate(root, environment):
-    policy = json.loads(Path(__file__).with_name('policy.json').read_text())
+    policy = json.loads(Path(__file__).with_name('policy-1.0.0-rc.1.json').read_text())
     repository = policy['repository']
     commit = environment['RELEASE_SOURCE_COMMIT']
     require(environment.get('GITHUB_REPOSITORY') == repository, 'Wrong release repository')

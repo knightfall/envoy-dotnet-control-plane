@@ -235,14 +235,14 @@
         "dependencies": {
           "Google.Protobuf": "[3.35.1, )",
           "Grpc.Core.Api": "[2.85.0, )",
-          "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.1, )"
+          "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.2, )"
         }
       },
       "Knightfall.Envoy.ControlPlane.Validation": {
         "type": "Project",
         "dependencies": {
           "Cel": "[0.3.3, )",
-          "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.1, )",
+          "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.2, )",
           "Microsoft.Extensions.Options": "[11.0.0, )"
         }
       },
