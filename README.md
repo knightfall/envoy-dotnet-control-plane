@@ -11,7 +11,7 @@ A .NET library for building an [Envoy](https://www.envoyproxy.io/) xDS managemen
 
 ## Status and requirements
 
-All five packages target **.NET 10** (`net10.0`). The library implements a selected v3 root-library surface of Envoy's Go control plane. See the [compatibility report](docs/compatibility/root-1.0.md) for the tested scope and limitations, the [1.0.0-rc.2 release notes](docs/releases/1.0.0-rc.2.md) for changes, and [GitHub Releases](https://github.com/knightfall/envoy-dotnet-control-plane/releases) for published artifacts.
+All five packages target **.NET 10** (`net10.0`). The library implements a selected v3 root-library surface of Envoy's Go control plane. See the [compatibility report](docs/compatibility/root-1.0.md) for the tested scope and limitations, the [1.0.0-rc.3 release notes](docs/releases/1.0.0-rc.3.md) for changes, and [GitHub Releases](https://github.com/knightfall/envoy-dotnet-control-plane/releases) for published artifacts.
 
 The library provides xDS infrastructure, not a complete control plane application. Your application builds and publishes resources and owns configuration sources, persistence, rollout decisions and authentication.
 
@@ -30,7 +30,7 @@ See [Compatibility and limitations](#compatibility-and-limitations) for importan
 For an ASP.NET Core management server, add the hosting package to a .NET 10 project:
 
 ```sh
-dotnet add package Knightfall.Envoy.ControlPlane.AspNetCore --version 1.0.0-rc.2
+dotnet add package Knightfall.Envoy.ControlPlane.AspNetCore --version 1.0.0-rc.3
 ```
 
 The hosting package brings in Core and Protocol transitively. Use `Knightfall.Envoy.ControlPlane` directly for transport-independent caches and protocol engines, and add `Knightfall.Envoy.ControlPlane.Validation` only when the application needs explicit semantic validation. See [Packages](#packages) and the [usage guide](docs/usage.md) for details.

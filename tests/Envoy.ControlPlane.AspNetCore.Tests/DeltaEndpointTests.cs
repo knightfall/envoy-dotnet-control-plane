@@ -127,6 +127,192 @@ public sealed class DeltaEndpointTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public async Task DedicatedDeltaService_RejectsDifferentTypeBeforeRegistration(bool changedByCallback)
+    {
+        const string serviceType = ResourceTypeUrls.Cluster;
+        const string otherType = "type.googleapis.com/example.OtherResource";
+        await using var host = await StartAsync(configure: (_, callbacks) =>
+        {
+            if (changedByCallback)
+            {
+                callbacks.DeltaRequestHandler = (request, _) =>
+                {
+                    Assert.Empty(request.TypeUrl);
+                    request.TypeUrl = otherType;
+                    return ValueTask.CompletedTask;
+                };
+            }
+        });
+        using var call = Open(host.Channel, serviceType, TestContext.Current.CancellationToken);
+        await call.RequestStream.WriteAsync(Request(changedByCallback ? "" : otherType), TestContext.Current.CancellationToken);
+        var failure = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken)));
+        Assert.Equal(StatusCode.InvalidArgument, failure.StatusCode);
+        Assert.Equal(changedByCallback, host.Callbacks.DeltaRequested.Reader.TryRead(out _));
+        Assert.False(host.Cache.DeltaCreated.Reader.TryRead(out _));
+    }
+
+    [Fact]
+    public async Task DeltaSubscriptionLimit_CountsRetainedNamesAndPrefixesAcrossTypes()
+    {
+        const string firstType = "example/First";
+        const string secondType = "example/Second";
+        await using var host = await StartAsync(deltaOptions: new DeltaOptions { MaxSubscriptionEntries = 3 });
+        var token = TestContext.Current.CancellationToken;
+        using var call = Open(host.Channel, "", token);
+        foreach (var request in new[]
+        {
+            Request(firstType, additions: ["alpha", "collection/*", "alpha"]),
+            Request(secondType, additions: ["beta"]),
+            Request(firstType, additions: ["replacement"], removals: ["collection/*"]),
+        })
+        {
+            await call.RequestStream.WriteAsync(request, token);
+            await Wait(host.Cache.DeltaCreated.Reader.ReadAsync(token).AsTask());
+        }
+        await call.RequestStream.WriteAsync(Request(secondType, additions: ["other/*"]), token);
+        var failure = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(token)));
+        Assert.Equal(StatusCode.ResourceExhausted, failure.StatusCode);
+        Assert.False(host.Cache.DeltaCreated.Reader.TryRead(out _));
+        Assert.Empty(host.Cache.Inner.GetStatusKeys());
+    }
+
+    [Fact]
+    public async Task DedicatedDeltaSubscriptionLimit_AppliesCharacterBudgetAfterCallback()
+    {
+        await using var host = await StartAsync(configure: (_, callbacks) => callbacks.DeltaRequestHandler = (request, _) =>
+            {
+                if (request.ResourceNamesSubscribe.Count == 0)
+                {
+                    request.ResourceNamesSubscribe.Add("four/*");
+                }
+                return ValueTask.CompletedTask;
+            }, deltaOptions: new DeltaOptions { MaxSubscriptionCharacters = 6 });
+        var token = TestContext.Current.CancellationToken;
+        using var call = Open(host.Channel, ResourceTypeUrls.Cluster, token);
+        await call.RequestStream.WriteAsync(Request(additions: ["a"]), token);
+        await Wait(host.Cache.DeltaCreated.Reader.ReadAsync(token).AsTask());
+        await call.RequestStream.WriteAsync(Request(), token);
+        await Wait(host.Cache.DeltaCreated.Reader.ReadAsync(token).AsTask());
+        await call.RequestStream.WriteAsync(Request(additions: ["b"]), token);
+        var failure = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(token)));
+        Assert.Equal(StatusCode.ResourceExhausted, failure.StatusCode);
+        Assert.False(host.Cache.DeltaCreated.Reader.TryRead(out _));
+        Assert.Empty(host.Cache.Inner.GetStatusKeys());
+    }
+
+    [Fact]
+    public async Task DeltaSubscriptionLimit_CountsPendingWildcardResets()
+    {
+        await using var host = await StartAsync(deltaOptions: new DeltaOptions { MaxSubscriptionEntries = 1 });
+        var token = TestContext.Current.CancellationToken;
+        using var call = Open(host.Channel, ResourceTypeUrls.Cluster, token);
+        await call.RequestStream.WriteAsync(Request(nonce: "watch", additions: ["*", "first"], removals: ["first"]), token);
+        await Wait(host.Cache.DeltaCreated.Reader.ReadAsync(token).AsTask());
+        await call.RequestStream.WriteAsync(Request(nonce: "watch", additions: ["second"], removals: ["second"]), token);
+        var failure = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(token)));
+        Assert.Equal(StatusCode.ResourceExhausted, failure.StatusCode);
+        Assert.False(host.Cache.DeltaCreated.Reader.TryRead(out _));
+        Assert.Empty(host.Cache.Inner.GetStatusKeys());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DeltaSubscriptionLimit_CountsVersionMapsAcrossPendingWatches(bool reuseType)
+    {
+        const string firstType = "example/First";
+        const string secondType = "example/Second";
+        await using var host = await StartAsync(deltaOptions: new DeltaOptions { MaxSubscriptionEntries = 2 });
+        var token = TestContext.Current.CancellationToken;
+        using var call = Open(host.Channel, "", token);
+        foreach (string type in new[] { firstType, secondType })
+        {
+            var request = Request(type);
+            request.InitialResourceVersions.Add("known", "v1");
+            await call.RequestStream.WriteAsync(request, token);
+            await Wait(host.Cache.DeltaCreated.Reader.ReadAsync(token).AsTask());
+        }
+        var next = Request(reuseType ? firstType : "example/Third");
+        next.InitialResourceVersions.Add("known", "v2");
+        await call.RequestStream.WriteAsync(next, token);
+        var failure = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(token)));
+        Assert.Equal(StatusCode.ResourceExhausted, failure.StatusCode);
+        Assert.False(host.Cache.DeltaCreated.Reader.TryRead(out _));
+        Assert.Empty(host.Cache.Inner.GetStatusKeys());
+    }
+
+    [Theory]
+    [InlineData("😀", true)]
+    [InlineData("😀x", false)]
+    public async Task DedicatedDeltaSubscriptionLimit_CountsVersionKeyAndValueAfterCallback(string version, bool accepted)
+    {
+        await using var host = await StartAsync(configure: (_, callbacks) => callbacks.DeltaRequestHandler = (request, _) =>
+            {
+                request.InitialResourceVersions.Add("ab", version);
+                return ValueTask.CompletedTask;
+            }, deltaOptions: new DeltaOptions { MaxSubscriptionCharacters = 4 });
+        var token = TestContext.Current.CancellationToken;
+        using var call = Open(host.Channel, ResourceTypeUrls.Cluster, token);
+        await call.RequestStream.WriteAsync(Request(), token);
+        if (accepted)
+        {
+            var registered = await Wait(host.Cache.DeltaCreated.Reader.ReadAsync(token).AsTask());
+            Assert.Equal(version, registered.InitialResourceVersions["ab"]);
+            await call.RequestStream.CompleteAsync();
+            Assert.False(await Wait(call.ResponseStream.MoveNext(token)));
+        }
+        else
+        {
+            var failure = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(token)));
+            Assert.Equal(StatusCode.ResourceExhausted, failure.StatusCode);
+            Assert.False(host.Cache.DeltaCreated.Reader.TryRead(out _));
+        }
+    }
+
+    [Fact]
+    public async Task DeltaSubscriptionLimit_ReleasesVersionBudgetAfterDelivery()
+    {
+        await using var host = await StartAsync(deltaOptions: new DeltaOptions { MaxSubscriptionEntries = 1 });
+        await host.Cache.Inner.SetSnapshotAsync("node", Snapshot(ResourceTypeUrls.Route, "v1",
+            new RouteConfiguration { Name = "a" }, new RouteConfiguration { Name = "b" }));
+        var token = TestContext.Current.CancellationToken;
+        using var call = Open(host.Channel, "", token);
+        var route = Request(ResourceTypeUrls.Route);
+        route.InitialResourceVersions.Add("a", "old");
+        await call.RequestStream.WriteAsync(route, token);
+        Assert.True(await Wait(call.ResponseStream.MoveNext(token)));
+        Assert.Equal(["a", "b"], call.ResponseStream.Current.Resources.Select(resource => resource.Name).Order(StringComparer.Ordinal));
+
+        var cluster = Request(ResourceTypeUrls.Cluster);
+        cluster.InitialResourceVersions.Add("retired", "old");
+        await call.RequestStream.WriteAsync(cluster, token);
+        Assert.True(await Wait(call.ResponseStream.MoveNext(token)));
+        Assert.Equal("retired", Assert.Single(call.ResponseStream.Current.RemovedResources));
+        await call.RequestStream.CompleteAsync();
+        Assert.False(await Wait(call.ResponseStream.MoveNext(token)));
+    }
+
+    [Fact]
+    public async Task DeltaAdsTypeLimit_AcceptsCustomTypesAndExistingSubscriptions()
+    {
+        await using var host = await StartAsync(deltaOptions: new DeltaOptions { MaxAdsResourceTypes = 2 });
+        using var call = Open(host.Channel, "", TestContext.Current.CancellationToken);
+        foreach (string type in new[] { "example/First", "example/Second", "example/First" })
+        {
+            await call.RequestStream.WriteAsync(Request(type), TestContext.Current.CancellationToken);
+            var registered = await Wait(host.Cache.DeltaCreated.Reader.ReadAsync(TestContext.Current.CancellationToken).AsTask());
+            Assert.Equal(type, registered.TypeUrl);
+        }
+        await call.RequestStream.WriteAsync(Request("example/Third"), TestContext.Current.CancellationToken);
+        var failure = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken)));
+        Assert.Equal(StatusCode.ResourceExhausted, failure.StatusCode);
+        Assert.False(host.Cache.DeltaCreated.Reader.TryRead(out _));
+        Assert.Empty(host.Cache.Inner.GetStatusKeys());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task RegisteredDeltaOptions_ControlLegacyWildcard(bool disabled)
     {
         await using var host = await StartAsync(deltaOptions: new DeltaOptions { DisableLegacyWildcard = disabled });

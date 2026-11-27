@@ -63,9 +63,8 @@ public sealed class SotwOrderedAdsTests
         watch.Watch.Respond(Response(watch.Request));
         if (ordered)
         {
-            var failure = await Assert.ThrowsAsync<SotwProtocolException>(() => Wait(stream.Running));
-            Assert.Equal(SotwProtocolError.Unavailable, failure.Error);
-            Assert.Equal("No current watch for changed", failure.InnerException!.Message);
+            var failure = await Assert.ThrowsAsync<InvalidOperationException>(() => Wait(stream.Running));
+            Assert.Equal("No current watch for changed", failure.Message);
         }
         else
         {
@@ -232,7 +231,7 @@ public sealed class SotwOrderedAdsTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task SendFailure_UsesSourceMainQueueAndDrainErrorBehavior(bool duringDrain)
+    public async Task SendFailure_PreservesOriginalExceptionForMainQueueAndDrain(bool duringDrain)
     {
         await using var stream = new StreamHarness();
         var failure = new IOException("send");
@@ -261,16 +260,7 @@ public sealed class SotwOrderedAdsTests
         }
         other.Watch.Respond(Response(other.Request));
         release.TrySetResult();
-        if (duringDrain)
-        {
-            Assert.Same(failure, await Assert.ThrowsAsync<IOException>(() => Wait(stream.Running)));
-        }
-        else
-        {
-            var wrapped = await Assert.ThrowsAsync<SotwProtocolException>(() => Wait(stream.Running));
-            Assert.Equal(SotwProtocolError.Unavailable, wrapped.Error);
-            Assert.Same(failure, wrapped.InnerException);
-        }
+        Assert.Same(failure, await Assert.ThrowsAsync<IOException>(() => Wait(stream.Running)));
         Assert.All(stream.Watcher.Registrations, registration => Assert.Equal(1, registration.Watch.Disposals));
     }
 

@@ -1,14 +1,14 @@
 # Hosting, configuration updates and migration
 
-The root library targets .NET 10. See the [1.0.0-rc.2 release notes](releases/1.0.0-rc.2.md) for changes since the first release candidate.
+The root library targets .NET 10. See the [1.0.0-rc.3 release notes](releases/1.0.0-rc.3.md) for changes in this release candidate.
 
 ## Consume the published packages
 
-The examples below target `net10.0` and use prerelease `1.0.0-rc.2`. Reference Core directly for a transport-independent cache or stream engine:
+The examples below target `net10.0` and use prerelease `1.0.0-rc.3`. Reference Core directly for a transport-independent cache or stream engine:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Knightfall.Envoy.ControlPlane" Version="1.0.0-rc.2" />
+  <PackageReference Include="Knightfall.Envoy.ControlPlane" Version="1.0.0-rc.3" />
 </ItemGroup>
 ```
 
@@ -16,7 +16,7 @@ For ASP.NET Core gRPC hosting, reference the hosting package. Its Core and Proto
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Knightfall.Envoy.ControlPlane.AspNetCore" Version="1.0.0-rc.2" />
+  <PackageReference Include="Knightfall.Envoy.ControlPlane.AspNetCore" Version="1.0.0-rc.3" />
 </ItemGroup>
 ```
 
@@ -24,7 +24,7 @@ Add the separate Validation package only when the application wants explicit sem
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Knightfall.Envoy.ControlPlane.Validation" Version="1.0.0-rc.2" />
+  <PackageReference Include="Knightfall.Envoy.ControlPlane.Validation" Version="1.0.0-rc.3" />
 </ItemGroup>
 ```
 
@@ -88,10 +88,13 @@ This opens the management endpoint; an application must separately publish snaps
 The optional HTTP gateway is a separate mapping:
 
 ```csharp
-application.MapEnvoyControlPlaneHttpGateway();
+application.MapEnvoyControlPlaneHttpGateway(maxRequestBodyBytes: 1024 * 1024)
+    .RequireAuthorization("xds");
 ```
 
-Apply the application's authorization policy to that mapping too. It exposes the eight [discovery paths](plan/T18-FETCH-GATEWAY.md) and protobuf JSON status semantics. Register complete descriptors for any opaque extension payloads; the default registry cannot discover arbitrary messages hidden inside `Any`. Preserve the default resource/wrapper roots when replacing its registry. See the hosting guide for configuration and error behavior.
+Use an authorization policy registered by your application. The gateway exposes the eight [discovery paths](plan/T18-FETCH-GATEWAY.md), with a 1 MiB default request body limit. The overload accepts a positive byte limit. Authorization middleware runs before the gateway cleans repeated slashes and dot segments, and all aliases use the same fallback endpoint policy. Keep proxy path handling consistent and authorize the effective resource type and node in the Fetch hook when permissions vary by resource. Apply the application's CSRF protections when it uses ambient browser credentials.
+
+Register complete descriptors for opaque extension payloads in `Any` and preserve the default resource and wrapper roots when replacing the registry. See the [hosting guide](../src/Envoy.ControlPlane.AspNetCore/README.md#fetch-and-optional-http-gateway) for status behavior and registry configuration.
 
 ## Publish stable snapshots
 

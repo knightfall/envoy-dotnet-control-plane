@@ -3,11 +3,14 @@ namespace Envoy.ControlPlane.Streams;
 /// <summary>Transport-independent Delta protocol failures.</summary>
 public enum DeltaProtocolError
 {
-    /// <summary>An ADS request omitted its required type URL.</summary>
+    /// <summary>An ADS request omitted its type URL or a dedicated stream received a different type URL.</summary>
     InvalidArgument = 0,
 
     /// <summary>The request or response channel ended without a usable value.</summary>
     Unavailable = 1,
+
+    /// <summary>A request exceeded the stream's distinct resource type or subscription limit.</summary>
+    ResourceExhausted = 2,
 }
 
 /// <summary>A Delta protocol failure; application and producer exceptions retain their original types.</summary>

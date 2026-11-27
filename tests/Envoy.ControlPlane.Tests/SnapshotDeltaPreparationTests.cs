@@ -185,6 +185,40 @@ public sealed class SnapshotDeltaPreparationTests
     }
 
     [Fact]
+    public async Task WatchClosesDuringFirstPublication_StatusStaysAbsentUntilAnotherWatch()
+    {
+        using var release = new SemaphoreSlim(0);
+        var entered = Signal();
+        var candidate = CreateSnapshot("v1", new ObservedResource(new RouteConfiguration { Name = "route" }, () =>
+        {
+            entered.TrySetResult();
+            Assert.True(release.Wait(StreamFixtures.Timeout));
+        }));
+        var cache = new SnapshotCache();
+        using var delta = cache.CreateDeltaWatch(DeltaRequest(), new DeltaSubscription());
+        var previousStatus = cache.GetStatusInfo("node");
+        var publication = Task.Run(() => cache.SetSnapshotAsync("node", candidate), TestContext.Current.CancellationToken);
+        try
+        {
+            await Wait(entered.Task);
+            delta.Dispose();
+            Assert.Null(cache.GetStatusInfo("node"));
+        }
+        finally
+        {
+            release.Release();
+        }
+
+        await Wait(publication);
+        Assert.Same(candidate, cache.GetSnapshot("node"));
+        Assert.Null(cache.GetStatusInfo("node"));
+        using var next = cache.CreateDeltaWatch(DeltaRequest(), new DeltaSubscription());
+        Assert.Equal("v1", (await Wait(next.Completion)).ResponseVersion);
+        Assert.NotSame(previousStatus, cache.GetStatusInfo("node"));
+        Assert.Equal(0, cache.GetStatusInfo("node")!.NumDeltaWatches);
+    }
+
+    [Fact]
     public async Task Publication_EnqueuesDeltaResponsesInAdsTypeOrder()
     {
         var cache = new SnapshotCache(ads: true);

@@ -25,6 +25,7 @@ public sealed class SotwServer
         this.cache = cache;
         this.callbacks = callbacks;
         this.options = options ?? new SotwOptions();
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(this.options.MaxAdsResourceTypes, nameof(SotwOptions.MaxAdsResourceTypes));
         this.shutdown = shutdown;
     }
 

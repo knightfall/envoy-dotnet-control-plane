@@ -29,6 +29,18 @@
         "occurrences": 1
       },
       {
+        "path": "Validator.cs",
+        "before": "        celEnvironment.RegisterProtoValidateFormatFunction();",
+        "after": "        celEnvironment.RegisterProtoValidateFormatFunction();\n        Envoy.ControlPlane.Validation.CelRegex.Register(celEnvironment, Options.RequireCatalogRegexPatterns, Options.CustomRegexMatchTimeout);",
+        "occurrences": 1
+      },
+      {
+        "path": "ValidatorOptions.cs",
+        "before": "    public bool DisableLazy { get; set; }",
+        "after": "    /// <summary>Rejects CEL regex patterns outside the supported Envoy catalog and predefined rules.</summary>\n    public bool RequireCatalogRegexPatterns { get; set; }\n\n    /// <summary>The positive timeout for custom CEL regex matches, up to the 100 ms default.</summary>\n    public TimeSpan CustomRegexMatchTimeout { get; set; } = Envoy.ControlPlane.Validation.CelRegex.DefaultMatchTimeout;\n\n    public bool DisableLazy { get; set; }",
+        "occurrences": 1
+      },
+      {
         "path": "Internal/Evaluator/EvaluatorBuilder.cs",
         "before": "    public IEvaluator Load(MessageDescriptor messageDescriptor)\n    {",
         "after": "    public IEvaluator Load(MessageDescriptor messageDescriptor)\n    {\n        PgvMetadataGuard.RequireMigrated(messageDescriptor);",
@@ -278,12 +290,12 @@
       {
         "path": "Validator.cs",
         "sourceSha256": "b15d91d261ffa7dd92cda098b1382a7ba29f903234ff8d8cd06a0ec194184623",
-        "adaptedSha256": "23ab5bc07a1d58816e1c8c9fbe384d1e55edc4bf8ebfa3af300a8e6ee9c9cb1b"
+        "adaptedSha256": "ecec8a7e86666bde667b2f921e165e57a33b6ffa87bac6a12d454b5e70efa6c1"
       },
       {
         "path": "ValidatorOptions.cs",
         "sourceSha256": "513e75281beee6f7a66b72dce238e17548a5bbdd24d30bdda2aedf7d52471bf6",
-        "adaptedSha256": "8d3176de8f8bb6ed3e031eb7bac06f650bcf111c0e0e66dab2117f9ba72c939c"
+        "adaptedSha256": "cfa3ab0f9568f96fb244d0f64c351b51845943e4d3a5732385daa4ad3ac47164"
       }
     ],
     "materializedPrefix": "#nullable enable\n"

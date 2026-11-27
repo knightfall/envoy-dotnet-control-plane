@@ -49,6 +49,53 @@ public sealed class DiscoveryEndpointTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public async Task DedicatedService_RejectsDifferentTypeBeforeRegistration(bool changedByCallback)
+    {
+        const string serviceType = ResourceTypeUrls.Cluster;
+        const string otherType = "type.googleapis.com/example.OtherResource";
+        await using var host = await StartAsync(configure: (_, callbacks) =>
+        {
+            if (changedByCallback)
+            {
+                callbacks.RequestHandler = (request, _) =>
+                {
+                    Assert.Equal(serviceType, request.TypeUrl);
+                    request.TypeUrl = otherType;
+                    return ValueTask.CompletedTask;
+                };
+            }
+        });
+        using var call = Open(host.Channel, serviceType, TestContext.Current.CancellationToken);
+        await call.RequestStream.WriteAsync(Request(changedByCallback ? "" : otherType), TestContext.Current.CancellationToken);
+        var failure = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken)));
+        Assert.Equal(StatusCode.InvalidArgument, failure.StatusCode);
+        Assert.Equal(changedByCallback, host.Callbacks.Requested.Reader.TryRead(out _));
+        Assert.False(host.Cache.Created.Reader.TryRead(out _));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AdsTypeLimit_AcceptsCustomTypesAndExistingSubscriptions(bool ordered)
+    {
+        await using var host = await StartAsync(new SotwOptions { OrderedAds = ordered, MaxAdsResourceTypes = 2 });
+        using var call = Open(host.Channel, "", TestContext.Current.CancellationToken);
+        foreach (string type in new[] { "example/First", "example/Second", "example/First" })
+        {
+            await call.RequestStream.WriteAsync(Request(type), TestContext.Current.CancellationToken);
+            var registered = await Wait(host.Cache.Created.Reader.ReadAsync(TestContext.Current.CancellationToken).AsTask());
+            Assert.Equal(type, registered.TypeUrl);
+        }
+        await call.RequestStream.WriteAsync(Request("example/Third"), TestContext.Current.CancellationToken);
+        var failure = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken)));
+        Assert.Equal(StatusCode.ResourceExhausted, failure.StatusCode);
+        Assert.False(host.Cache.Created.Reader.TryRead(out _));
+        Assert.Empty(host.Cache.Inner.GetStatusKeys());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task Ads_AckUpdateAndNackUseTheSameCoreStateOverHttp2(bool ordered)
     {
         await using var host = await StartAsync(new SotwOptions { OrderedAds = ordered });

@@ -20,27 +20,33 @@ internal static class HttpGatewayFixtures
 
     internal static async Task<DefaultHttpContext> InvokeAsync(GrpcHost host, string path, string body, bool readFailure = false)
     {
+        using Stream input = readFailure ? new UnreadableBody(new IOException("Fixture read failure")) : new MemoryStream(Encoding.UTF8.GetBytes(body));
+        return await InvokeAsync(host, path, input);
+    }
+
+    internal static async Task<DefaultHttpContext> InvokeAsync(GrpcHost host, string path, Stream input, long? contentLength = null)
+    {
         var endpoint = ((IEndpointRouteBuilder)host.Application).DataSources.SelectMany(source => source.Endpoints)
             .Single(item => item.DisplayName == "Envoy xDS HTTP gateway");
-        using Stream input = readFailure ? new UnreadableBody() : new MemoryStream(Encoding.UTF8.GetBytes(body));
         var context = new DefaultHttpContext { RequestServices = host.Application.Services, RequestAborted = Xunit.TestContext.Current.CancellationToken };
         context.Request.Path = path;
         context.Request.Method = "POST";
         context.Request.Body = input;
+        context.Request.ContentLength = contentLength;
         context.Response.Body = new MemoryStream();
         await GrpcHost.Wait(endpoint.RequestDelegate!(context));
         return context;
     }
 }
 
-internal sealed class UnreadableBody : Stream
+internal sealed class UnreadableBody(Exception failure) : Stream
 {
     public override bool CanRead => true;
     public override bool CanSeek => false;
     public override bool CanWrite => false;
     public override long Length => throw new NotSupportedException();
     public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-    public override int Read(byte[] buffer, int offset, int count) => throw new IOException("Fixture read failure");
+    public override int Read(byte[] buffer, int offset, int count) => throw failure;
     public override void Flush() => throw new NotSupportedException();
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
     public override void SetLength(long value) => throw new NotSupportedException();

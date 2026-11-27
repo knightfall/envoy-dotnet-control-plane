@@ -16,6 +16,7 @@ internal sealed class HostCallbacks : ISotwCallbacks, IDeltaCallbacks, IFetchCal
     internal Channel<DeltaDiscoveryRequest> DeltaRequested { get; } = Channel.CreateUnbounded<DeltaDiscoveryRequest>();
     internal Channel<DeltaDiscoveryResponse> DeltaResponses { get; } = Channel.CreateUnbounded<DeltaDiscoveryResponse>();
     internal Channel<Node> Closed { get; } = Channel.CreateUnbounded<Node>();
+    internal Exception? CloseFailure { get; set; }
     internal Exception? RequestFailure { get; set; }
     internal Channel<ResponseContext> FetchContexts { get; } = Channel.CreateUnbounded<ResponseContext>();
     internal Func<ResponseContext, DiscoveryRequest, ValueTask>? FetchRequestHandler { get; set; }
@@ -61,7 +62,7 @@ internal sealed class HostCallbacks : ISotwCallbacks, IDeltaCallbacks, IFetchCal
     public ValueTask OnStreamClosedAsync(long streamId, Node node)
     {
         Closed.Writer.TryWrite(node);
-        return ValueTask.CompletedTask;
+        return CloseFailure is null ? ValueTask.CompletedTask : ValueTask.FromException(CloseFailure);
     }
 
     public ValueTask OnStreamRequestAsync(long streamId, DeltaDiscoveryRequest request, CancellationToken cancellationToken)

@@ -63,7 +63,7 @@ public sealed class SnapshotCacheTests
     }
 
     [Fact]
-    public async Task Cancellation_ReleasesRegistrationAndRetainsNodeStatus()
+    public async Task Cancellation_ReleasesUnpublishedNodeStatus()
     {
         var cache = new SnapshotCache();
         using var watch = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription(wildcard: true));
@@ -73,9 +73,10 @@ public sealed class SnapshotCacheTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => watch.Completion);
         Assert.True(watch.Completion.IsCanceled);
         Assert.Equal(0, status.NumWatches);
-        Assert.Equal(new[] { "node" }, cache.GetStatusKeys());
-        Assert.Same(status, cache.GetStatusInfo("node"));
-        Assert.Null(cache.GetStatusInfo("missing"));
+        Assert.Empty(cache.GetStatusKeys());
+        Assert.Null(cache.GetStatusInfo("node"));
+        using var next = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription());
+        Assert.NotSame(status, cache.GetStatusInfo("node"));
     }
 
     [Fact]
@@ -101,7 +102,7 @@ public sealed class SnapshotCacheTests
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumWatches);
         Assert.Equal(1, previous.NumWatches);
         current.Dispose();
-        Assert.Equal(0, cache.GetStatusInfo("node")!.NumWatches);
+        Assert.Null(cache.GetStatusInfo("node"));
     }
 
     [Fact]
@@ -232,6 +233,29 @@ public sealed class SnapshotCacheTests
         Assert.Equal(new[] { "node" }, cache.GetStatusKeys());
         Assert.Equal(1, cache.GetStatusInfo("node")!.NumDeltaWatches);
         watch.Dispose();
-        Assert.Equal(0, cache.GetStatusInfo("node")!.NumDeltaWatches);
+        Assert.Null(cache.GetStatusInfo("node"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UnpublishedNodeStatus_LastWatchAcrossBothProtocolsReleasesTheKey(bool deltaFirst)
+    {
+        var cache = new SnapshotCache();
+        using var sotw = cache.CreateWatch(Request(ResourceTypeUrls.Listener), Subscription());
+        using var delta = cache.CreateDeltaWatch(new DeltaDiscoveryRequest { Node = new Node { Id = "node" } }, Subscription());
+        var status = cache.GetStatusInfo("node");
+        Assert.NotNull(status);
+
+        IDisposable first = deltaFirst ? delta : sotw;
+        IDisposable last = deltaFirst ? sotw : delta;
+        first.Dispose();
+        Assert.Same(status, cache.GetStatusInfo("node"));
+        Assert.Equal(1, status.NumWatches + status.NumDeltaWatches);
+        last.Dispose();
+        Assert.Null(cache.GetStatusInfo("node"));
+        Assert.Empty(cache.GetStatusKeys());
+        Assert.Equal(0, status.NumWatches);
+        Assert.Equal(0, status.NumDeltaWatches);
     }
 }

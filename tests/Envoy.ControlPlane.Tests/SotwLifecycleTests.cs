@@ -159,7 +159,7 @@ public sealed class SotwLifecycleTests
         int closes = 0;
         stream.Callbacks.Request = (_, request, _) => request.TypeUrl == "reject" ? ValueTask.FromException(primary) : ValueTask.CompletedTask;
         stream.Callbacks.Close = (_, _) => { closes++; return ValueTask.FromException(close); };
-        stream.Start();
+        stream.Start(typeUrl: "");
         stream.Input.Push(Request());
         var first = await stream.NextWatch();
         stream.Watcher.Create = null;

@@ -143,6 +143,40 @@ public sealed class HttpGatewayTests
         Assert.Equal(0, output.Length);
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task RequestBodyLimit_AppliesToDeclaredAndStreamedBodies(bool declaresLength, bool oversized)
+    {
+        const string json = """{"node":{"id":"node"}}""";
+        int limit = Encoding.UTF8.GetByteCount(json);
+        await using var host = await StartAsync(mapEndpoints: app => app.MapEnvoyControlPlaneHttpGateway(limit));
+        await host.Cache.Inner.SetSnapshotAsync("node", Snapshot(ResourceTypeUrls.Cluster, "v1"));
+        await using var input = new MemoryStream(Encoding.UTF8.GetBytes(oversized ? json + "  " : json));
+        var context = await InvokeAsync(host, "/v3/discovery:clusters", input, declaresLength ? input.Length : null);
+        await using var output = context.Response.Body;
+        Assert.Equal(oversized ? StatusCodes.Status413PayloadTooLarge : StatusCodes.Status200OK, context.Response.StatusCode);
+        Assert.Equal(!oversized, host.Callbacks.FetchContexts.Reader.TryRead(out _));
+        int expectedRead = oversized ? limit + 1 : limit;
+        Assert.Equal(oversized && declaresLength ? 0 : expectedRead, input.Position);
+    }
+
+    [Theory]
+    [InlineData(StatusCodes.Status408RequestTimeout)]
+    [InlineData(StatusCodes.Status413PayloadTooLarge)]
+    public async Task HostBodyReadStatus_IsPreservedBeforeFetch(int status)
+    {
+        await using var host = await StartAsync(mapEndpoints: app => app.MapEnvoyControlPlaneHttpGateway());
+        await using var input = new UnreadableBody(new BadHttpRequestException("internal diagnostic", status));
+        var context = await InvokeAsync(host, "/v3/discovery:clusters", input);
+        await using var output = context.Response.Body;
+        Assert.Equal(status, context.Response.StatusCode);
+        Assert.Equal(0, output.Length);
+        Assert.False(host.Callbacks.FetchContexts.Reader.TryRead(out _));
+    }
+
     [Fact]
     public async Task RegisteredExtensionAny_RoundTripsAndMissingRegistryFailsFormatting()
     {

@@ -92,6 +92,10 @@ The image lock also pins architecture-specific SDK images. The live graph covers
 
 ## Necessary C# adaptations and retained source limits
 
+The current .NET streams bind dedicated RPCs to the service's type. The pinned Go handlers supply the implicit type when the request omits it and accept an explicit different type. .NET returns `InvalidArgument` for a mismatch before or after the request hook. ADS accepts custom type URLs within the configured per-stream limit.
+
+The current SnapshotCache releases unpublished node status after the last pending SotW or Delta watch ends. The pinned Go cache retains that idle status. In .NET, a publication that arrives after eviction installs the snapshot and the next watch creates a fresh status view. Ordered SotW also preserves exceptions in Core for both queue and drain sends. The gRPC adapter reports unexpected SotW failures with a fixed detail and logs the original cause.
+
 [The API contract](../public-api.md) records ownership, cancellation and errors for every selected extension surface. Channels establish publication order; an await-one adapter serves individual readers. Asynchronous watch disposal settles owned writes before subscription changes. Cancellation tokens, standard timers/clock injection, serial asynchronous writers, ordinary DI/authorization and `ILogger` replace Go-specific mechanics while keeping tested outcomes.
 
 Resource retention is stable-by-convention. Type versions are opaque, protobuf serialization is not universally canonical across runtimes, and Delta payload hashes need not have identical bytes in Go and .NET. TimeSpan precision is 100 ns. Application-provided descriptor registries own opaque `Any` resolution. Struct conversion returns new messages, and exception/cleanup aggregation follows documented .NET behavior. The client disposes replaced calls without taking ownership of its invoker/channel.

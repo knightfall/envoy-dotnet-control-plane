@@ -744,13 +744,13 @@
       },
       {
         "state": "canceled",
-        "pendingWatchCount": 0,
+        "pendingWatchCount": null,
         "snapshotVersion": null,
         "response": null
       },
       {
         "state": "canceled",
-        "pendingWatchCount": 0,
+        "pendingWatchCount": null,
         "snapshotVersion": "v1",
         "response": null
       }

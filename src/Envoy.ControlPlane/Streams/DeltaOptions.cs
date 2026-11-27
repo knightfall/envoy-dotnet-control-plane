@@ -1,8 +1,17 @@
 namespace Envoy.ControlPlane.Streams;
 
-/// <summary>Source-equivalent legacy wildcard settings for Delta streams.</summary>
+/// <summary>Subscription limits and legacy wildcard settings for Delta streams.</summary>
 public sealed class DeltaOptions
 {
+    /// <summary>Gets the maximum number of distinct resource types accepted during the life of an ADS stream.</summary>
+    public int MaxAdsResourceTypes { get; init; } = 64;
+
+    /// <summary>Gets the maximum number of retained explicit names, prefixes, pending wildcard resets, and client version map entries across one Delta stream.</summary>
+    public int MaxSubscriptionEntries { get; init; } = 16_384;
+
+    /// <summary>Gets the maximum combined length, in UTF-16 code units, of retained explicit names, prefixes, pending wildcard resets, and client version map keys and values across one Delta stream.</summary>
+    public int MaxSubscriptionCharacters { get; init; } = 1_048_576;
+
     /// <summary>Gets whether initial empty additions stop implying wildcard for every type.</summary>
     public bool DisableLegacyWildcard { get; init; }
 

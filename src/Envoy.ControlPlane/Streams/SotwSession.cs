@@ -103,7 +103,11 @@ internal sealed partial class SotwSession(IConfigWatcher cache, ISotwCallbacks? 
                 }
                 if (orderedResponses.Reader.TryRead(out var response))
                 {
-                    await SendOrderedAsync(response, send, cancellationToken);
+                    if (response is null)
+                    {
+                        throw new SotwProtocolException(SotwProtocolError.Unavailable, "empty resource response");
+                    }
+                    await SendAsync(response, send, cancellationToken);
                 }
             }
             else
@@ -158,20 +162,25 @@ internal sealed partial class SotwSession(IConfigWatcher cache, ISotwCallbacks? 
         {
             request.Node = node;
         }
-        if (request.TypeUrl.Length == 0)
+        if (typeUrl.Length > 0)
         {
-            if (typeUrl.Length == 0)
-            {
-                throw new SotwProtocolException(SotwProtocolError.InvalidArgument, "type URL is required for ADS");
-            }
-            request.TypeUrl = typeUrl;
+            request.TypeUrl = ResolveDedicatedType(request.TypeUrl, typeUrl);
+        }
+        else if (request.TypeUrl.Length == 0)
+        {
+            throw new SotwProtocolException(SotwProtocolError.InvalidArgument, "type URL is required for ADS");
         }
         string requestType = request.TypeUrl;
         if (callbacks is not null)
         {
             await callbacks.OnStreamRequestAsync(streamId, request, cancellationToken);
         }
-        if (orderedResponses is null)
+        if (typeUrl.Length > 0)
+        {
+            // The callback can edit the request passed to the cache.
+            request.TypeUrl = ResolveDedicatedType(request.TypeUrl, typeUrl);
+        }
+        else if (orderedResponses is null)
         {
             requestType = request.TypeUrl;
         }
@@ -189,6 +198,10 @@ internal sealed partial class SotwSession(IConfigWatcher cache, ISotwCallbacks? 
         }
         else
         {
+            if (watches.Count >= options.MaxAdsResourceTypes)
+            {
+                throw new SotwProtocolException(SotwProtocolError.ResourceExhausted, "ADS resource type limit exceeded");
+            }
             subscription = new SotwSubscription(request.ResourceNames, options.IsLegacyWildcardActive(requestType));
         }
         var individual = orderedResponses is null ? CreateResponseChannel(1) : null;
@@ -200,6 +213,15 @@ internal sealed partial class SotwSession(IConfigWatcher cache, ISotwCallbacks? 
         {
             current.Pending = individual.Reader.WaitToReadAsync(cancellationToken).AsTask();
         }
+    }
+
+    private static string ResolveDedicatedType(string requestType, string streamType)
+    {
+        if (requestType.Length > 0 && requestType != streamType)
+        {
+            throw new SotwProtocolException(SotwProtocolError.InvalidArgument, "type URL does not match the discovery service");
+        }
+        return streamType;
     }
 
     private async ValueTask SendAsync(ISotwResponse response, Func<DiscoveryResponse, CancellationToken, ValueTask> send,

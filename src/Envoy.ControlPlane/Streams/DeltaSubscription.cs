@@ -13,6 +13,12 @@ public sealed class DeltaSubscription : ISubscription
     private readonly HashSet<string> subscribedPrefixes = new(StringComparer.Ordinal);
     private IReadOnlyDictionary<string, string> returnedResources;
     private HashSet<string>? resourcesToResend;
+    private HashSet<string>? pendingWildcardResets;
+    private long subscriptionCharacters;
+    private long wildcardResetCharacters;
+
+    internal long RetainedEntryCount => (long)subscribedResources.Count + subscribedPrefixes.Count + (pendingWildcardResets?.Count ?? 0);
+    internal long RetainedCharacters => subscriptionCharacters + wildcardResetCharacters;
 
     /// <summary>Creates one type's initial state, including its first-request resource versions.</summary>
     /// <param name="subscribed">Initial exact, prefix or wildcard additions.</param>
@@ -69,11 +75,17 @@ public sealed class DeltaSubscription : ISubscription
             }
             else if (name.EndsWith("/*", StringComparison.Ordinal))
             {
-                subscribedPrefixes.Add(name[..^1]);
+                if (subscribedPrefixes.Add(name[..^1]))
+                {
+                    subscriptionCharacters += name.Length - 1;
+                }
             }
             else
             {
-                subscribedResources.Add(name);
+                if (subscribedResources.Add(name))
+                {
+                    subscriptionCharacters += name.Length;
+                }
                 if (resendKnownResources && returnedResources.ContainsKey(name))
                 {
                     (resourcesToResend ??= new HashSet<string>(StringComparer.Ordinal)).Add(name);
@@ -88,7 +100,10 @@ public sealed class DeltaSubscription : ISubscription
             }
             else if (name.EndsWith("/*", StringComparison.Ordinal))
             {
-                subscribedPrefixes.Remove(name[..^1]);
+                if (subscribedPrefixes.Remove(name[..^1]))
+                {
+                    subscriptionCharacters -= name.Length - 1;
+                }
             }
             else
             {
@@ -96,13 +111,25 @@ public sealed class DeltaSubscription : ISubscription
                 if (IsWildcard && subscribedResources.Contains(name))
                 {
                     // Force the cache to report an existing resource again or confirm its removal.
+                    if (!returnedResources.ContainsKey(name) &&
+                        (pendingWildcardResets ??= new HashSet<string>(StringComparer.Ordinal)).Add(name))
+                    {
+                        wildcardResetCharacters += name.Length;
+                    }
                     GetWritableReturnedResources()[name] = "";
                 }
                 else if (returnedResources.ContainsKey(name))
                 {
                     GetWritableReturnedResources().Remove(name);
+                    if (pendingWildcardResets?.Remove(name) == true)
+                    {
+                        wildcardResetCharacters -= name.Length;
+                    }
                 }
-                subscribedResources.Remove(name);
+                if (subscribedResources.Remove(name))
+                {
+                    subscriptionCharacters -= name.Length;
+                }
             }
         }
     }
@@ -112,7 +139,7 @@ public sealed class DeltaSubscription : ISubscription
     public void SetReturnedResources(IReadOnlyDictionary<string, string> resourceVersions)
     {
         returnedResources = new Dictionary<string, string>(resourceVersions, StringComparer.Ordinal);
-        resourcesToResend?.Clear();
+        ClearPendingChanges();
     }
 
     internal void SetReturnedResourcesFromResponse(IReadOnlyDictionary<string, string> resourceVersions)
@@ -120,12 +147,19 @@ public sealed class DeltaSubscription : ISubscription
         if (resourceVersions is SnapshotResourceVersions versions)
         {
             returnedResources = versions;
-            resourcesToResend?.Clear();
+            ClearPendingChanges();
         }
         else
         {
             SetReturnedResources(resourceVersions);
         }
+    }
+
+    private void ClearPendingChanges()
+    {
+        resourcesToResend?.Clear();
+        pendingWildcardResets?.Clear();
+        wildcardResetCharacters = 0;
     }
 
     private Dictionary<string, string> GetWritableReturnedResources()

@@ -3,6 +3,9 @@ namespace Envoy.ControlPlane.Streams;
 /// <summary>Delivery ordering and source-equivalent legacy wildcard settings for SotW.</summary>
 public sealed class SotwOptions
 {
+    /// <summary>Gets the maximum number of distinct resource types accepted during the life of an ADS stream.</summary>
+    public int MaxAdsResourceTypes { get; init; } = 64;
+
     /// <summary>Gets whether ADS uses ordered response delivery and drains on watch replacement.</summary>
     public bool OrderedAds { get; init; }
 

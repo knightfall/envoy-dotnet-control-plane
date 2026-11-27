@@ -20,14 +20,15 @@ public sealed partial class SnapshotCache
             Snapshot toPrepare;
             lock (gate)
             {
-                if (!status.TryGetValue(nodeId, out var info))
+                if (!status.TryGetValue(nodeId, out var info) || !ReferenceEquals(info, observedStatus))
                 {
-                    info = new StatusInfo(gate, request.Node);
-                    status[nodeId] = info;
-                }
-                if (!ReferenceEquals(info, observedStatus))
-                {
-                    info.LastDeltaWatch = timeProvider.GetUtcNow();
+                    var requestTime = timeProvider.GetUtcNow();
+                    if (info is null)
+                    {
+                        info = new StatusInfo(gate, request.Node);
+                        status[nodeId] = info;
+                    }
+                    info.LastDeltaWatch = requestTime;
                     observedStatus = info;
                 }
 
@@ -90,9 +91,9 @@ public sealed partial class SnapshotCache
     {
         lock (gate)
         {
-            if (status.TryGetValue(nodeId, out var info))
+            if (status.TryGetValue(nodeId, out var info) && info.DeltaWatches.Remove(watchId))
             {
-                info.DeltaWatches.Remove(watchId);
+                RemoveIdleStatus(nodeId, info);
             }
         }
     }

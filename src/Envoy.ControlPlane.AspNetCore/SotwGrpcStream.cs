@@ -1,12 +1,14 @@
+using System.Runtime.ExceptionServices;
 using Envoy.ControlPlane.Cache;
 using Envoy.ControlPlane.Streams;
 using Envoy.Service.Discovery.V3;
 using Grpc.Core;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Envoy.ControlPlane.AspNetCore;
 
-internal sealed class SotwGrpcStream(SotwServer server, ILogger<SotwGrpcStream> logger)
+internal sealed class SotwGrpcStream(SotwServer server, IHostApplicationLifetime lifetime, ILogger<SotwGrpcStream> logger)
 {
     internal async Task RunAsync(IAsyncStreamReader<DiscoveryRequest> requests,
         IServerStreamWriter<DiscoveryResponse> responses, ServerCallContext context, string typeUrl)
@@ -18,16 +20,35 @@ internal sealed class SotwGrpcStream(SotwServer server, ILogger<SotwGrpcStream> 
                 (response, token) => new ValueTask(responses.WriteAsync(response, token)), typeUrl,
                 new ResponseContext(context.CancellationToken, context));
         }
-        catch (SotwProtocolException error)
+        catch (Exception error) when (error is not (RpcException or OutOfMemoryException))
         {
-            var code = error.Error switch
+            var primary = GrpcStreamFailure.Unwrap(error, logger, "Discovery stream", typeUrl);
+            if (primary is RpcException)
             {
-                SotwProtocolError.InvalidArgument => StatusCode.InvalidArgument,
-                SotwProtocolError.Unavailable => StatusCode.Unavailable,
-                _ => StatusCode.Unknown,
-            };
-            logger.LogDebug("Discovery stream rejected with status {StatusCode}", code);
-            throw new RpcException(new Status(code, error.Message));
+                ExceptionDispatchInfo.Throw(primary);
+            }
+            if (primary is SotwProtocolException protocol)
+            {
+                var code = protocol.Error switch
+                {
+                    SotwProtocolError.InvalidArgument => StatusCode.InvalidArgument,
+                    SotwProtocolError.Unavailable => StatusCode.Unavailable,
+                    SotwProtocolError.ResourceExhausted => StatusCode.ResourceExhausted,
+                    _ => StatusCode.Unknown,
+                };
+                logger.LogDebug("Discovery stream rejected with status {StatusCode}", code);
+                throw new RpcException(new Status(code, protocol.Message));
+            }
+            if (primary is OperationCanceledException &&
+                (context.CancellationToken.IsCancellationRequested || lifetime.ApplicationStopping.IsCancellationRequested))
+            {
+                throw new RpcException(new Status(StatusCode.Cancelled, "Discovery stream canceled."));
+            }
+            if (ReferenceEquals(primary, error))
+            {
+                logger.LogError(error, "Discovery stream failed for type {TypeUrl}", typeUrl);
+            }
+            throw new RpcException(new Status(StatusCode.Internal, "Discovery stream failed."));
         }
         finally
         {

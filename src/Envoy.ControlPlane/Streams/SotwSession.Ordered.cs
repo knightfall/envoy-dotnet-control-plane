@@ -45,21 +45,4 @@ internal sealed partial class SotwSession
             }
         }
     }
-
-    private async ValueTask SendOrderedAsync(ISotwResponse response,
-        Func<DiscoveryResponse, CancellationToken, ValueTask> send, CancellationToken cancellationToken)
-    {
-        try
-        {
-            if (response is null)
-            {
-                throw new InvalidOperationException("Missing queued response");
-            }
-            await SendAsync(response, send, cancellationToken);
-        }
-        catch (Exception error) when (error is not OutOfMemoryException)
-        {
-            throw new SotwProtocolException(SotwProtocolError.Unavailable, error.Message, error);
-        }
-    }
 }

@@ -69,11 +69,15 @@ public sealed class ActiveCallbackShutdownTests
         // can release the blocked callback before these cleanup observations.
         host.Application.Lifetime.StopApplication();
         await Wait(canceled.Task);
+        var error = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken)));
+        Assert.Equal(StatusCode.Cancelled, error.StatusCode);
+        Assert.Equal("Discovery stream canceled.", error.Status.Detail);
         await Wait(host.Callbacks.Closed.Reader.ReadAsync(TestContext.Current.CancellationToken).AsTask());
         Assert.True(host.Application.Lifetime.ApplicationStopping.IsCancellationRequested);
         Assert.False(host.Application.Lifetime.ApplicationStopped.IsCancellationRequested);
         Assert.False(unreleased.Task.IsCompleted);
-        Assert.Equal(0, host.Cache.Inner.GetStatusInfo("node")!.NumWatches);
+        int? expectedWatches = stage == "request" ? null : 0;
+        Assert.Equal(expectedWatches, host.Cache.Inner.GetStatusInfo("node")?.NumWatches);
         Assert.False(host.Callbacks.Closed.Reader.TryRead(out _));
         Assert.Equal(0, host.Cache.Disposals);
     }
@@ -132,11 +136,15 @@ public sealed class ActiveCallbackShutdownTests
 
         host.Application.Lifetime.StopApplication();
         await Wait(canceled.Task);
+        var error = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken)));
+        Assert.Equal(StatusCode.Cancelled, error.StatusCode);
+        Assert.Equal("Delta discovery stream canceled.", error.Status.Detail);
         Assert.Equal("node", (await Wait(host.Callbacks.Closed.Reader.ReadAsync(TestContext.Current.CancellationToken).AsTask())).Id);
         Assert.True(host.Application.Lifetime.ApplicationStopping.IsCancellationRequested);
         Assert.False(host.Application.Lifetime.ApplicationStopped.IsCancellationRequested);
         Assert.False(unreleased.Task.IsCompleted);
-        Assert.Equal(0, host.Cache.Inner.GetStatusInfo("node")!.NumDeltaWatches);
+        int? expectedWatches = stage == "request" ? null : 0;
+        Assert.Equal(expectedWatches, host.Cache.Inner.GetStatusInfo("node")?.NumDeltaWatches);
         Assert.False(host.Callbacks.Closed.Reader.TryRead(out _));
         Assert.Equal(0, host.Cache.Disposals);
     }
@@ -183,7 +191,9 @@ public sealed class ActiveCallbackShutdownTests
 
         host.Application.Lifetime.StopApplication();
         await Wait(canceled.Task);
-        await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseAsync));
+        var error = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseAsync));
+        Assert.Equal(StatusCode.Cancelled, error.StatusCode);
+        Assert.Equal("Discovery fetch canceled.", error.Status.Detail);
         Assert.True(originalToken.IsCancellationRequested);
         Assert.True(host.Application.Lifetime.ApplicationStopping.IsCancellationRequested);
         Assert.False(host.Application.Lifetime.ApplicationStopped.IsCancellationRequested);
@@ -195,9 +205,11 @@ public sealed class ActiveCallbackShutdownTests
     }
 
     [Theory]
-    [InlineData("request")]
-    [InlineData("response")]
-    public async Task HttpFetchApplicationStopping_CancelsActiveHookAndReturns503(string stage)
+    [InlineData("request", false)]
+    [InlineData("response", false)]
+    [InlineData("request", true)]
+    [InlineData("response", true)]
+    public async Task HttpFetchApplicationStopping_CancelsActiveHookAndReturns503(string stage, bool failsDuringCancellation)
     {
         var entered = Signal();
         var canceled = Signal();
@@ -213,6 +225,10 @@ public sealed class ActiveCallbackShutdownTests
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
                 canceled.TrySetResult();
+                if (failsDuringCancellation)
+                {
+                    throw new InvalidOperationException("Internal Fetch diagnostic.");
+                }
                 throw;
             }
         }

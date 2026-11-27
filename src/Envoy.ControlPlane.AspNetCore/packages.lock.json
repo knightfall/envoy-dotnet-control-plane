@@ -28,7 +28,7 @@
       "Knightfall.Envoy.ControlPlane": {
         "type": "Project",
         "dependencies": {
-          "Knightfall.Envoy.ControlPlane.Protocol": "[1.0.0-rc.2, )"
+          "Knightfall.Envoy.ControlPlane.Protocol": "[1.0.0-rc.3, )"
         }
       },
       "Knightfall.Envoy.ControlPlane.Protocol": {
@@ -36,7 +36,7 @@
         "dependencies": {
           "Google.Protobuf": "[3.35.1, )",
           "Grpc.Core.Api": "[2.85.0, )",
-          "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.2, )"
+          "Knightfall.Envoy.ControlPlane.Validation.Annotations": "[1.0.0-rc.3, )"
         }
       },
       "Knightfall.Envoy.ControlPlane.Validation.Annotations": {

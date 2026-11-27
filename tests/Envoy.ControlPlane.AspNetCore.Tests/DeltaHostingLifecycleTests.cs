@@ -2,6 +2,8 @@ using Envoy.ControlPlane.AspNetCore.Tests.Support;
 using Envoy.ControlPlane.Resources;
 using Grpc.AspNetCore.Server;
 using Grpc.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using static Envoy.ControlPlane.AspNetCore.Tests.Support.DeltaDiscoveryCalls;
 using static Envoy.ControlPlane.AspNetCore.Tests.Support.GrpcHost;
@@ -10,6 +12,50 @@ namespace Envoy.ControlPlane.AspNetCore.Tests;
 
 public sealed class DeltaHostingLifecycleTests
 {
+    [Theory]
+    [InlineData("unexpected", StatusCode.Internal, "Delta discovery stream failed.")]
+    [InlineData("timeout", StatusCode.Internal, "Delta discovery stream failed.")]
+    [InlineData("status", StatusCode.PermissionDenied, "application status")]
+    public async Task DeltaResponseFailure_ReturnsOnlyItsPublicStatus(string mode, StatusCode expected, string detail)
+    {
+        const string diagnostic = "internal diagnostic marker";
+        Exception failure = mode switch
+        {
+            "status" => new RpcException(new Status(expected, detail)),
+            "timeout" => new OperationCanceledException(diagnostic),
+            _ => new InvalidOperationException(diagnostic),
+        };
+        using var diagnostics = new DiagnosticLoggerProvider("Envoy.ControlPlane.AspNetCore.DeltaGrpcStream");
+        await using var host = await StartAsync(configure: (_, callbacks) =>
+        {
+            callbacks.DeltaResponseHandler = (_, _) => ValueTask.FromException(failure);
+            if (mode == "status")
+            {
+                callbacks.CloseFailure = new InvalidOperationException("cleanup diagnostic marker");
+            }
+        }, services: services =>
+        {
+            services.AddLogging(logging => logging.AddProvider(diagnostics));
+            services.Configure<GrpcServiceOptions>(options => options.EnableDetailedErrors = true);
+        });
+        await host.Cache.Inner.SetSnapshotAsync("node", Snapshot(ResourceTypeUrls.Cluster, "v1"));
+        using var call = Open(host.Channel, "", TestContext.Current.CancellationToken);
+        await call.RequestStream.WriteAsync(Request(ResourceTypeUrls.Cluster), TestContext.Current.CancellationToken);
+
+        var error = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken)));
+        Assert.Equal(expected, error.StatusCode);
+        Assert.Equal(detail, error.Status.Detail);
+        var entry = Assert.Single(diagnostics.Entries);
+        Assert.Equal(LogLevel.Error, entry.Level);
+        Assert.StartsWith("Delta discovery stream failed for type ", entry.Message, StringComparison.Ordinal);
+        if (mode == "status")
+        {
+            var aggregate = Assert.IsType<AggregateException>(entry.Error);
+            Assert.Same(failure, aggregate.InnerException);
+            Assert.Equal("cleanup diagnostic marker", aggregate.InnerExceptions[1].Message);
+        }
+    }
+
     [Theory]
     [InlineData("missing-type", StatusCode.InvalidArgument)]
     [InlineData("closed-watch", StatusCode.Unavailable)]
@@ -98,7 +144,7 @@ public sealed class DeltaHostingLifecycleTests
             host.Application.Lifetime.StopApplication();
         }
         await Wait(host.Callbacks.Closed.Reader.ReadAsync(TestContext.Current.CancellationToken).AsTask());
-        Assert.Equal(0, host.Cache.Inner.GetStatusInfo("node")!.NumDeltaWatches);
+        Assert.Null(host.Cache.Inner.GetStatusInfo("node"));
         Assert.False(host.Callbacks.Closed.Reader.TryRead(out _));
         Assert.Equal(0, host.Cache.Disposals);
         if (source == "host")

@@ -95,7 +95,9 @@ internal static class ReleaseCandidate
         using var archive = ZipFile.OpenRead(path);
         Require(archive.Entries.All(entry => !Path.IsPathRooted(entry.FullName) && !entry.FullName.Replace('\\', '/').Split('/').Contains("..", StringComparer.Ordinal)),
             "Unsafe package entry: " + path);
-        using var manifest = archive.Entries.Single(entry => entry.FullName.EndsWith(".nuspec", StringComparison.Ordinal)).Open();
+        var manifestEntry = archive.Entries.Single(entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase));
+        Require(!manifestEntry.FullName.Contains('/') && !manifestEntry.FullName.Contains('\\'), "Package manifest must be at the archive root: " + path);
+        using var manifest = manifestEntry.Open();
         using var reader = XmlReader.Create(manifest, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null });
         var metadata = XDocument.Load(reader).Descendants().Single(item => item.Name.LocalName == "metadata");
         Require(Value("id") == id && Value("version") == version, "Release package identity/version differs: " + path);

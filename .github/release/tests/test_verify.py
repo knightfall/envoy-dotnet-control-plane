@@ -32,7 +32,7 @@ class ReleaseVerificationTests(unittest.TestCase):
         self.manifest()
 
     def package(self, suffix, commit=None, include_locator=True, readme='', locator_overrides=None,
-                include_readme=True):
+                include_readme=True, manifest_path='package.nuspec', extra_manifest=None):
         path = self.root / ('packages/Knightfall.Envoy.ControlPlane.' + self.policy['version'] + suffix)
         with zipfile.ZipFile(path, 'w') as archive:
             if suffix == '.nupkg' and include_locator:
@@ -45,11 +45,13 @@ class ReleaseVerificationTests(unittest.TestCase):
                 archive.writestr('README.md', readme)
             if suffix == '.snupkg':
                 archive.writestr('lib/net10.0/Library.pdb', b'symbol fixture')
-            archive.writestr('package.nuspec', '<package><metadata><id>Knightfall.Envoy.ControlPlane</id>'
+            archive.writestr(manifest_path, '<package><metadata><id>Knightfall.Envoy.ControlPlane</id>'
                              '<version>' + self.policy['version'] + '</version><readme>README.md</readme>'
                              '<repository url="https://github.com/'
                              + self.policy['repository'] + '" commit="' + (commit or self.commit)
                              + '"/></metadata></package>')
+            if extra_manifest:
+                archive.writestr(extra_manifest, '<package/>')
 
     def manifest(self):
         files = {path.relative_to(self.root).as_posix(): VERIFY.sha256(path)
@@ -107,6 +109,14 @@ class ReleaseVerificationTests(unittest.TestCase):
         self.manifest()
         with self.assertRaisesRegex(ValueError, 'source commit differs'):
             self.verify()
+
+    def test_manifest_must_be_single_and_at_archive_root(self):
+        for manifest_path, extra_manifest in (('nested/package.nuspec', None), ('package.nuspec', 'other.NUSPEC')):
+            with self.subTest(manifest_path=manifest_path, extra_manifest=extra_manifest):
+                self.package('.nupkg', manifest_path=manifest_path, extra_manifest=extra_manifest)
+                self.manifest()
+                with self.assertRaisesRegex(ValueError, 'Expected a single root .nuspec'):
+                    self.verify()
 
     def test_main_package_without_verification_locator_is_rejected(self):
         self.package('.nupkg', include_locator=False)

@@ -16,7 +16,7 @@ public sealed class DeltaServer
     /// <summary>Creates a server using an application-owned cache and optional hooks, options and host shutdown.</summary>
     /// <param name="cache">The application-owned configuration watcher.</param>
     /// <param name="callbacks">Optional serial lifecycle hooks.</param>
-    /// <param name="options">Source-equivalent legacy wildcard settings.</param>
+    /// <param name="options">Subscription limits and legacy wildcard settings.</param>
     /// <param name="shutdown">Cancellation shared by all server streams.</param>
     public DeltaServer(IConfigWatcher cache, IDeltaCallbacks? callbacks = null, DeltaOptions? options = null,
         CancellationToken shutdown = default)
@@ -25,6 +25,9 @@ public sealed class DeltaServer
         this.cache = cache;
         this.callbacks = callbacks;
         this.options = options ?? new DeltaOptions();
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(this.options.MaxAdsResourceTypes, nameof(DeltaOptions.MaxAdsResourceTypes));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(this.options.MaxSubscriptionEntries, nameof(DeltaOptions.MaxSubscriptionEntries));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(this.options.MaxSubscriptionCharacters, nameof(DeltaOptions.MaxSubscriptionCharacters));
         this.shutdown = shutdown;
     }
 

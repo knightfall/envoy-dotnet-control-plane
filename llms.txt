@@ -14,6 +14,7 @@
 ## Release and validation
 
 - [Release record](docs/releases/root-1.0.md): Package identity and publication evidence.
+- [1.0.0-rc.3 release notes](docs/releases/1.0.0-rc.3.md)
 - [1.0.0-rc.2 release notes](docs/releases/1.0.0-rc.2.md): Improvements since the first release candidate.
 - [1.0.0-rc.1 release notes](docs/releases/1.0.0-rc.1.md): Release scope and known limits.
 - [Publishing](docs/releases/PUBLISHING.md): Protected release and verification process.

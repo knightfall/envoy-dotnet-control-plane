@@ -34,16 +34,7 @@ public sealed class SotwBlockedWriterCancellationTests
         Assert.False(stream.Running.IsCompleted);
         Assert.False(stream.Sent.Reader.TryRead(out _));
         stream.Cancellation.Cancel();
-        if (ordered)
-        {
-            var failure = await Assert.ThrowsAsync<SotwProtocolException>(() => Wait(stream.Running));
-            Assert.Equal(SotwProtocolError.Unavailable, failure.Error);
-            Assert.IsAssignableFrom<OperationCanceledException>(failure.InnerException);
-        }
-        else
-        {
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Wait(stream.Running));
-        }
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Wait(stream.Running));
         Assert.True(stream.Running.IsCompleted);
         Assert.False(unreleased.Task.IsCompleted);
         Assert.False(stream.Sent.Reader.TryRead(out _));

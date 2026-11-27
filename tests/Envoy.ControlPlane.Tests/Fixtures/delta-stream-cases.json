@@ -389,7 +389,7 @@
   },
   {
     "id": "callback-mutation-and-receive-error",
-    "defaultType": "A",
+    "defaultType": "",
     "mutate": true,
     "steps": [
       {
@@ -398,7 +398,7 @@
       },
       {
         "kind": "request",
-        "type": ""
+        "type": "A"
       },
       {
         "kind": "end",
@@ -407,10 +407,10 @@
     ],
     "expected": {
       "events": [
-        "open|A",
+        "open|",
         "request|mutate|||||false",
         "watch|changed|selected|||false",
-        "request||||||false",
+        "request|A|||||false",
         "watch|A||||true",
         "close|callback"
       ],

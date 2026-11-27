@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the verified 1.0.0-rc.2 candidate (requires production approval)
+        description: Publish the verified 1.0.0-rc.3 candidate (requires production approval)
         type: boolean
         default: false
 permissions:
@@ -125,7 +125,7 @@ jobs:
           sparse-checkout: |
             .github/release
             global.json
-            docs/releases/1.0.0-rc.2.md
+            docs/releases/1.0.0-rc.3.md
           sparse-checkout-cone-mode: false
       - uses: actions/download-artifact@v8.0.2
         with:
@@ -210,6 +210,11 @@ jobs:
           artifact-ids: ${{ needs.build.outputs.artifact_id }}
           path: ${{ runner.temp }}/release
           merge-multiple: true
+      - name: Verify the original manifest digest and every candidate artifact
+        run: python3 .github/release/verify.py "$RUNNER_TEMP/release"
+        env:
+          RELEASE_PUBLISH: 'true'
+          RELEASE_MANIFEST_SHA256: ${{ needs.build.outputs.manifest_sha256 }}
       - uses: actions/setup-dotnet@v6.1.0
         with:
           global-json-file: global.json
@@ -229,6 +234,6 @@ jobs:
       contents: write
     steps:
       - name: Publish release announcement after both registry consumers pass
-        run: gh release edit v1.0.0-rc.2 --repo "$GITHUB_REPOSITORY" --draft=false
+        run: gh release edit v1.0.0-rc.3 --repo "$GITHUB_REPOSITORY" --draft=false
         env:
           GH_TOKEN: ${{ github.token }}

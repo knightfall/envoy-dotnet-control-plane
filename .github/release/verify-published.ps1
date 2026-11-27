@@ -42,6 +42,8 @@ for ($attempt = 0; $attempt -lt 12; $attempt++) {
     Start-Sleep -Seconds 10
 }
 if (!$restored) { throw 'Published packages did not become available' }
+python3 "$PSScriptRoot/verify-consumer-lock.py" $ReleaseDirectory "$consumer/packages.lock.json" $PolicyPath
+if ($LASTEXITCODE -ne 0) { throw 'Published consumer dependency verification failed' }
 dotnet restore "$consumer/Consumer.csproj" --locked-mode --packages $cache
 if ($LASTEXITCODE -ne 0) { throw 'Published locked consumer restore failed' }
 foreach ($id in $policy.packages) {

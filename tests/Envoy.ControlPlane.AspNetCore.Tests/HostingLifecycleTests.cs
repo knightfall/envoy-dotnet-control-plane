@@ -1,6 +1,9 @@
 using Envoy.ControlPlane.AspNetCore.Tests.Support;
 using Envoy.ControlPlane.Resources;
+using Envoy.ControlPlane.Streams;
+using Grpc.AspNetCore.Server;
 using Grpc.Core;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using static Envoy.ControlPlane.AspNetCore.Tests.Support.DiscoveryCalls;
 using static Envoy.ControlPlane.AspNetCore.Tests.Support.GrpcHost;
@@ -9,6 +12,41 @@ namespace Envoy.ControlPlane.AspNetCore.Tests;
 
 public sealed class HostingLifecycleTests
 {
+    [Theory]
+    [InlineData("unexpected", false, StatusCode.Internal, "Discovery stream failed.")]
+    [InlineData("unexpected", true, StatusCode.Internal, "Discovery stream failed.")]
+    [InlineData("status", false, StatusCode.PermissionDenied, "application status")]
+    [InlineData("status", true, StatusCode.PermissionDenied, "application status")]
+    [InlineData("timeout", false, StatusCode.Internal, "Discovery stream failed.")]
+    public async Task OrderedAds_ResponseFailureReturnsOnlyItsPublicStatus(string mode, bool cleanupFails, StatusCode expected, string detail)
+    {
+        const string diagnostic = "internal diagnostic marker";
+        const string trailerKey = "x-test-status";
+        const string trailerValue = "application metadata";
+        Exception failure = mode switch
+        {
+            "status" => new RpcException(new Status(expected, detail), new Metadata { { trailerKey, trailerValue } }),
+            "timeout" => new TaskCanceledException(diagnostic),
+            _ => new InvalidOperationException(diagnostic),
+        };
+        await using var host = await StartAsync(new SotwOptions { OrderedAds = true }, configure: (_, callbacks) =>
+        {
+            callbacks.ResponseHandler = (_, _) => ValueTask.FromException(failure);
+            if (cleanupFails)
+            {
+                callbacks.CloseFailure = new RpcException(new Status(StatusCode.Aborted, "cleanup status"));
+            }
+        },
+            services: services => services.Configure<GrpcServiceOptions>(options => options.EnableDetailedErrors = true));
+        await host.Cache.Inner.SetSnapshotAsync("node", Snapshot(ResourceTypeUrls.Cluster, "v1"));
+        using var call = Open(host.Channel, "", TestContext.Current.CancellationToken);
+        await call.RequestStream.WriteAsync(Request(ResourceTypeUrls.Cluster), TestContext.Current.CancellationToken);
+        var rejected = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken)));
+        Assert.Equal(expected, rejected.StatusCode);
+        Assert.Equal(detail, rejected.Status.Detail);
+        Assert.Equal(mode == "status" ? trailerValue : null, rejected.Trailers.GetValue(trailerKey));
+    }
+
     [Theory]
     [InlineData("missing-type", StatusCode.InvalidArgument)]
     [InlineData("closed-watch", StatusCode.Unavailable)]
@@ -50,7 +88,7 @@ public sealed class HostingLifecycleTests
             var canceled = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseStream.MoveNext(TestContext.Current.CancellationToken)));
             Assert.Equal(StatusCode.Cancelled, canceled.StatusCode);
             await Wait(host.Callbacks.Closed.Reader.ReadAsync(TestContext.Current.CancellationToken).AsTask());
-            Assert.Equal(0, host.Cache.Inner.GetStatusInfo("node")!.NumWatches);
+            Assert.Null(host.Cache.Inner.GetStatusInfo("node"));
         }
         await host.Cache.Inner.SetSnapshotAsync("node", Snapshot(ResourceTypeUrls.Cluster, "after-cancel"));
         using var next = Open(host.Channel, ResourceTypeUrls.Cluster, TestContext.Current.CancellationToken);
@@ -72,7 +110,7 @@ public sealed class HostingLifecycleTests
         Assert.Equal(1, host.Cache.Inner.GetStatusInfo("node")!.NumWatches);
         var stopping = host.Application.StopAsync(TestContext.Current.CancellationToken);
         await Wait(host.Callbacks.Closed.Reader.ReadAsync(TestContext.Current.CancellationToken).AsTask());
-        Assert.Equal(0, host.Cache.Inner.GetStatusInfo("node")!.NumWatches);
+        Assert.Null(host.Cache.Inner.GetStatusInfo("node"));
         Assert.False(host.Callbacks.Closed.Reader.TryRead(out _));
         await Wait(stopping);
         await host.DisposeAsync();

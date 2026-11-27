@@ -3,11 +3,14 @@ namespace Envoy.ControlPlane.Streams;
 /// <summary>Transport-independent protocol failures translated by discovery service adapters.</summary>
 public enum SotwProtocolError
 {
-    /// <summary>An ADS request omitted its required type URL.</summary>
+    /// <summary>An ADS request omitted its type URL or a dedicated stream received a different type URL.</summary>
     InvalidArgument = 0,
 
     /// <summary>The request or current response watch ended without a usable value.</summary>
     Unavailable = 1,
+
+    /// <summary>An ADS request exceeded the stream's distinct resource type limit.</summary>
+    ResourceExhausted = 2,
 }
 
 /// <summary>A SotW protocol failure; application and producer exceptions retain their original types.</summary>

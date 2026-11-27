@@ -140,13 +140,17 @@ public sealed class DeltaStreamTests
             Assert.Same(state, context.State);
             Assert.Equal(stream.Cancellation.Token, context.CancellationToken);
             Assert.Equal(1, id);
-            Assert.Equal("implied", type);
+            Assert.Empty(type);
             return ValueTask.CompletedTask;
         };
         stream.Callbacks.Request = (_, request, _) =>
         {
             observed.Add(request.TypeUrl + "|" + request.Node?.Id);
-            if (request.TypeUrl == "before")
+            if (request.TypeUrl.Length == 0)
+            {
+                request.TypeUrl = "filled-by-callback";
+            }
+            else if (request.TypeUrl == "before")
             {
                 request.TypeUrl = "after";
                 request.Node = replacement;
@@ -156,10 +160,10 @@ public sealed class DeltaStreamTests
         };
         Node? closed = null;
         stream.Callbacks.Close = (_, node) => { closed = node; return ValueTask.CompletedTask; };
-        stream.Start("implied", state: state);
+        stream.Start(typeUrl: "", state: state);
         stream.Input.Push(DeltaStreamFixtures.Request(type: ""));
         var first = await stream.NextWatch();
-        Assert.Equal("implied", first.Request.TypeUrl);
+        Assert.Equal("filled-by-callback", first.Request.TypeUrl);
         Assert.Equal("", first.Request.Node.Id);
         stream.Input.Push(DeltaStreamFixtures.Request(type: "before"));
         var changed = await stream.NextWatch();

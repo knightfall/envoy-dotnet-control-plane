@@ -13,7 +13,7 @@ The maintained proof has separate layers:
 | Descriptor equality after removing derived options | Original fields, services, messages, original PGV options and wire contracts remain equal across all 523 files |
 | Compilation/execution audit of all 1,502 generated message classes | Each generated type can compile and execute a validator; invalid defaults remain ordinary violations |
 | 68 real Envoy whole-message cases | Independently declared .NET and actual Go PGV outcomes, including required oneofs, nested messages, skipped children and four accepted NaN differences |
-| 310 field-boundary cases on 90 real fields | Acceptance, rejection and boundaries for all 59 populated paths and all 86 path combinations; both validators receive the same protobuf bytes |
+| 317 field-boundary cases on 90 real fields | Acceptance, rejection and boundaries for all 59 populated paths and all 86 path combinations; both validators receive the same protobuf bytes |
 | 373 selected upstream PGV harness cases | Independent original PGV expectations and actual Go outcomes for rules within the selected catalog inventory |
 | 2,748 stable upstream Protovalidate cases | Expected outcome kinds and unordered structured field-path/rule-ID diagnostics, including expected compilation/runtime errors |
 | Fresh package consumers and package-graph checks | Validation works with the built NuGet candidates, one annotation/message owner, and no evaluator/CEL dependency in Core or hosting |

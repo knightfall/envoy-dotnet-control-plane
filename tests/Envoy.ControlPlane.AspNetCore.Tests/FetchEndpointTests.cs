@@ -2,8 +2,10 @@ using Envoy.ControlPlane.AspNetCore.Tests.Support;
 using Envoy.ControlPlane.Cache;
 using Envoy.ControlPlane.Resources;
 using Google.Protobuf;
+using Grpc.AspNetCore.Server;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using static Envoy.ControlPlane.AspNetCore.Tests.Support.DiscoveryCalls;
 using static Envoy.ControlPlane.AspNetCore.Tests.Support.DiscoveryFetchCalls;
@@ -108,26 +110,50 @@ public sealed class FetchEndpointTests
     }
 
     [Theory]
-    [InlineData("missing", StatusCode.Unknown)]
-    [InlineData("unchanged", StatusCode.Unknown)]
-    [InlineData("callback", StatusCode.PermissionDenied)]
-    [InlineData("unsupported", StatusCode.Unknown)]
-    public async Task Failures_RetainProducerAndCallbackGrpcStatus(string mode, StatusCode expected)
+    [InlineData("missing", StatusCode.Unknown, "Discovery fetch failed.", LogLevel.Debug)]
+    [InlineData("unchanged", StatusCode.Unknown, "Discovery fetch failed.", LogLevel.Debug)]
+    [InlineData("callback", StatusCode.PermissionDenied, "rejected", null)]
+    [InlineData("unsupported", StatusCode.Unknown, "Discovery fetch failed.", LogLevel.Error)]
+    [InlineData("timeout", StatusCode.Unknown, "Discovery fetch failed.", LogLevel.Error)]
+    [InlineData("unexpected", StatusCode.Unknown, "Discovery fetch failed.", LogLevel.Error)]
+    public async Task Failures_RetainProducerAndCallbackGrpcStatusWithPublicDetail(string mode, StatusCode expected, string detail,
+        LogLevel? diagnosticLevel)
     {
+        using var diagnostics = new DiagnosticLoggerProvider("Envoy.ControlPlane.AspNetCore.FetchGrpc");
         await using var host = await StartAsync(configure: (_, hooks) =>
         {
             if (mode == "callback")
             {
                 hooks.FetchRequestHandler = (_, _) => throw new RpcException(new Status(StatusCode.PermissionDenied, "rejected"));
             }
+            else if (mode == "timeout")
+            {
+                hooks.FetchRequestHandler = (_, _) => throw new TaskCanceledException("internal timeout marker");
+            }
+            else if (mode == "unexpected")
+            {
+                hooks.FetchResponseHandler = _ => throw new InvalidOperationException("internal response marker");
+            }
         }, services: services =>
         {
+            services.AddLogging(logging => logging.AddProvider(diagnostics).SetMinimumLevel(LogLevel.Debug));
+            services.Configure<GrpcServiceOptions>(options => options.EnableDetailedErrors = true);
             if (mode == "unsupported") services.AddSingleton<IConfigFetcher>(new LinearCache(ResourceTypeUrls.Route));
         });
         if (mode == "unchanged") await host.Cache.Inner.SetSnapshotAsync("node", Snapshot(ResourceTypeUrls.Route, "v1"));
+        if (mode == "unexpected") await host.Cache.Inner.SetSnapshotAsync("node", Snapshot(ResourceTypeUrls.Route, "v2"));
         using var call = OpenFetch(host.Channel, ResourceTypeUrls.Route, Request(version: "v1"), TestContext.Current.CancellationToken);
         var error = await Assert.ThrowsAsync<RpcException>(() => Wait(call.ResponseAsync));
         Assert.Equal(expected, error.StatusCode);
+        Assert.Equal(detail, error.Status.Detail);
+        if (diagnosticLevel is { } level)
+        {
+            Assert.Equal(level, Assert.Single(diagnostics.Entries).Level);
+        }
+        else
+        {
+            Assert.Empty(diagnostics.Entries);
+        }
         Assert.Empty(host.Cache.Inner.GetStatusKeys());
     }
 

@@ -42,7 +42,7 @@ public sealed class SotwRequestTests
     }
 
     [Fact]
-    public async Task Requests_CarryNodesAndImplyOnlyMissingTypes()
+    public async Task DedicatedRequests_CarryNodesAndAcceptExplicitAndImplicitTypes()
     {
         await using var stream = new StreamHarness();
         var events = new List<string>();
@@ -67,7 +67,7 @@ public sealed class SotwRequestTests
         var first = await stream.NextWatch();
         Assert.Equal("", first.Request.Node.Id);
         Assert.Equal("implied", first.Request.TypeUrl);
-        var supplied = Request(type: "other");
+        var supplied = Request(type: "implied");
         supplied.Node = new Node { Id = "later" };
         stream.Input.Push(supplied);
         var second = await stream.NextWatch();
@@ -76,7 +76,7 @@ public sealed class SotwRequestTests
         Assert.Same(second.Request.Node, third.Request.Node);
         await stream.Finish();
         Assert.Same(supplied.Node, closed);
-        Assert.Equal(["open:implied", "request::implied", "request:later:other", "request:later:implied", "close"], events);
+        Assert.Equal(["open:implied", "request::implied", "request:later:implied", "request:later:implied", "close"], events);
         Assert.All(stream.Watcher.Registrations, registration => Assert.Equal(1, registration.Watch.Disposals));
     }
 
@@ -96,7 +96,7 @@ public sealed class SotwRequestTests
             }
             return ValueTask.CompletedTask;
         };
-        stream.Start();
+        stream.Start(typeUrl: "");
         var request = Request(type: "before");
         request.Node = captured;
         stream.Input.Push(request);

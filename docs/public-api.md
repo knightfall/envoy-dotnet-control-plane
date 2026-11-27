@@ -19,7 +19,7 @@ The five packages use the `Knightfall.Envoy.ControlPlane` prefix: Core uses the 
 | `SnapshotCache.SetSnapshotAsync` | Retain the snapshot and await eligible enqueueing. No automatic consistency/semantic validation, ACK wait or cross-type transaction. Cancellation after installation can leave the new snapshot retained. A canceled queued wait can finish before installation. |
 | Snapshot versions | Caller-supplied opaque per-type strings. Delta versions derive from deterministic protobuf payloads. TTL/type-version changes alone do not change resource hashes; cross-language hash bytes are not guaranteed. |
 | `EnsureConsistent` | Explicit selected EDS/RDS reference-set checks, including scoped routes and HCM references. No universal semantic validation or Envoy acceptance guarantee. |
-| `GetStatusInfo` | Synchronized live node/watch/request-time status. |
+| `GetStatusInfo` | Synchronized live node/watch/request-time status. A key without a snapshot loses its status after its last pending SotW or Delta watch ends. |
 | `ClearSnapshot` | Removes the retained snapshot and indexed status. Existing watches stay open and remain caller-owned, and later publications cannot find those registrations. |
 | `LinearCache` | One arbitrary type URL, caller-supplied names and optional version prefix. Keep publication input collections stable until completion and retained messages stable until replacement. Update counters follow source behavior, including no-op updates. |
 | `MuxCache` | Copies the ordinal child index, uses separate SotW/Delta classifiers and shares the SotW classifier with Fetch. Classifiers support concurrent calls. Children remain caller-owned; the mux adds no cross-cache publication lock or transaction. |
@@ -46,6 +46,8 @@ Core streams own their input enumeration and watch registrations. Inputs, writer
 |---|---|
 | `SnapshotCache(ads: ...)` | False. Opt-in source readiness checks require requested exact names to cover retained resources. Readiness and stream ordering are independent. |
 | `SotwOptions.OrderedAds` | False. Only SotW ADS uses the shared bounded ordered FIFO when enabled. It does not create an atomic application transaction. |
+| SotW/Delta `MaxAdsResourceTypes` | 64 distinct type URLs per ADS stream. Set a positive limit for your catalog. Existing subscriptions can continue at the limit. |
+| Delta `MaxSubscriptionEntries`, `MaxSubscriptionCharacters` | 16,384 entries and 1,048,576 UTF-16 code units for retained explicit names, prefixes, pending wildcard resets, and client-supplied version map keys and values across a dedicated or ADS Delta stream. Both limits apply after callback changes and before cache dispatch. |
 | SotW/Delta `DisableLegacyWildcard` | False. Initial empty subscriptions use the source legacy wildcard behavior by default. |
 | SotW/Delta `LegacyWildcardDisabledTypes` | Empty ordinal type-URL set. Explicit wildcard subscriptions remain supported. Keep supplied option collections stable while servers use them. |
 | `INodeHasher`, `TimeProvider` | Node ID routing and system clock by default; callers can replace either. Node IDs are routing data, not authorization. |
@@ -59,6 +61,8 @@ Core streams own their input enumeration and watch registrations. Inputs, writer
 
 SotW request hooks run after normalization and before stale-nonce filtering. Ordered ADS captures its dispatch type before the hook; ordinary mode uses the effective type afterward. SotW response hooks run after nonce/bookkeeping updates with the cache response's creation context, which can differ from the stream-open context.
 
+Dedicated SotW and Delta streams accept the service type explicitly or implicitly. Both reject a different type before the request hook and check again after it returns. ADS dispatch remains multiplexed.
+
 Delta drains queued responses before the request hook, which runs before node/type normalization. When replacing a watch, .NET also closes the old watch and drains the shared queue in order before updating the subscription and opening its replacement. This second drain extends the pinned Go behavior so replacement selection sees the returned versions of responses queued during the hook. Returned versions advance after a successful send. Its source loop does not apply SotW stale-nonce rejection or an ACK-committed ledger. NACKs in either mode do not roll back application snapshots. Fetch hooks run request, producer, materialization and response in order; the source Fetch response hook has no context/cancellation parameter. Producer failure or a missing envelope bypasses that response hook. A materialization failure invokes it with null; if the hook also fails, its exception takes precedence over the materialization failure.
 
 | Failure | Observable contract |
@@ -67,11 +71,13 @@ Delta drains queued responses before the request hook, which runs before node/ty
 | Missing snapshot / mux key | `KeyNotFoundException`; mux delegates child errors directly. |
 | Unchanged Fetch | `SkipFetchException`; HTTP gateway maps it, including ordinary wrapping, to empty 304. |
 | Unsupported Fetch | `NotSupportedException` for LinearCache or a selected watch-only child. Hosting keeps streaming available. |
-| Core protocol rejection | `SotwProtocolException` / `DeltaProtocolException` with protocol status; adapters map InvalidArgument/Unavailable to gRPC status. |
-| Stream processing / callback error | Original exception retained. Ordered main-queue response failures map to Unavailable with the inner cause; drain failures preserve source-specific propagation. |
+| Core protocol rejection | `SotwProtocolException` / `DeltaProtocolException` with protocol status. Adapters map InvalidArgument, Unavailable and ResourceExhausted to their gRPC equivalents. |
+| Stream processing / callback error | Core retains the original exception, including for ordered SotW queue and drain failures. |
 | Multiple processing / cleanup errors | Aggregate retains processing failure first and subsequent cleanup failures. Close is attempted once. |
-| Application `RpcException` | Existing gRPC status retained; unexpected transport failures follow framework handling. |
-| HTTP gateway | 200 protobuf JSON, empty 304 unchanged, 400 bad/read-failed JSON, 404 unknown path, 500 Fetch/materialization/format failure, empty 503 when host shutdown cancels a response before it starts. Disconnects and shutdown after response start may end the request without an HTTP status. |
+| Application `RpcException` | The gRPC adapters retain the supplied status and trailers, including when a primary stream failure is aggregated with cleanup failures. |
+| gRPC cancellation exception | `Cancelled` when the call or host is stopping. |
+| Other gRPC handler exceptions | Fixed `Internal` detail for SotW and Delta or fixed `Unknown` detail for unary Fetch. The host logs the exception. |
+| HTTP gateway | 200 protobuf JSON, empty 304 unchanged, 400 malformed JSON or unclassified read failure, 404 unknown path, 413 gateway body limit, 500 Fetch/materialization/format failure, empty 503 when host shutdown cancels a response before it starts. A host `BadHttpRequestException` keeps its HTTP status. Disconnects and shutdown after response start may end the request without an HTTP status. |
 
 Error strings/order, JSON whitespace/property order and time precision are runtime adaptations. See the task evidence for exact tested paths. The library adds no retry policy, transport quota or authentication provider.
 

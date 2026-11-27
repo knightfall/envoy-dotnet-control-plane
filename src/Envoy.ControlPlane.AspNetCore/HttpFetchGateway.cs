@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Envoy.ControlPlane.AspNetCore;
 
-internal sealed class HttpFetchGateway(TypeRegistry types)
+internal sealed class HttpFetchGateway(TypeRegistry types, int maxRequestBodyBytes)
 {
     internal static readonly TypeRegistry DefaultTypes = TypeRegistry.FromMessages(
         Envoy.Config.Endpoint.V3.ClusterLoadAssignment.Descriptor, Envoy.Config.Cluster.V3.Cluster.Descriptor,
@@ -42,8 +42,13 @@ internal sealed class HttpFetchGateway(TypeRegistry types)
         {
             await FetchAsync(context, typeUrl, cancellationToken);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (Exception error) when (error is not OutOfMemoryException && cancellationToken.IsCancellationRequested)
         {
+            if (error is not OperationCanceledException)
+            {
+                context.RequestServices.GetRequiredService<ILogger<HttpFetchGateway>>()
+                    .LogDebug(error, "Discovery Fetch failed during cancellation");
+            }
             if (!context.RequestAborted.IsCancellationRequested)
             {
                 if (context.Response.HasStarted)
@@ -64,9 +69,12 @@ internal sealed class HttpFetchGateway(TypeRegistry types)
         DiscoveryRequest request;
         try
         {
-            await using var body = new MemoryStream();
-            await context.Request.Body.CopyToAsync(body, cancellationToken);
-            request = parser.Parse<DiscoveryRequest>(Utf8.GetString(body.GetBuffer(), 0, checked((int)body.Length)));
+            request = await ReadRequestAsync(context.Request, cancellationToken);
+        }
+        catch (BadHttpRequestException error) when (!cancellationToken.IsCancellationRequested)
+        {
+            context.Response.StatusCode = error.StatusCode;
+            return;
         }
         catch (Exception error) when (error is not OutOfMemoryException && !cancellationToken.IsCancellationRequested)
         {
@@ -97,6 +105,34 @@ internal sealed class HttpFetchGateway(TypeRegistry types)
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsync(json, cancellationToken);
     }
+
+    private async Task<DiscoveryRequest> ReadRequestAsync(HttpRequest request, CancellationToken cancellationToken)
+    {
+        if (request.ContentLength > maxRequestBodyBytes)
+        {
+            throw BodyTooLarge();
+        }
+        await using var body = new MemoryStream();
+        var buffer = new byte[Math.Min(maxRequestBodyBytes, 8192)];
+        while (true)
+        {
+            // At the limit, read only the byte needed to distinguish EOF from excess data.
+            int allowed = (int)Math.Min(buffer.Length, (long)maxRequestBodyBytes - body.Length + 1);
+            int count = await request.Body.ReadAsync(buffer.AsMemory(0, allowed), cancellationToken);
+            if (count == 0)
+            {
+                return parser.Parse<DiscoveryRequest>(Utf8.GetString(body.GetBuffer(), 0, (int)body.Length));
+            }
+            if (body.Length + count > maxRequestBodyBytes)
+            {
+                throw BodyTooLarge();
+            }
+            body.Write(buffer, 0, count);
+        }
+    }
+
+    private static BadHttpRequestException BodyTooLarge() =>
+        new("Discovery request body exceeds the gateway limit.", StatusCodes.Status413PayloadTooLarge);
 
     private static bool IsSkipped(Exception error)
     {

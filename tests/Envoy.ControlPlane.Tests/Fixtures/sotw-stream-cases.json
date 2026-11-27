@@ -12,7 +12,7 @@
       },
       {
         "kind": "request",
-        "type": "type/B",
+        "type": "type/A",
         "node": "later",
         "version": "x"
       },
@@ -27,8 +27,8 @@
         "watch|type/A||||true",
         "request|type/A|first||||false",
         "watch|type/A||||true",
-        "request|type/B|later|x|||false",
-        "watch|type/B|x|||true",
+        "request|type/A|later|x|||false",
+        "watch|type/A|x|||true",
         "close|later"
       ],
       "disposals": [

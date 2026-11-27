@@ -182,12 +182,13 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
         ISotwResponse? immediateResponse = null;
         lock (gate)
         {
+            var requestTime = timeProvider.GetUtcNow();
             if (!status.TryGetValue(nodeId, out var info))
             {
                 info = new StatusInfo(gate, request.Node);
                 status[nodeId] = info;
             }
-            info.LastWatch = timeProvider.GetUtcNow();
+            info.LastWatch = requestTime;
             if (snapshots.TryGetValue(nodeId, out var snapshot))
             {
                 var selection = SotwResponseSelection.Create(snapshot, request, subscription, ads, default);
@@ -211,6 +212,7 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
     }
 
     /// <summary>Returns the live synchronized status view, or null when no status is indexed.</summary>
+    /// <remarks>Without a published snapshot, status is indexed only while a watch is pending.</remarks>
     /// <param name="nodeId">The cache key.</param>
     public IStatusInfo? GetStatusInfo(string nodeId)
     {
@@ -233,10 +235,19 @@ public sealed partial class SnapshotCache : IConfigWatcher, IConfigFetcher
     {
         lock (gate)
         {
-            if (status.TryGetValue(nodeId, out var info))
+            if (status.TryGetValue(nodeId, out var info) && info.Watches.Remove(watchId))
             {
-                info.Watches.Remove(watchId);
+                RemoveIdleStatus(nodeId, info);
             }
+        }
+    }
+
+    private void RemoveIdleStatus(string nodeId, StatusInfo info)
+    {
+        // Call under the cache gate so publication and watch removal share the same status lifetime.
+        if (info.Watches.Count == 0 && info.DeltaWatches.Count == 0 && !snapshots.ContainsKey(nodeId))
+        {
+            status.Remove(nodeId);
         }
     }
 

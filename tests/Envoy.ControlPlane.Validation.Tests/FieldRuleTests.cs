@@ -21,8 +21,8 @@ public sealed class FieldRuleTests
     [Fact]
     public void FieldCorpus_RecordsAllOutcomesForGoComparison()
     {
-        Assert.Equal(310, FieldRuleCorpus.Results.Length);
-        Assert.Equal(310, FieldRuleCorpus.Results.Select(row => row.Id).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(317, FieldRuleCorpus.Results.Length);
+        Assert.Equal(317, FieldRuleCorpus.Results.Select(row => row.Id).Distinct(StringComparer.Ordinal).Count());
         File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "validation-fields.json"),
             JsonSerializer.Serialize(new { Results = FieldRuleCorpus.Results }, new JsonSerializerOptions { WriteIndented = true }) + "\n");
     }

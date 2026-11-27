@@ -53,7 +53,7 @@ public sealed class SotwResponseTests
     public async Task UnsubscribedResponse_IsConsumedWithoutMaterializingOrSending()
     {
         await using var stream = new StreamHarness();
-        stream.Start();
+        stream.Start(typeUrl: "");
         stream.Input.Push(Request(names: ["wanted"]));
         var watch = await stream.NextWatch();
         var inspected = Signal();

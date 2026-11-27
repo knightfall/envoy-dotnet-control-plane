@@ -99,10 +99,12 @@ internal sealed class DeltaSession(IConfigWatcher cache, IDeltaCallbacks? callba
         {
             throw new DeltaProtocolException(DeltaProtocolError.Unavailable, "empty request");
         }
+        ValidateDedicatedType(request.TypeUrl, typeUrl);
         await DrainResponsesAsync(send, cancellationToken);
         if (callbacks is not null)
         {
             await callbacks.OnStreamRequestAsync(streamId, request, cancellationToken);
+            ValidateDedicatedType(request.TypeUrl, typeUrl);
         }
         if (request.Node is not null)
         {
@@ -121,10 +123,20 @@ internal sealed class DeltaSession(IConfigWatcher cache, IDeltaCallbacks? callba
             request.TypeUrl = typeUrl;
         }
         string requestType = request.TypeUrl;
+        var versionBudget = MeasureVersions(request.InitialResourceVersions);
         if (!watches.TryGetValue(requestType, out var current))
         {
+            if (watches.Count >= options.MaxAdsResourceTypes)
+            {
+                throw new DeltaProtocolException(DeltaProtocolError.ResourceExhausted, "ADS resource type limit exceeded");
+            }
+            // Check the client map before making the owned subscription copy.
+            ValidateSubscriptionBudget(versionBudget);
             current = new TypeWatch(new DeltaSubscription(request.ResourceNamesSubscribe, request.ResourceNamesUnsubscribe,
-                request.InitialResourceVersions, options.IsLegacyWildcardActive(requestType)));
+                request.InitialResourceVersions, options.IsLegacyWildcardActive(requestType)))
+            {
+                InitialVersions = versionBudget,
+            };
             watches.Add(requestType, current);
         }
         else
@@ -134,9 +146,45 @@ internal sealed class DeltaSession(IConfigWatcher cache, IDeltaCallbacks? callba
             // Account for it before the replacement watch selects changes.
             await DrainResponsesAsync(send, cancellationToken);
             current.Subscription.UpdateResourceSubscriptions(request.ResourceNamesSubscribe, request.ResourceNamesUnsubscribe);
+            // Subsequent maps never seed the subscription, but the watch can retain its request.
+            current.LaterRequestVersions = versionBudget;
         }
+        ValidateSubscriptionBudget();
         current.Registration = cache.CreateDeltaWatch(request, current.Subscription, responses.Writer)
             ?? throw new DeltaProtocolException(DeltaProtocolError.Unavailable, "missing resource watch");
+    }
+
+    private static VersionBudget MeasureVersions(IReadOnlyDictionary<string, string> versions)
+    {
+        long characters = 0;
+        foreach (var (name, version) in versions)
+        {
+            characters += (long)name.Length + version.Length;
+        }
+        return new VersionBudget(versions.Count, characters);
+    }
+
+    private void ValidateSubscriptionBudget(VersionBudget additional = default)
+    {
+        long entries = additional.Entries;
+        long characters = additional.Characters;
+        foreach (var watch in watches.Values)
+        {
+            entries += watch.Subscription.RetainedEntryCount + watch.InitialVersions.Entries + watch.LaterRequestVersions.Entries;
+            characters += watch.Subscription.RetainedCharacters + watch.InitialVersions.Characters + watch.LaterRequestVersions.Characters;
+        }
+        if (entries > options.MaxSubscriptionEntries || characters > options.MaxSubscriptionCharacters)
+        {
+            throw new DeltaProtocolException(DeltaProtocolError.ResourceExhausted, "Delta subscription limit exceeded");
+        }
+    }
+
+    private static void ValidateDedicatedType(string requestType, string streamType)
+    {
+        if (streamType.Length > 0 && requestType.Length > 0 && requestType != streamType)
+        {
+            throw new DeltaProtocolException(DeltaProtocolError.InvalidArgument, "type URL does not match the discovery service");
+        }
     }
 
     private async ValueTask DrainResponsesAsync(Func<DeltaDiscoveryResponse, CancellationToken, ValueTask> send,
@@ -171,6 +219,8 @@ internal sealed class DeltaSession(IConfigWatcher cache, IDeltaCallbacks? callba
         }
         await send(outgoing, cancellationToken);
         current.Subscription.SetReturnedResourcesFromResponse(response.ReturnedResources);
+        current.InitialVersions = default;
+        current.LaterRequestVersions = default;
     }
 
     private async Task CleanupAsync(CancellationTokenSource cancellation, List<Exception> failures)
@@ -237,10 +287,14 @@ internal sealed class DeltaSession(IConfigWatcher cache, IDeltaCallbacks? callba
         }
     }
 
+    private readonly record struct VersionBudget(int Entries, long Characters);
+
     private sealed class TypeWatch(DeltaSubscription subscription)
     {
         internal DeltaSubscription Subscription { get; } = subscription;
         internal IDisposable? Registration { get; set; }
+        internal VersionBudget InitialVersions { get; set; }
+        internal VersionBudget LaterRequestVersions { get; set; }
 
         internal async ValueTask CloseAsync()
         {

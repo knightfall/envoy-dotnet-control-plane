@@ -16,6 +16,10 @@ T26 verifies the pinned catalog's 59 populated PGV rule paths and 86 path combin
 
 Unknown encoded Protovalidate constraints and unsupported metadata enum values fail compilation. Malformed CEL and rule/type mismatches are compilation faults; causes are retained. Registered predefined CEL extensions remain supported. These checks prevent unsupported metadata from being silently reported as valid.
 
+Both CEL `matches` call forms use managed implementations of RE2 matching for the pinned Envoy patterns and the predefined header and UUID patterns. Other patterns retain .NET regex syntax and use a 100 ms match timeout and a 16 KiB UTF-8 pattern limit. Invalid patterns, over-limit patterns and timed-out matches fail validation with an execution exception. The timeout applies to matching. Applications that accept externally authored rules must also control rule compilation and validation concurrency. General CEL regex compatibility with RE2 remains open.
+
+Set `new ValidatorOptions { RequireCatalogRegexPatterns = true }` when creating the validator to reject patterns outside the managed table with an execution exception. For applications that need custom patterns, `CustomRegexMatchTimeout` can lower their per-match timeout below 100 ms. Both options apply to both CEL call forms.
+
 ## Supply-chain verification
 
 Find the matching package and its release evidence on [GitHub Releases](https://github.com/knightfall/envoy-dotnet-control-plane/releases). The package's `security/provenance.json` identifies verification locations; it is not itself an attestation. Follow the [package verification guide](https://github.com/knightfall/envoy-dotnet-control-plane/blob/main/docs/releases/VERIFYING.md) to verify the release artifact and compare it with a NuGet download.

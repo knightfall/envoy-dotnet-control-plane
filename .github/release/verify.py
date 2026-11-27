@@ -69,7 +69,10 @@ def verify_release(root, manifest_hash, commit, policy):
         name = package.rsplit('/', 1)[1].removesuffix('.snupkg').removesuffix('.nupkg')
         package_id = name.removesuffix('.' + policy['version'])
         with zipfile.ZipFile(root / package) as archive:
-            metadata = ET.fromstring(archive.read(next(name for name in archive.namelist() if name.endswith('.nuspec'))))
+            manifests = [entry for entry in archive.infolist() if entry.filename.lower().endswith('.nuspec')]
+            require(len(manifests) == 1 and '/' not in manifests[0].filename and '\\' not in manifests[0].filename,
+                    'Expected a single root .nuspec in ' + package)
+            metadata = ET.fromstring(archive.read(manifests[0]))
             fields = {element.tag.rsplit('}', 1)[-1]: element for element in metadata.iter()}
             require(fields['id'].text == package_id and fields['version'].text == policy['version'], 'Package identity differs')
             require(fields['repository'].get('commit') == commit, 'Package source commit differs')
